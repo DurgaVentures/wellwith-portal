@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Wellwith Mangaluru — Store Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase Compat Libraries (Safe Non-Blocking CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -31,20 +34,23 @@
     <!-- Top App Bar -->
     <header class="bg-[#05281b] text-white px-5 pt-6 pb-4 shadow-sm z-30 shrink-0 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <button id="btn-sidebar-toggle" onclick="haptic(10); toggleSidebar(true)" class="hidden p-2 rounded-xl bg-white/10 active:scale-95 text-emerald-100 transition">
+        <button id="btn-sidebar-toggle" onclick="haptic(10); toggleSidebar(true)" class="hidden p-2 rounded-xl bg-white/10 active:scale-95 text-emerald-100 transition cursor-pointer">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center font-black text-xs text-emerald-300">
           WW
         </div>
         <div>
-          <h1 id="page-title" class="text-xs font-black tracking-tight text-emerald-50">Wellwith Mangaluru</h1>
-          <p id="page-subtitle" class="text-[10px] text-emerald-300/80 font-semibold tracking-wide">Terminal Operational</p>
+          <div class="flex items-center gap-1.5">
+            <h1 id="page-title" class="text-xs font-black tracking-tight text-emerald-50">Wellwith Mangaluru</h1>
+            <span id="cloud-sync-status" class="w-2 h-2 rounded-full bg-emerald-400" title="Cloud Active"></span>
+          </div>
+          <p id="page-subtitle" class="text-[10px] text-emerald-300/80 font-semibold tracking-wide">Live Multi-Device Terminal</p>
         </div>
       </div>
       <div id="auth-controls" class="hidden flex items-center gap-2">
         <span id="gps-status-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="GPS Active"></span>
-        <button onclick="haptic(15); handleLogout()" class="text-[11px] bg-white/10 hover:bg-red-950/60 active:scale-95 text-slate-200 px-3 py-1.5 rounded-xl font-bold transition">
+        <button onclick="haptic(15); handleLogout()" class="text-[11px] bg-white/10 hover:bg-red-950/60 active:scale-95 text-slate-200 px-3 py-1.5 rounded-xl font-bold transition cursor-pointer">
           Exit
         </button>
       </div>
@@ -60,7 +66,7 @@
       <div class="bg-[#05281b] text-white p-5 space-y-3">
         <div class="flex justify-between items-center">
           <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center font-black text-xs text-emerald-300">WW</span>
-          <button onclick="toggleSidebar(false)" class="text-slate-400 hover:text-white text-sm font-bold p-1">✕</button>
+          <button onclick="toggleSidebar(false)" class="text-slate-400 hover:text-white text-sm font-bold p-1 cursor-pointer">✕</button>
         </div>
         <div>
           <div id="sidebar-user-name" class="font-extrabold text-sm tracking-tight text-white">--</div>
@@ -73,52 +79,52 @@
 
       <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 text-xs font-bold text-slate-600">
         <div class="text-[9px] uppercase font-black text-slate-400 px-3 pt-2 pb-1 tracking-widest">Self-Service</div>
-        <button onclick="haptic(8); navigateTo('page-dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button onclick="haptic(8); navigateTo('page-dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>🏠</span> <span>Dashboard Overview</span>
         </button>
-        <button onclick="haptic(8); navigateTo('page-history')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button onclick="haptic(8); navigateTo('page-history')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>📜</span> <span>Shift & Attendance Logs</span>
         </button>
-        <button onclick="haptic(8); navigateTo('page-leaves')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button onclick="haptic(8); navigateTo('page-leaves')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>🏖️</span> <span>Holidays & Off Requests</span>
         </button>
 
         <div class="text-[9px] uppercase font-black text-slate-400 px-3 pt-3 pb-1 tracking-widest">Operations</div>
-        <button id="nav-item-gate" onclick="haptic(8); navigateTo('page-gate')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button id="nav-item-gate" onclick="haptic(8); navigateTo('page-gate')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>📍</span> <span>Attendance Gate</span>
         </button>
-        <button onclick="haptic(8); navigateTo('page-shift')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button onclick="haptic(8); navigateTo('page-shift')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>⏱️</span> <span>Shift & Lunch Break</span>
         </button>
-        <button onclick="haptic(8); navigateTo('page-cash')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button onclick="haptic(8); navigateTo('page-cash')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>💵</span> <span>Cash Drawer & Settlement</span>
         </button>
-        <button onclick="haptic(8); navigateTo('page-enquiries')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button onclick="haptic(8); navigateTo('page-enquiries')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>📦</span> <span>Stock & Customer Enquiries</span>
         </button>
-        <button onclick="haptic(8); navigateTo('page-closing')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+        <button onclick="haptic(8); navigateTo('page-closing')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
           <span>✅</span> <span>Night Closing Checklist</span>
         </button>
 
         <div id="side-cat-admin" class="hidden">
           <div class="text-[9px] uppercase font-black text-emerald-800 px-3 pt-4 pb-1 tracking-widest">Management Desk</div>
-          <button onclick="haptic(8); navigateTo('page-roster')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+          <button onclick="haptic(8); navigateTo('page-roster')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
             <span>👥</span> <span>Live Floor Roster</span>
           </button>
-          <button onclick="haptic(8); navigateTo('page-admin-leaves')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+          <button onclick="haptic(8); navigateTo('page-admin-leaves')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
             <span>📬</span> <span>Leave Approvals</span>
           </button>
-          <button onclick="haptic(8); navigateTo('page-ledger')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+          <button onclick="haptic(8); navigateTo('page-ledger')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
             <span>📊</span> <span>Reports & Ledger CSV</span>
           </button>
-          <button onclick="haptic(8); navigateTo('page-settings')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700">
+          <button onclick="haptic(8); navigateTo('page-settings')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
             <span>⚙️</span> <span>Store Config & Staff</span>
           </button>
         </div>
       </nav>
 
       <div class="p-3 border-t border-slate-100">
-        <button onclick="haptic(15); handleLogout()" class="w-full py-3 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 active:scale-95 rounded-2xl transition flex items-center justify-center gap-2">
+        <button onclick="haptic(15); handleLogout()" class="w-full py-3 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 active:scale-95 rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer">
           <span>🚪</span> Sign Out
         </button>
       </div>
@@ -151,16 +157,16 @@
           <div class="flex justify-between text-slate-600"><span>Grace Cutoff:</span><span class="font-bold text-amber-700">8:15 AM (Staff & Store Head)</span></div>
           <div class="flex justify-between text-slate-600"><span>Lunch Window:</span><span class="font-bold text-emerald-800">1 Hour Allocated</span></div>
         </div>
-        <button onclick="haptic(10); navigateTo('page-login')" class="w-full bg-[#05281b] hover:bg-[#073624] active:scale-[0.98] text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-950/20 text-xs tracking-wide transition flex items-center justify-center gap-2">
+        <button type="button" onclick="haptic(10); navigateTo('page-login')" class="w-full bg-[#05281b] hover:bg-[#073624] active:scale-[0.98] text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-950/20 text-xs tracking-wide transition flex items-center justify-center gap-2 cursor-pointer">
           <span>Sign In to Terminal</span>
           <span>→</span>
         </button>
       </section>
 
-      <!-- ================= PAGE 1: LOGIN (ROBUST BUTTON & ENTER KEY) ================= -->
+      <!-- ================= PAGE 1: LOGIN ================= -->
       <section id="page-login" class="hidden space-y-6 my-auto">
         <div class="flex items-center justify-between">
-          <button onclick="haptic(8); navigateTo('page-welcome')" class="text-xs font-bold text-slate-500 flex items-center gap-1">← Back</button>
+          <button type="button" onclick="haptic(8); navigateTo('page-welcome')" class="text-xs font-bold text-slate-500 flex items-center gap-1 cursor-pointer">← Back</button>
           <span class="text-[10px] font-black uppercase text-slate-400">Step 1 of 2</span>
         </div>
         <div class="text-center space-y-1">
@@ -170,15 +176,14 @@
         <div class="space-y-4">
           <input id="input-phone" type="tel" maxlength="10" placeholder="10-digit Phone" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-sm font-semibold tracking-wide shadow-sm">
           <input id="input-pin" type="password" maxlength="4" placeholder="••••" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-center text-xl tracking-widest font-black shadow-sm">
-          <button type="button" id="btn-login-submit" onclick="handleLoginSubmit()" class="w-full bg-[#05281b] hover:bg-[#073624] active:scale-[0.98] text-white font-black py-4 rounded-2xl shadow-lg text-xs tracking-wide transition cursor-pointer">
+          <button type="button" id="btn-login-submit" onclick="haptic(10); handleLoginSubmit()" class="w-full bg-[#05281b] hover:bg-[#073624] active:scale-[0.98] text-white font-black py-4 rounded-2xl shadow-lg text-xs tracking-wide transition cursor-pointer">
             Access Portal
           </button>
         </div>
       </section>
 
-      <!-- ================= PAGE 2: DASHBOARD WITH STEP 1 & STEP 2 WORKFLOW ================= -->
+      <!-- ================= PAGE 2: DASHBOARD ================= -->
       <section id="page-dashboard" class="hidden space-y-4">
-        <!-- Account Card -->
         <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
             <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Account Profile</div>
@@ -191,7 +196,6 @@
           </div>
         </div>
 
-        <!-- 1. Pending Arrival Banner -->
         <div id="banner-checkin-needed" class="bg-gradient-to-br from-[#05281b] to-emerald-950 text-white p-5 rounded-3xl shadow-lg space-y-3">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold flex items-center gap-1.5 text-emerald-200">
@@ -206,7 +210,7 @@
           </button>
         </div>
 
-        <!-- 2. MANDATORY SEQUENTIAL OPENING MODULE (STEP 1: PROTOCOL -> STEP 2: CASH FLOAT) -->
+        <!-- Mandatory Sequential Opening Module (Step 1 -> Step 2) -->
         <div id="module-opening-steps" class="hidden bg-white p-4.5 rounded-3xl border border-slate-200 shadow-sm space-y-3.5">
           <div class="flex justify-between items-center border-b pb-2">
             <div class="flex items-center gap-2">
@@ -216,7 +220,6 @@
             <span id="steps-completion-tag" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Action Required</span>
           </div>
 
-          <!-- STEP 1 CARD: OPENING SOP -->
           <div id="card-step-1" class="p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200">
             <div class="flex justify-between items-center">
               <span class="font-black text-xs text-slate-900 flex items-center gap-1.5">
@@ -253,7 +256,6 @@
             </div>
           </div>
 
-          <!-- STEP 2 CARD: MORNING CASH REGISTER (LOCKED UNTIL STEP 1 IS COMPLETED) -->
           <div id="card-step-2" class="p-3.5 rounded-2xl border transition-all space-y-2.5 bg-slate-50 border-slate-200 opacity-60">
             <div class="flex justify-between items-center">
               <span class="font-black text-xs text-slate-900 flex items-center gap-1.5">
@@ -280,7 +282,6 @@
           </div>
         </div>
 
-        <!-- 3. Active Shift Summary Card -->
         <div id="banner-checkin-done" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-900 p-4.5 rounded-3xl text-xs space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -291,16 +292,15 @@
           </div>
           <p id="personal-clockin-time" class="text-[11px] text-emerald-700 font-semibold">Clocked in at --</p>
           <div class="flex gap-2 pt-1.5">
-            <button onclick="haptic(8); navigateTo('page-shift')" class="flex-1 bg-white border border-emerald-300 text-emerald-900 font-bold py-2 rounded-xl text-center shadow-sm">
+            <button onclick="haptic(8); navigateTo('page-shift')" class="flex-1 bg-white border border-emerald-300 text-emerald-900 font-bold py-2 rounded-xl text-center shadow-sm cursor-pointer">
               Lunch & Break →
             </button>
-            <button onclick="haptic(8); navigateTo('page-closing')" class="flex-1 bg-emerald-800 text-white font-bold py-2 rounded-xl text-center shadow-sm">
+            <button onclick="haptic(8); navigateTo('page-closing')" class="flex-1 bg-emerald-800 text-white font-bold py-2 rounded-xl text-center shadow-sm cursor-pointer">
               Exit Protocol →
             </button>
           </div>
         </div>
 
-        <!-- 4. Shift Completed Banner -->
         <div id="banner-checkout-done" class="hidden bg-slate-100 border border-slate-200 text-slate-800 p-5 rounded-3xl text-xs space-y-1">
           <div class="flex items-center gap-2">
             <span class="text-xl">🏁</span>
@@ -309,7 +309,6 @@
           <p id="personal-clockout-summary" class="text-[11px] text-slate-600 font-medium">Recorded. See your stats below.</p>
         </div>
 
-        <!-- Metric KPI Cards -->
         <div class="grid grid-cols-2 gap-3 text-xs pt-1">
           <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-1">
             <span class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Days Present</span>
@@ -401,7 +400,7 @@
       <!-- ================= PAGE 5: ATTENDANCE GATE ================= -->
       <section id="page-gate" class="hidden space-y-4 my-auto">
         <div class="flex items-center justify-between">
-          <button onclick="haptic(8); navigateTo('page-dashboard')" class="text-xs font-bold text-slate-500">← Back</button>
+          <button onclick="haptic(8); navigateTo('page-dashboard')" class="text-xs font-bold text-slate-500 cursor-pointer">← Back</button>
           <span id="gate-tag" class="text-[10px] font-black uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">Store On-Site</span>
         </div>
         <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl flex items-center gap-3 text-xs text-amber-900">
@@ -411,7 +410,6 @@
             <p id="gate-instruction-text" class="text-[10px] text-amber-800">Must be within 100m of Wellwith Mangaluru to clock in.</p>
           </div>
         </div>
-        <!-- Staff Webcam Container -->
         <div id="employee-camera-container" class="space-y-3">
           <div class="relative w-full aspect-square max-h-[250px] bg-slate-900 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center">
             <video id="webcam-el" autoplay playsinline muted class="w-full h-full object-cover"></video>
@@ -425,7 +423,6 @@
             </div>
           </div>
         </div>
-        <!-- Admin Direct Check-In Container -->
         <div id="admin-bypass-container" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-3xl space-y-2 text-center">
           <div class="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-lg font-black">🏢</div>
           <h3 id="admin-bypass-title" class="font-black text-xs text-slate-900">Admin Arrival Check-In</h3>
@@ -486,16 +483,16 @@
         </div>
       </section>
 
-      <!-- ================= PAGE 7: CASH DRAWER & SETTLEMENT ================= -->
+      <!-- ================= PAGE 7: CASH DRAWER & BANK TRANSFERS ================= -->
       <section id="page-cash" class="hidden space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
           <div>
             <h2 class="text-sm font-black text-slate-900">Cash Drawer Desk</h2>
-            <p class="text-[10px] text-slate-500">Shared Counter Float & Device Reconciliation</p>
+            <p class="text-[10px] text-slate-500">Shared Counter Float & Reconciliation</p>
           </div>
         </div>
 
-        <!-- Currency Denominations Card -->
+        <!-- Currency Denominations -->
         <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-2.5">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-900">🔢 Currency Denomination Calculator</span>
@@ -533,7 +530,7 @@
           </div>
         </div>
 
-        <!-- Day Outflows (Petty Cash) -->
+        <!-- Petty Cash -->
         <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
           <div class="flex justify-between items-center text-xs">
             <div>
@@ -556,7 +553,36 @@
           <div id="petty-expense-list" class="space-y-1.5 max-h-28 overflow-y-auto custom-scrollbar"></div>
         </div>
 
-        <!-- Night Drawer & Device Settlement (Pure Cash + EDC + Soundbox Total) -->
+        <!-- Cash to Bank Transfer Card -->
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3 text-xs">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-900">🏦 Cash to Bank / Safe Transfer</span>
+              <p class="text-[10px] text-slate-400">Record cash removed from physical drawer mid-day</p>
+            </div>
+            <span id="total-bank-transfers-badge" class="text-[11px] font-black text-emerald-800">Total: ₹0</span>
+          </div>
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <input id="input-bank-amount" type="number" placeholder="Transfer Amount (₹)" class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold outline-none">
+              <select id="input-bank-destination" class="w-full px-2.5 py-2 border border-slate-200 rounded-xl font-bold bg-white outline-none">
+                <option value="IDFC Current A/C">IDFC Current Account</option>
+                <option value="Store Safe / Vault">Store Safe / Back Vault</option>
+                <option value="Handed to Samrajya">Handed to Samrajya</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="input-bank-person" placeholder="Who took the cash?" class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold outline-none">
+              <input id="input-bank-slip" placeholder="Slip # / Remark (Optional)" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none">
+            </div>
+            <button onclick="haptic(10); recordCashToBankTransfer()" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-bold py-2.5 rounded-xl transition cursor-pointer shadow-sm">
+              Record Cash Removal & Bank Deposit
+            </button>
+          </div>
+          <div id="bank-transfers-list" class="space-y-1.5 max-h-28 overflow-y-auto custom-scrollbar pt-1"></div>
+        </div>
+
+        <!-- Night Drawer & Settlement -->
         <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-2.5">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-900">🌙 Night Drawer & Settlement</span>
@@ -565,41 +591,40 @@
           <div id="night-input-area" class="space-y-2 text-xs">
             <div>
               <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Physical Cash (Auto-filled from Calculator)</label>
-              <input id="input-close-physical" type="number" oninput="updateNightSettlementLiveTotal()" placeholder="Physical Cash Counted (₹)" class="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl font-bold outline-none">
+              <input id="input-close-physical" type="number" placeholder="Physical Cash Counted (₹)" class="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl font-bold outline-none">
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Vyapar POS Cash Report Total</label>
+              <input id="input-vyapar-cash" type="number" placeholder="Vyapar Cash Total Report (₹)" class="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl font-bold outline-none">
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">IDFC Soundbox UPI</label>
-                <input id="input-idfc-soundbox" type="number" oninput="updateNightSettlementLiveTotal()" placeholder="IDFC UPI Total (₹)" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl font-bold outline-none">
+                <input id="input-idfc-soundbox" type="number" placeholder="IDFC UPI Total (₹)" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl font-bold outline-none">
               </div>
               <div>
                 <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Paytm EDC Machine</label>
-                <input id="input-paytm-edc" type="number" oninput="updateNightSettlementLiveTotal()" placeholder="EDC Batch Total (₹)" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl font-bold outline-none">
+                <input id="input-paytm-edc" type="number" placeholder="EDC Batch Total (₹)" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl font-bold outline-none">
               </div>
-            </div>
-            <!-- Live Calculated Total Banner -->
-            <div class="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl flex justify-between items-center">
-              <span class="font-bold text-emerald-950 text-xs">Total Day Revenue (Cash + Digital):</span>
-              <span id="night-live-sum-display" class="font-black text-sm text-emerald-900">₹0</span>
             </div>
             <input id="input-close-note" type="text" placeholder="Remarks / Handed to (Optional)" class="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl outline-none">
             <button onclick="haptic(12); submitNightCash()" class="w-full bg-[#05281b] active:scale-[0.98] text-white font-black py-3 rounded-xl transition cursor-pointer">
-              Submit Night Store Settlement
+              Submit Night Cash & Device Reconciliation
             </button>
           </div>
           <div id="night-saved-display" class="hidden text-xs text-slate-700 space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-200 font-medium">
-            <div class="flex justify-between font-bold items-center border-b pb-1.5">
-              <span>Total Store Revenue: <span id="night-grand-total-val" class="text-emerald-900 font-black text-sm">₹0</span></span>
+            <div class="flex justify-between font-bold items-center">
+              <span>Physical: <span id="night-physical-val" class="font-black">₹0</span></span>
               <div class="flex items-center gap-1.5">
-                <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Locked ✓</span>
-                <button id="btn-god-unlock-night" onclick="godUnlockNightCash()" class="hidden text-[9px] bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded hover:bg-slate-300">
+                <span id="night-diff-badge">Balanced</span>
+                <button id="btn-god-unlock-night" onclick="godUnlockNightCash()" class="hidden text-[9px] bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded hover:bg-slate-300 cursor-pointer">
                   Edit
                 </button>
               </div>
             </div>
-            <div class="text-[11px] text-slate-600 pt-0.5">Physical Cash: <span id="night-physical-val" class="font-bold">₹0</span></div>
-            <div class="text-[11px] text-slate-600">IDFC Soundbox: <span id="night-idfc-val" class="font-bold">₹0</span> | Paytm EDC: <span id="night-paytm-val" class="font-bold">₹0</span></div>
-            <div id="night-by-info" class="text-[10px] text-slate-500 italic pt-0.5">Recorded by --</div>
+            <div class="text-[11px] text-slate-500">Vyapar Cash Total: <span id="night-vyapar-val" class="font-bold">₹0</span></div>
+            <div class="text-[11px] text-slate-500">IDFC Soundbox: <span id="night-idfc-val" class="font-bold">₹0</span> | Paytm EDC: <span id="night-paytm-val" class="font-bold">₹0</span></div>
+            <div id="night-by-info" class="text-[10px] text-slate-500 italic">Recorded by --</div>
           </div>
         </div>
       </section>
@@ -612,7 +637,6 @@
             <p class="text-[10px] text-slate-500">Replenishment alerts and customer callbacks</p>
           </div>
         </div>
-        <!-- Low Stock Alert Card -->
         <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3 text-xs">
           <div class="flex justify-between items-center">
             <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">📦 Alert Low Shelf Stock</h3>
@@ -634,7 +658,6 @@
           <div id="stock-alerts-list" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pt-1"></div>
         </div>
 
-        <!-- Customer Product Enquiry Card -->
         <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3 text-xs">
           <div class="flex justify-between items-center">
             <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">📞 Customer Product Enquiry / Lead</h3>
@@ -643,7 +666,7 @@
           <div class="space-y-2">
             <input id="input-cust-name" placeholder="Customer Name" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
             <input id="input-cust-phone" type="tel" maxlength="10" placeholder="10-digit Phone Number" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
-            <input id="input-cust-product" placeholder="Requested Product / Notes (e.g., Wants 6 bottles)" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
+            <input id="input-cust-product" placeholder="Requested Product / Notes" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
             <button onclick="haptic(10); submitCustomerEnquiry()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
               Save Customer Enquiry
             </button>
@@ -675,11 +698,11 @@
             <div class="flex items-center gap-2">
               <span id="protocol-cash-icon" class="text-base">⚠️</span>
               <div>
-                <span class="font-bold text-slate-900">1. Cash & Device Settlement</span>
+                <span class="font-bold text-slate-900">1. Cash Register Reconciled</span>
                 <p id="protocol-cash-note" class="text-[10px] text-amber-800">Must record night count before exit.</p>
               </div>
             </div>
-            <button onclick="haptic(8); navigateTo('page-cash')" class="text-[11px] font-bold text-emerald-800 bg-white px-2.5 py-1 rounded-xl border border-emerald-300">
+            <button onclick="haptic(8); navigateTo('page-cash')" class="text-[11px] font-bold text-emerald-800 bg-white px-2.5 py-1 rounded-xl border border-emerald-300 cursor-pointer">
               Cash Desk
             </button>
           </div>
@@ -692,7 +715,7 @@
                 <p id="protocol-petty-note" class="text-[10px] text-amber-800">Compulsory: Log expenses or declare ₹0.</p>
               </div>
             </div>
-            <button onclick="haptic(8); navigateTo('page-cash')" class="text-[11px] font-bold text-emerald-800 bg-white px-2.5 py-1 rounded-xl border border-emerald-300">
+            <button onclick="haptic(8); navigateTo('page-cash')" class="text-[11px] font-bold text-emerald-800 bg-white px-2.5 py-1 rounded-xl border border-emerald-300 cursor-pointer">
               Petty Desk
             </button>
           </div>
@@ -735,7 +758,7 @@
             <h2 class="text-sm font-black text-slate-900">Live Store Floor Roster</h2>
             <p class="text-[10px] text-slate-500">Tap employee name for deep-dive stats & profile</p>
           </div>
-          <button onclick="haptic(8); renderAdminRoster()" class="text-xs text-emerald-800 font-bold hover:underline">Refresh</button>
+          <button onclick="haptic(8); renderAdminRoster()" class="text-xs text-emerald-800 font-bold hover:underline cursor-pointer">Refresh</button>
         </div>
         <div id="roster-card-list" class="space-y-2.5"></div>
       </section>
@@ -747,7 +770,7 @@
             <h2 class="text-sm font-black text-slate-900">Staff Leave & Week-Off Desk</h2>
             <p class="text-[10px] text-slate-500">Approve or reject pending holiday and off requests</p>
           </div>
-          <button onclick="haptic(8); renderAdminLeavesList()" class="text-xs text-emerald-800 font-bold hover:underline">Refresh</button>
+          <button onclick="haptic(8); renderAdminLeavesList()" class="text-xs text-emerald-800 font-bold hover:underline cursor-pointer">Refresh</button>
         </div>
         <div id="admin-leaves-list" class="space-y-2.5"></div>
       </section>
@@ -836,7 +859,7 @@
             Create Employee Record
           </button>
         </div>
-        <!-- Master Maintenance Controls (Samrajya Exclusive) -->
+        <!-- Master Maintenance Controls (Samrajya) -->
         <div id="god-mode-controls" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-3xl space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="font-bold text-xs text-slate-800">Database & System Maintenance</h3>
@@ -863,19 +886,19 @@
 
     <!-- Native App Bottom Navigation Bar -->
     <nav id="app-bottom-nav" class="hidden absolute bottom-0 inset-x-0 bg-white border-t border-slate-200/80 px-4 py-2 z-30 flex justify-around items-center text-[10px] font-bold text-slate-500 shadow-lg">
-      <button onclick="haptic(6); navigateTo('page-dashboard')" id="bnav-dashboard" class="flex flex-col items-center gap-0.5 py-1 text-emerald-950 font-black">
+      <button onclick="haptic(6); navigateTo('page-dashboard')" id="bnav-dashboard" class="flex flex-col items-center gap-0.5 py-1 text-emerald-950 font-black cursor-pointer">
         <span class="text-base">🏠</span>
         <span>Home</span>
       </button>
-      <button onclick="haptic(6); navigateTo('page-shift')" id="bnav-shift" class="flex flex-col items-center gap-0.5 py-1">
+      <button onclick="haptic(6); navigateTo('page-shift')" id="bnav-shift" class="flex flex-col items-center gap-0.5 py-1 cursor-pointer">
         <span class="text-base">⏱️</span>
         <span>Duty</span>
       </button>
-      <button onclick="haptic(6); navigateTo('page-cash')" id="bnav-cash" class="flex flex-col items-center gap-0.5 py-1">
+      <button onclick="haptic(6); navigateTo('page-cash')" id="bnav-cash" class="flex flex-col items-center gap-0.5 py-1 cursor-pointer">
         <span class="text-base">💵</span>
         <span>Cash</span>
       </button>
-      <button onclick="haptic(6); toggleSidebar(true)" id="bnav-menu" class="flex flex-col items-center gap-0.5 py-1">
+      <button onclick="haptic(6); toggleSidebar(true)" id="bnav-menu" class="flex flex-col items-center gap-0.5 py-1 cursor-pointer">
         <span class="text-base">☰</span>
         <span>Menu</span>
       </button>
@@ -883,7 +906,7 @@
 
   </div>
 
-  <!-- ================= MODAL: ADMIN EMPLOYEE DEEP DIVE PROFILE ================= -->
+  <!-- Modal: Admin Employee Deep Dive Profile -->
   <div id="modal-employee-detail" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-3xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
       <div class="bg-[#05281b] text-white p-4.5 px-5 flex items-center justify-between shrink-0">
@@ -894,7 +917,7 @@
           </div>
           <p id="modal-emp-phone" class="text-[10px] text-emerald-300 font-medium">--</p>
         </div>
-        <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-white p-1 text-sm font-bold">✕</button>
+        <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-white p-1 text-sm font-bold cursor-pointer">✕</button>
       </div>
 
       <div class="p-4 space-y-4 overflow-y-auto custom-scrollbar flex-1 text-xs">
@@ -939,7 +962,7 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <span class="font-black text-slate-900 uppercase text-[10px]">Complete Shift History</span>
-            <button id="btn-export-individual-csv" onclick="exportSelectedEmployeeCSV()" class="text-[10px] font-bold text-emerald-800 underline">
+            <button id="btn-export-individual-csv" onclick="exportSelectedEmployeeCSV()" class="text-[10px] font-bold text-emerald-800 underline cursor-pointer">
               Download Employee CSV
             </button>
           </div>
@@ -949,12 +972,12 @@
     </div>
   </div>
 
-  <!-- ================= MODAL: RECORD OVERRIDE (SAMRAJYA) ================= -->
+  <!-- Modal: Record Override (Samrajya) -->
   <div id="modal-edit-shift" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl space-y-3.5 text-xs">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-black text-slate-900 text-sm">Edit Record Override</h3>
-        <button onclick="closeEditShiftModal()" class="text-slate-400 hover:text-slate-800 font-bold p-1">✕</button>
+        <button onclick="closeEditShiftModal()" class="text-slate-400 hover:text-slate-800 font-bold p-1 cursor-pointer">✕</button>
       </div>
       <input type="hidden" id="edit-shift-id">
       <div>
@@ -980,10 +1003,10 @@
         <input id="edit-override-reason" placeholder="e.g., Delivery duty, GPS issue" class="w-full p-2 border rounded-xl">
       </div>
       <div class="pt-2 flex gap-2">
-        <button onclick="saveShiftOverride()" class="flex-1 bg-[#05281b] text-white font-bold py-2.5 rounded-xl transition">
+        <button onclick="saveShiftOverride()" class="flex-1 bg-[#05281b] text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
           Save Override
         </button>
-        <button onclick="closeEditShiftModal()" class="px-3 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-xl transition">
+        <button onclick="closeEditShiftModal()" class="px-3 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-xl transition cursor-pointer">
           Cancel
         </button>
       </div>
@@ -991,8 +1014,8 @@
   </div>
 
   <script>
-    // ================= PERSISTENT STATE & STORAGE ================= //
-    const STORAGE_KEY = 'WELLWITH_MANGALURU_STATE_V40';
+    // ================= STATE & CORE ARCHITECTURE ================= //
+    const STORAGE_KEY = 'WELLWITH_MANGALURU_STATE_V43';
 
     const defaultState = {
       storeConfig: {
@@ -1006,12 +1029,14 @@
       },
       employees: [
         { id: 'owner_1', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'ADMIN', weekOff: 'Sunday' },
-        { id: 'owner_2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'ADMIN', weekOff: 'Sunday' }
+        { id: 'owner_2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'ADMIN', weekOff: 'Sunday' },
+        { id: 'staff_1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday' }
       ],
       attendance: [],
       cashDrawerLogs: [],
       pettyCashExpenses: [],
       pettyDeclarations: [],
+      bankTransfers: [],
       leaveRequests: [],
       morningSOPLogs: [],
       stockAlerts: [],
@@ -1024,17 +1049,24 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultState));
-          return defaultState;
+          return JSON.parse(JSON.stringify(defaultState));
         }
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (!parsed.employees) parsed.employees = defaultState.employees;
+        if (!parsed.employees.some(e => e.phone === '8088504219')) parsed.employees.push(defaultState.employees[0]);
+        if (!parsed.employees.some(e => e.phone === '7676573670')) parsed.employees.push(defaultState.employees[1]);
+        if (!parsed.employees.some(e => e.phone === '8618486377')) parsed.employees.push(defaultState.employees[2]);
+        if (!parsed.bankTransfers) parsed.bankTransfers = [];
+        return parsed;
       } catch (e) {
-        return defaultState;
+        return JSON.parse(JSON.stringify(defaultState));
       }
     }
 
     function saveState(state) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        syncToCloud(state);
       } catch (e) {}
     }
 
@@ -1043,7 +1075,6 @@
     let cameraStream = null;
     let currentActivePage = 'page-welcome';
     let selectedModalEmployeeId = null;
-
     let cachedLocation = null;
     let watchId = null;
 
@@ -1051,216 +1082,6 @@
       if (navigator.vibrate) {
         try { navigator.vibrate(ms); } catch (e) {}
       }
-    }
-
-    function initPassiveGeolocation() {
-      if (!navigator.geolocation) return;
-      const opts = { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 };
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          cachedLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: Date.now() };
-          const dot = document.getElementById('gps-status-dot');
-          if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-        },
-        (err) => {
-          const dot = document.getElementById('gps-status-dot');
-          if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400';
-        },
-        opts
-      );
-    }
-
-    function getInstantLocation() {
-      return new Promise((resolve, reject) => {
-        if (cachedLocation && (Date.now() - cachedLocation.time < 120000)) {
-          return resolve(cachedLocation);
-        }
-        if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            cachedLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: Date.now() };
-            resolve(cachedLocation);
-          },
-          (err) => {
-            if (cachedLocation) return resolve(cachedLocation);
-            reject(new Error('Could not get GPS. Please enable phone location.'));
-          },
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
-        );
-      });
-    }
-
-    function isPrimaryOwner() {
-      if (!currentAuthUser) return false;
-      return (currentAuthUser.phone === '8088504219');
-    }
-
-    function isAdminRole() {
-      if (!currentAuthUser) return false;
-      return (isPrimaryOwner() || currentAuthUser.phone === '7676573670' || currentAuthUser.role === 'ADMIN');
-    }
-
-    function isPettyCashReconciledToday() {
-      const today = new Date().toISOString().split('T')[0];
-      const todayExpenses = (appState.pettyCashExpenses || []).filter(e => e.date === today);
-      if (todayExpenses.length > 0) return true;
-      const zeroDeclaration = (appState.pettyDeclarations || []).find(d => d.date === today);
-      return !!zeroDeclaration;
-    }
-
-    function isStoreNightClosingDoneToday() {
-      const today = new Date().toISOString().split('T')[0];
-      const chk = (appState.nightClosingChecklists || []).find(c => c.date === today);
-      const rec = (appState.cashDrawerLogs || []).find(c => c.date === today);
-      return !!(chk && rec && rec.nightPhysicalCash !== null && isPettyCashReconciledToday());
-    }
-
-    function getStoreNightClosingRecordToday() {
-      const today = new Date().toISOString().split('T')[0];
-      return (appState.nightClosingChecklists || []).find(c => c.date === today);
-    }
-
-    function getLatestTodayAttendance(empId) {
-      const today = new Date().toISOString().split('T')[0];
-      const logs = (appState.attendance || []).filter(a => a.employeeId === empId && a.date === today);
-      return logs.length ? logs[logs.length - 1] : null;
-    }
-
-    function autoCleanDuplicateSessions() {
-      const today = new Date().toISOString().split('T')[0];
-      let cleaned = false;
-
-      (appState.employees || []).forEach(emp => {
-        const empTodayLogs = (appState.attendance || []).filter(a => a.employeeId === emp.id && a.date === today);
-        if (empTodayLogs.length > 1) {
-          const bestRecord = empTodayLogs[empTodayLogs.length - 1];
-          appState.attendance = appState.attendance.filter(a => !(a.employeeId === emp.id && a.date === today) || a.id === bestRecord.id);
-          cleaned = true;
-        }
-      });
-
-      if (cleaned) saveState(appState);
-    }
-
-    function cleanCorruptedDuplicatesToday() {
-      autoCleanDuplicateSessions();
-      showToast('Today’s duplicate attendance records cleaned!');
-      renderEmployeePersonalData();
-      renderAdminRoster();
-      updateLockPills();
-    }
-
-    function isPunchedInToday() {
-      if (!currentAuthUser) return false;
-      const rec = getLatestTodayAttendance(currentAuthUser.id);
-      return !!(rec && rec.punchInTime && !rec.punchOutTime);
-    }
-
-    function isShiftFinishedToday() {
-      if (!currentAuthUser) return false;
-      const rec = getLatestTodayAttendance(currentAuthUser.id);
-      return !!(rec && rec.punchInTime && rec.punchOutTime);
-    }
-
-    function hasClockedInAtAllToday() {
-      if (!currentAuthUser) return false;
-      const rec = getLatestTodayAttendance(currentAuthUser.id);
-      return !!(rec && rec.punchInTime);
-    }
-
-    // ================= SAFE STARTUP ================= //
-    window.addEventListener('DOMContentLoaded', () => {
-      try {
-        autoCleanDuplicateSessions();
-        checkAutoMidnightCheckout();
-        initPassiveGeolocation();
-
-        setInterval(() => {
-          const now = new Date();
-          const str = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          const wClock = document.getElementById('welcome-live-clock');
-          if (wClock) wClock.innerText = str;
-
-          if (now.getHours() >= 21) {
-            const el = document.getElementById('overtime-indicator');
-            if (el) el.classList.remove('hidden');
-          }
-
-          updateShiftProgressGauge();
-        }, 1000);
-
-        // Bind Enter key listeners for seamless login
-        const pinField = document.getElementById('input-pin');
-        if (pinField) {
-          pinField.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleLoginSubmit();
-          });
-        }
-        const phoneField = document.getElementById('input-phone');
-        if (phoneField) {
-          phoneField.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('input-pin').focus();
-          });
-        }
-
-        const cachedUserRaw = localStorage.getItem('AROVI_CURRENT_USER');
-        if (cachedUserRaw) {
-          currentAuthUser = JSON.parse(cachedUserRaw);
-          setupSession();
-        } else {
-          navigateTo('page-welcome');
-        }
-      } catch (err) {
-        console.error('Startup recovery:', err);
-        navigateTo('page-welcome');
-      }
-    });
-
-    function updateShiftProgressGauge() {
-      const bar = document.getElementById('shift-gauge-bar');
-      const text = document.getElementById('shift-gauge-percent');
-      if (!bar || !text || !currentAuthUser) return;
-
-      const rec = getLatestTodayAttendance(currentAuthUser.id);
-
-      if (!rec || !rec.punchInTime) {
-        bar.style.strokeDashoffset = 100;
-        text.innerText = '0%';
-        return;
-      }
-
-      const inTime = new Date(rec.punchInTime);
-      const now = rec.punchOutTime ? new Date(rec.punchOutTime) : new Date();
-      const diffMins = Math.max(0, Math.floor((now - inTime) / (1000 * 60)));
-      
-      const percent = Math.min(100, Math.round((diffMins / 780) * 100));
-      const offset = 100 - percent;
-      bar.style.strokeDashoffset = offset;
-      text.innerText = `${percent}%`;
-    }
-
-    function checkAutoMidnightCheckout() {
-      const today = new Date().toISOString().split('T')[0];
-      let updated = false;
-
-      (appState.attendance || []).forEach(rec => {
-        if (rec.punchInTime && !rec.punchOutTime) {
-          const now = new Date();
-          const inDate = new Date(rec.punchInTime);
-          if (rec.date < today || (now.getHours() === 23 && now.getMinutes() >= 59)) {
-            const autoOut = new Date(inDate);
-            autoOut.setHours(21, 0, 0, 0);
-            rec.punchOutTime = autoOut.toISOString();
-            rec.totalMinutes = Math.max(1, Math.floor((autoOut - inDate) / (1000 * 60)));
-            rec.overtimeMinutes = 0;
-            rec.adminOverrideNote = 'Auto-Checkout 11:59PM (Capped at 9:00PM)';
-            updated = true;
-          }
-        }
-      });
-
-      if (updated) saveState(appState);
     }
 
     function showToast(msg, isError = false) {
@@ -1273,6 +1094,55 @@
       toast.classList.remove('hidden');
       setTimeout(() => toast.classList.add('hidden'), 4000);
     }
+
+    // ================= REALTIME CLOCK & STARTUP ================= //
+    function updateClock() {
+      const now = new Date();
+      const str = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const wClock = document.getElementById('welcome-live-clock');
+      if (wClock) wClock.innerText = str;
+      if (now.getHours() >= 21) {
+        const el = document.getElementById('overtime-indicator');
+        if (el) el.classList.remove('hidden');
+      }
+      updateShiftProgressGauge();
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateClock();
+      initPassiveGeolocation();
+      autoCleanDuplicateSessions();
+
+      const pinField = document.getElementById('input-pin');
+      if (pinField) {
+        pinField.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') handleLoginSubmit();
+        });
+      }
+      const phoneField = document.getElementById('input-phone');
+      if (phoneField) {
+        phoneField.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') document.getElementById('input-pin').focus();
+        });
+      }
+
+      const cachedUserRaw = localStorage.getItem('AROVI_CURRENT_USER');
+      if (cachedUserRaw) {
+        try {
+          currentAuthUser = JSON.parse(cachedUserRaw);
+          setupSession();
+        } catch(e) {
+          navigateTo('page-welcome');
+        }
+      } else {
+        navigateTo('page-welcome');
+      }
+
+      initFirebaseSync();
+    });
 
     // ================= CENTRAL ROUTER / PAGE SWITCHER ================= //
     function navigateTo(pageId) {
@@ -1343,12 +1213,12 @@
         if (authControls) authControls.classList.remove('hidden');
         if (bottomNav) bottomNav.classList.remove('hidden');
 
-        if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Sequence'; }
+        if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
         else if (pageId === 'page-history') { titleEl.innerText = 'Attendance Logs'; subtitleEl.innerText = 'Transparency Ledger'; }
         else if (pageId === 'page-leaves') { titleEl.innerText = 'Holidays & Offs'; subtitleEl.innerText = 'Requests & Status'; }
         else if (pageId === 'page-gate') { titleEl.innerText = 'Attendance Gate'; subtitleEl.innerText = 'Geofence Verification'; }
         else if (pageId === 'page-shift') { titleEl.innerText = 'Shift & Lunch Break'; subtitleEl.innerText = 'Floor Duty Tracker'; }
-        else if (pageId === 'page-cash') { titleEl.innerText = 'Cash & Settlements'; subtitleEl.innerText = 'Float & Collections'; }
+        else if (pageId === 'page-cash') { titleEl.innerText = 'Cash & Settlements'; subtitleEl.innerText = 'Float, Bank & Devices'; }
         else if (pageId === 'page-enquiries') { titleEl.innerText = 'Enquiries & Stock'; subtitleEl.innerText = 'Counter Leads & Alerts'; }
         else if (pageId === 'page-closing') { titleEl.innerText = 'Night Store Closing'; subtitleEl.innerText = 'Verification & WhatsApp'; }
         else if (pageId === 'page-roster') { titleEl.innerText = 'Live Floor Roster'; subtitleEl.innerText = 'Employee Profiles (Admin)'; }
@@ -1361,9 +1231,9 @@
         const b = document.getElementById(`bnav-${k}`);
         if (b) {
           if (pageId === `page-${k}`) {
-            b.className = 'flex flex-col items-center gap-0.5 py-1 text-emerald-950 font-black';
+            b.className = 'flex flex-col items-center gap-0.5 py-1 text-emerald-950 font-black cursor-pointer';
           } else {
-            b.className = 'flex flex-col items-center gap-0.5 py-1 text-slate-400 font-bold';
+            b.className = 'flex flex-col items-center gap-0.5 py-1 text-slate-400 font-bold cursor-pointer';
           }
         }
       });
@@ -1396,7 +1266,7 @@
       }
     }
 
-    // ================= AUTHENTICATION ================= //
+    // ================= SECURE AUTHENTICATION ================= //
     function handleLoginSubmit() {
       const phoneInput = document.getElementById('input-phone');
       const pinInput = document.getElementById('input-pin');
@@ -1411,21 +1281,10 @@
       }
 
       appState = loadState();
-
-      let employeeList = appState.employees || [];
-      if (!employeeList.some(e => e.phone === '8088504219')) {
-        employeeList.push({ id: 'owner_1', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'ADMIN', weekOff: 'Sunday' });
-      }
-      if (!employeeList.some(e => e.phone === '7676573670')) {
-        employeeList.push({ id: 'owner_2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'ADMIN', weekOff: 'Sunday' });
-      }
-      appState.employees = employeeList;
-      saveState(appState);
-
-      const user = employeeList.find(e => e.phone === phone && e.pin === pin);
+      const user = (appState.employees || []).find(e => e.phone === phone && e.pin === pin);
 
       if (!user) {
-        showToast('Invalid credentials. Check Phone & PIN.', true);
+        showToast('Invalid Phone or PIN.', true);
         return;
       }
 
@@ -1505,14 +1364,13 @@
       }
     }
 
-    // ================= DASHBOARD STEP 1 & STEP 2 WORKFLOW ================= //
+    // ================= DASHBOARD SEQUENTIAL STEP ENGINE ================= //
     function renderDashboardSteps() {
       const today = new Date().toISOString().split('T')[0];
       const onDuty = isPunchedInToday();
       const moduleEl = document.getElementById('module-opening-steps');
       const bannerDone = document.getElementById('banner-checkin-done');
 
-      // Samrajya (Owner) is exempt from opening protocol requirements
       if (!onDuty || isPrimaryOwner()) {
         moduleEl.classList.add('hidden');
         if (onDuty && isPrimaryOwner()) bannerDone.classList.remove('hidden');
@@ -1523,7 +1381,6 @@
       const rec = getTodayCashRecord();
       const floatDone = (rec.morningCash !== null);
 
-      // Both steps done -> Unlock active duty floor console
       if (sopDone && floatDone) {
         moduleEl.classList.add('hidden');
         bannerDone.classList.remove('hidden');
@@ -1547,7 +1404,6 @@
       const doneSummary2 = document.getElementById('step-2-done-summary');
 
       if (sopDone) {
-        // Step 1 Complete
         card1.className = 'p-3.5 rounded-2xl border transition-all space-y-1.5 bg-emerald-50/60 border-emerald-200';
         badge1.className = 'w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px]';
         badge1.innerText = '✓';
@@ -1556,7 +1412,6 @@
         checkBody1.classList.add('hidden');
         doneSummary1.classList.remove('hidden');
 
-        // Step 2 Active
         card2.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200 opacity-100';
         badge2.className = 'w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]';
         status2.innerText = 'Action Required';
@@ -1567,7 +1422,6 @@
 
         document.getElementById('steps-completion-tag').innerText = 'Step 2 of 2 Pending';
       } else {
-        // Step 1 Pending
         card1.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200';
         badge1.className = 'w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]';
         badge1.innerText = '1';
@@ -1576,7 +1430,6 @@
         checkBody1.classList.remove('hidden');
         doneSummary1.classList.add('hidden');
 
-        // Step 2 Locked
         card2.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-slate-50 border-slate-200 opacity-60';
         badge2.className = 'w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center text-[10px]';
         status2.innerText = 'Locked';
@@ -1649,7 +1502,6 @@
       renderDashboardSteps();
     }
 
-    // ================= DASHBOARD & PERSONAL DATA ================= //
     function renderEmployeePersonalData() {
       appState = loadState();
       const dName = document.getElementById('data-user-name');
@@ -1760,7 +1612,7 @@
       });
     }
 
-    // ================= DENOMINATIONS & CASH SETTLEMENT ================= //
+    // ================= CASH DESK, BANK TRANSFERS & DENOMINATIONS ================= //
     function calcDenominations() {
       const n500 = parseInt(document.getElementById('d-500').value) || 0;
       const n200 = parseInt(document.getElementById('d-200').value) || 0;
@@ -1774,20 +1626,75 @@
       document.getElementById('denom-total-display').innerText = `Total: ₹${total.toLocaleString('en-IN')}`;
       
       const physInput = document.getElementById('input-close-physical');
-      if (physInput) {
-        physInput.value = total;
-        updateNightSettlementLiveTotal();
-      }
+      if (physInput) physInput.value = total;
     }
 
-    function updateNightSettlementLiveTotal() {
-      const physical = parseFloat(document.getElementById('input-close-physical')?.value) || 0;
-      const idfc = parseFloat(document.getElementById('input-idfc-soundbox')?.value) || 0;
-      const paytm = parseFloat(document.getElementById('input-paytm-edc')?.value) || 0;
-      const sum = physical + idfc + paytm;
+    function recordCashToBankTransfer() {
+      const amtInput = document.getElementById('input-bank-amount');
+      const destInput = document.getElementById('input-bank-destination');
+      const personInput = document.getElementById('input-bank-person');
+      const slipInput = document.getElementById('input-bank-slip');
 
-      const liveDisplay = document.getElementById('night-live-sum-display');
-      if (liveDisplay) liveDisplay.innerText = `₹${sum.toLocaleString('en-IN')}`;
+      const amount = parseFloat(amtInput?.value);
+      const destination = destInput?.value || 'IDFC Current A/C';
+      const person = personInput?.value.trim();
+      const slip = slipInput?.value.trim() || 'N/A';
+
+      if (isNaN(amount) || amount <= 0 || !person) {
+        showToast('Please enter transfer amount and who took the cash.', true);
+        return;
+      }
+
+      appState = loadState();
+      if (!appState.bankTransfers) appState.bankTransfers = [];
+      const today = new Date().toISOString().split('T')[0];
+
+      appState.bankTransfers.push({
+        id: 'bt_' + Date.now(),
+        date: today,
+        amount,
+        destination,
+        person,
+        slip,
+        timestamp: new Date().toISOString(),
+        loggedBy: currentAuthUser.name
+      });
+
+      saveState(appState);
+      amtInput.value = '';
+      personInput.value = '';
+      slipInput.value = '';
+
+      showToast(`₹${amount} recorded to ${destination} via ${person}!`);
+      renderBankTransfers();
+    }
+
+    function renderBankTransfers() {
+      appState = loadState();
+      const today = new Date().toISOString().split('T')[0];
+      const container = document.getElementById('bank-transfers-list');
+      const badge = document.getElementById('total-bank-transfers-badge');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const todayTransfers = (appState.bankTransfers || []).filter(t => t.date === today);
+      let total = 0;
+
+      todayTransfers.forEach(t => {
+        total += t.amount;
+        const row = document.createElement('div');
+        row.className = 'p-2 bg-slate-50 border rounded-xl flex justify-between items-center text-[11px]';
+        row.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-800">${t.destination}</span>
+            <p class="text-[10px] text-slate-500">Taken by: ${t.person} • Slip: ${t.slip}</p>
+          </div>
+          <span class="font-black text-emerald-800">₹${t.amount.toLocaleString('en-IN')}</span>
+        `;
+        container.appendChild(row);
+      });
+
+      if (badge) badge.innerText = `Total: ₹${total.toLocaleString('en-IN')}`;
     }
 
     function getTodayCashRecord() {
@@ -1800,9 +1707,10 @@
           morningBy: null,
           morningTimestamp: null,
           nightPhysicalCash: null,
+          nightVyaparCash: null,
           idfcSoundbox: 0,
           paytmEDC: 0,
-          grandTotalRevenue: null,
+          nightDifference: null,
           nightNote: null,
           nightBy: null,
           nightTimestamp: null
@@ -1821,6 +1729,7 @@
       if (btnGodNight) btnGodNight.classList.toggle('hidden', !isPrimaryOwner());
 
       renderPettyCashExpenses();
+      renderBankTransfers();
 
       const nightStatus = document.getElementById('night-cash-status');
       const nightInput = document.getElementById('night-input-area');
@@ -1828,23 +1737,35 @@
 
       if (rec.nightPhysicalCash !== null) {
         if (nightStatus) {
-          nightStatus.innerText = 'Night Settlement Finalized ✅';
+          nightStatus.innerText = 'Night Closing Locked ✅';
           nightStatus.className = 'text-[10px] text-emerald-700 font-bold';
         }
         if (nightInput) nightInput.classList.add('hidden');
         if (nightSaved) nightSaved.classList.remove('hidden');
 
         const npVal = document.getElementById('night-physical-val');
+        const nvVal = document.getElementById('night-vyapar-val');
         const idfcVal = document.getElementById('night-idfc-val');
         const paytmVal = document.getElementById('night-paytm-val');
-        const grandVal = document.getElementById('night-grand-total-val');
-
-        const grand = (Number(rec.nightPhysicalCash) || 0) + (Number(rec.idfcSoundbox) || 0) + (Number(rec.paytmEDC) || 0);
 
         if (npVal) npVal.innerText = `₹${Number(rec.nightPhysicalCash).toLocaleString('en-IN')}`;
+        if (nvVal) nvVal.innerText = `₹${Number(rec.nightVyaparCash).toLocaleString('en-IN')}`;
         if (idfcVal) idfcVal.innerText = `₹${Number(rec.idfcSoundbox || 0).toLocaleString('en-IN')}`;
         if (paytmVal) paytmVal.innerText = `₹${Number(rec.paytmEDC || 0).toLocaleString('en-IN')}`;
-        if (grandVal) grandVal.innerText = `₹${grand.toLocaleString('en-IN')}`;
+        
+        const diffBadge = document.getElementById('night-diff-badge');
+        if (diffBadge) {
+          if (rec.nightDifference === 0) {
+            diffBadge.innerText = 'Balanced (₹0 diff)';
+            diffBadge.className = 'text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg font-bold';
+          } else if (rec.nightDifference > 0) {
+            diffBadge.innerText = `+₹${rec.nightDifference} Surplus`;
+            diffBadge.className = 'text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-lg font-bold';
+          } else {
+            diffBadge.innerText = `-₹${Math.abs(rec.nightDifference)} Short`;
+            diffBadge.className = 'text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded-lg font-bold';
+          }
+        }
 
         const nStr = new Date(rec.nightTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const nBy = document.getElementById('night-by-info');
@@ -1856,16 +1777,16 @@
         }
         if (nightInput) nightInput.classList.remove('hidden');
         if (nightSaved) nightSaved.classList.add('hidden');
-        updateNightSettlementLiveTotal();
       }
     }
 
     function godUnlockNightCash() {
       if (!isPrimaryOwner()) return;
-      if (confirm('Unlock Night Closing Settlement to edit figures?')) {
+      if (confirm('Unlock Night Closing Cash to edit reconciliation?')) {
         const rec = getTodayCashRecord();
         rec.nightPhysicalCash = null;
-        rec.grandTotalRevenue = null;
+        rec.nightVyaparCash = null;
+        rec.nightDifference = null;
         saveState(appState);
         showToast('Night Closing unlocked for editing.');
         renderManagerCashDesk();
@@ -1948,7 +1869,7 @@
         
         let deleteBtn = '';
         if (isPrimaryOwner()) {
-          deleteBtn = `<button onclick="deletePettyExpense('${e.id}')" class="text-red-500 font-bold ml-2 text-xs">✕</button>`;
+          deleteBtn = `<button onclick="deletePettyExpense('${e.id}')" class="text-red-500 font-bold ml-2 text-xs cursor-pointer">✕</button>`;
         }
 
         row.innerHTML = `
@@ -1988,35 +1909,43 @@
 
     function submitNightCash() {
       const pInput = document.getElementById('input-close-physical');
+      const vInput = document.getElementById('input-vyapar-cash');
       const idfcInput = document.getElementById('input-idfc-soundbox');
       const paytmInput = document.getElementById('input-paytm-edc');
       const nInput = document.getElementById('input-close-note');
-      if (!pInput) return;
+      if (!pInput || !vInput) return;
 
       const physical = parseFloat(pInput.value);
+      const vyapar = parseFloat(vInput.value);
       const idfc = parseFloat(idfcInput?.value) || 0;
       const paytm = parseFloat(paytmInput?.value) || 0;
       const note = nInput ? nInput.value.trim() : '';
 
-      if (isNaN(physical) || physical < 0) {
-        showToast('Please enter physical drawer cash counted.', true);
+      if (isNaN(physical) || isNaN(vyapar)) {
+        showToast('Please enter physical cash & Vyapar total', true);
         return;
       }
 
-      const grandTotal = physical + idfc + paytm;
+      const today = new Date().toISOString().split('T')[0];
+      const todayTransfers = (appState.bankTransfers || []).filter(t => t.date === today);
+      let bankTotal = 0;
+      todayTransfers.forEach(t => bankTotal += t.amount);
+
+      const diff = (physical + bankTotal) - vyapar;
 
       appState = loadState();
       const rec = getTodayCashRecord();
       rec.nightPhysicalCash = physical;
+      rec.nightVyaparCash = vyapar;
       rec.idfcSoundbox = idfc;
       rec.paytmEDC = paytm;
-      rec.grandTotalRevenue = grandTotal;
+      rec.nightDifference = diff;
       rec.nightNote = note;
       rec.nightTimestamp = new Date().toISOString();
       rec.nightBy = currentAuthUser.name;
       saveState(appState);
 
-      showToast(`Night Settlement Registered! Total: ₹${grandTotal.toLocaleString('en-IN')}`);
+      showToast(`Night Reconciliation registered! Cash Diff: ₹${diff} (Accounting for ₹${bankTotal} banked).`);
       renderManagerCashDesk();
     }
 
@@ -2139,7 +2068,7 @@
       if (!isPrimaryOwner() && !isStoreDone) {
         const rec = getTodayCashRecord();
         if (rec.nightPhysicalCash === null) {
-          showToast('Cannot punch out! Please enter Night Cash & Settlement first.', true);
+          showToast('Cannot punch out! Please enter Night Cash Reconciliation first.', true);
           navigateTo('page-cash');
           return;
         }
@@ -2268,12 +2197,11 @@
         if (rec.nightPhysicalCash !== null) {
           cashBox.className = 'p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between';
           cashIcon.innerText = '✅';
-          const totalRev = (Number(rec.nightPhysicalCash) || 0) + (Number(rec.idfcSoundbox) || 0) + (Number(rec.paytmEDC) || 0);
-          cashNote.innerText = `Reconciled by ${rec.nightBy} (Total Collection: ₹${totalRev.toLocaleString('en-IN')}).`;
+          cashNote.innerText = `Reconciled by ${rec.nightBy} (Physical ₹${rec.nightPhysicalCash} vs Vyapar ₹${rec.nightVyaparCash}).`;
         } else {
           cashBox.className = 'p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between';
           cashIcon.innerText = '⚠️';
-          cashNote.innerText = 'Pending: Night cash & settlement must be recorded before exit.';
+          cashNote.innerText = 'Pending: Night cash reconciliation must be recorded before exit.';
         }
       }
 
@@ -2353,7 +2281,7 @@
           punchOutBtn.className = 'w-full bg-slate-200 cursor-not-allowed text-slate-400 font-black py-4 rounded-2xl text-xs transition';
           
           let missing = [];
-          if (!isCashReconciled) missing.push('Settlement');
+          if (!isCashReconciled) missing.push('Night Cash');
           if (!isPettyReconciled) missing.push('Petty Cash');
           if (physicalCount < 5) missing.push(`${5 - physicalCount} Safety Items`);
 
@@ -2539,10 +2467,10 @@
         if (req.status === 'PENDING') {
           actions = `
             <div class="flex gap-2 pt-1">
-              <button onclick="haptic(8); reviewLeaveRequest('${req.id}', 'APPROVED')" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-1.5 rounded-xl text-xs transition">
+              <button onclick="haptic(8); reviewLeaveRequest('${req.id}', 'APPROVED')" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-1.5 rounded-xl text-xs transition cursor-pointer">
                 ✓ Approve
               </button>
-              <button onclick="haptic(8); reviewLeaveRequest('${req.id}', 'REJECTED')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded-xl text-xs transition">
+              <button onclick="haptic(8); reviewLeaveRequest('${req.id}', 'REJECTED')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded-xl text-xs transition cursor-pointer">
                 ✕ Reject
               </button>
             </div>
@@ -2701,19 +2629,13 @@
       }
     }
 
-    // ================= 1-TAP WHATSAPP DIGEST (CASH + EDC + SOUNDBOX) ================= //
+    // ================= 1-TAP WHATSAPP DIGEST ================= //
     function dispatchWhatsAppSummary() {
       appState = loadState();
       const today = new Date().toISOString().split('T')[0];
       const rec = getTodayCashRecord();
 
-      const isRachana = (currentAuthUser.phone === '7676573670');
-      const todayStaff = (appState.attendance || []).filter(a => {
-        if (a.date !== today) return false;
-        if (isRachana && a.employeeId === 'owner_1') return false;
-        return true;
-      });
-
+      const todayStaff = (appState.attendance || []).filter(a => a.date === today);
       let staffSummary = '';
       todayStaff.forEach(s => {
         const emp = (appState.employees || []).find(e => e.id === s.employeeId) || { name: 'Staff' };
@@ -2725,6 +2647,17 @@
       const todayExps = (appState.pettyCashExpenses || []).filter(e => e.date === today);
       let totalExp = 0;
       todayExps.forEach(e => totalExp += e.amount);
+
+      const todayTransfers = (appState.bankTransfers || []).filter(t => t.date === today);
+      let bankSummary = '';
+      let totalBank = 0;
+      if (todayTransfers.length > 0) {
+        bankSummary = `\n🏦 *Cash to Bank / Safe Transfers:*\n`;
+        todayTransfers.forEach(t => {
+          totalBank += t.amount;
+          bankSummary += `• ₹${t.amount} $\\rightarrow$ ${t.destination} (by ${t.person}, Slip: ${t.slip})\n`;
+        });
+      }
 
       const d500 = document.getElementById('d-500')?.value;
       const d200 = document.getElementById('d-200')?.value;
@@ -2749,32 +2682,30 @@
       const todayCust = (appState.customerEnquiries || []).filter(c => c.date === today);
       const custSummary = todayCust.length > 0 ? `\n📞 *Customer Enquiries Logged:* ${todayCust.length} leads\n` : '';
 
-      const cashVal = Number(rec.nightPhysicalCash) || 0;
-      const edcVal = Number(rec.paytmEDC) || 0;
-      const soundboxVal = Number(rec.idfcSoundbox) || 0;
-      const grandTotal = cashVal + edcVal + soundboxVal;
-
       const msg = `🌿 *Wellwith Mangaluru — Daily Closing Digest*\n` +
                   `📅 Date: ${today}\n\n` +
                   `👥 *Staff Presence:*\n${staffSummary || 'None clocked in'}\n` +
-                  `💰 *Daily Store Collections:*\n` +
-                  `• Physical Drawer Cash: ₹${cashVal.toLocaleString('en-IN')}\n` +
-                  `• Paytm EDC Machine: ₹${edcVal.toLocaleString('en-IN')}\n` +
-                  `• IDFC Soundbox UPI: ₹${soundboxVal.toLocaleString('en-IN')}\n` +
-                  `━━━━━━━━━━━━━━━━━━━\n` +
-                  `⭐ *TOTAL STORE REVENUE: ₹${grandTotal.toLocaleString('en-IN')}*\n` +
-                  `• Day Expenses (Petty Cash): ₹${totalExp.toLocaleString('en-IN')}\n` +
+                  `💵 *Cash Drawer Status:*\n` +
+                  `• Morning Float: ₹${rec.morningCash || 0} (by ${rec.morningBy || 'N/A'})\n` +
+                  `• Physical Night Cash: ₹${rec.nightPhysicalCash || 0}\n` +
+                  `• Banked / Safe Transfers: ₹${totalBank}\n` +
+                  `• Vyapar POS Report: ₹${rec.nightVyaparCash || 0}\n` +
+                  `• Drawer Difference: ₹${rec.nightDifference || 0}\n` +
+                  `• Day Expenses / Petty Cash: ₹${totalExp}\n` +
+                  `• IDFC Soundbox Total: ₹${rec.idfcSoundbox || 0}\n` +
+                  `• Paytm EDC Batch: ₹${rec.paytmEDC || 0}\n` +
+                  bankSummary +
                   denomSummary +
                   stockSummary +
                   custSummary +
-                  `\n🔒 *Closing Checklist:* 7-Point Safety & Reconciliations Verified.\n` +
+                  `\n🔒 *Closing Protocol:* 7-Point Safety & Reconciliation Verified.\n` +
                   `Submitted by: ${currentAuthUser.name}`;
 
       const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
     }
 
-    // ================= ADMIN DESK: LIVE ROSTER (WITH RACHANA PRIVACY SCOPING) ================= //
+    // ================= ADMIN DESK: LIVE ROSTER & DEEP-DIVE ================= //
     function renderAdminRoster() {
       appState = loadState();
       const list = document.getElementById('roster-card-list');
@@ -2782,13 +2713,7 @@
       list.innerHTML = '';
       const today = new Date().toISOString().split('T')[0];
 
-      const isRachana = (currentAuthUser.phone === '7676573670');
-
       (appState.employees || []).forEach(emp => {
-        if (isRachana && emp.phone === '8088504219') {
-          return;
-        }
-
         const att = getLatestTodayAttendance(emp.id);
         let badgeHtml = '<span class="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-bold">Absent</span>';
         let subtext = 'Not clocked in today';
@@ -2815,7 +2740,7 @@
             
             if (isAdminRole()) {
               actionBtnHtml = `
-                <button onclick="event.stopPropagation(); haptic(10); adminEmergencyLogout('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" class="text-[10px] bg-red-50 hover:bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-xl border border-red-200 transition shrink-0">
+                <button onclick="event.stopPropagation(); haptic(10); adminEmergencyLogout('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" class="text-[10px] bg-red-50 hover:bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-xl border border-red-200 transition shrink-0 cursor-pointer">
                   🚪 Override
                 </button>
               `;
@@ -2830,7 +2755,7 @@
 
             if (isAdminRole()) {
               actionBtnHtml = `
-                <button onclick="event.stopPropagation(); haptic(10); adminReopenShift('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" class="text-[10px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded-xl border border-emerald-200 transition shrink-0">
+                <button onclick="event.stopPropagation(); haptic(10); adminReopenShift('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" class="text-[10px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded-xl border border-emerald-200 transition shrink-0 cursor-pointer">
                   🔓 Re-Open Shift
                 </button>
               `;
@@ -2864,11 +2789,6 @@
 
     function openEmployeeModal(employeeId) {
       if (!isAdminRole()) return;
-      if (currentAuthUser.phone === '7676573670' && employeeId === 'owner_1') {
-        showToast('Access restricted.', true);
-        return;
-      }
-
       selectedModalEmployeeId = employeeId;
       appState = loadState();
       const emp = (appState.employees || []).find(e => e.id === employeeId);
@@ -2919,7 +2839,7 @@
 
           let editBtn = '';
           if (isPrimaryOwner()) {
-            editBtn = `<button onclick="openEditShiftModal('${log.id}')" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2 py-1 rounded-lg">Edit ✍️</button>`;
+            editBtn = `<button onclick="openEditShiftModal('${log.id}')" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2 py-1 rounded-lg cursor-pointer">Edit ✍️</button>`;
           }
 
           const card = document.createElement('div');
@@ -3156,26 +3076,19 @@
       renderAdminRoster();
     }
 
-    // ================= REPORTS & LEDGER (RACHANA PRIVACY FILTERED) ================= //
+    // ================= REPORTS & LEDGER TABLE ================= //
     function renderLedgerTable() {
       appState = loadState();
       const tbody = document.getElementById('ledger-table-body');
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      const isRachana = (currentAuthUser.phone === '7676573670');
-
-      const filteredAttendance = (appState.attendance || []).filter(a => {
-        if (isRachana && a.employeeId === 'owner_1') return false;
-        return true;
-      });
-
-      if (filteredAttendance.length === 0) {
+      if (!appState.attendance || appState.attendance.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">No attendance logs found.</td></tr>';
         return;
       }
 
-      filteredAttendance.slice().reverse().forEach(log => {
+      appState.attendance.slice().reverse().forEach(log => {
         const emp = (appState.employees || []).find(e => e.id === log.employeeId) || { name: 'Unknown' };
         const h = Math.floor((log.totalMinutes || 0) / 60);
         const m = (log.totalMinutes || 0) % 60;
@@ -3195,7 +3108,7 @@
 
         let editBtn = '';
         if (isPrimaryOwner()) {
-          editBtn = `<button onclick="openEditShiftModal('${log.id}')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded">Edit</button>`;
+          editBtn = `<button onclick="openEditShiftModal('${log.id}')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded cursor-pointer">Edit</button>`;
         }
 
         const row = document.createElement('tr');
@@ -3225,12 +3138,17 @@
       appState.cashDrawerLogs.slice().reverse().forEach(log => {
         const morningText = log.morningCash !== null ? `₹${Number(log.morningCash).toLocaleString('en-IN')} (${log.morningBy})` : '<span class="text-amber-600 font-normal">Pending</span>';
         let closingText = '<span class="text-slate-400 font-normal">Not entered</span>';
-        let totalRevBadge = '';
+        let diffBadge = '';
 
         if (log.nightPhysicalCash !== null) {
-          const grand = (Number(log.nightPhysicalCash) || 0) + (Number(log.idfcSoundbox) || 0) + (Number(log.paytmEDC) || 0);
-          closingText = `Cash: ₹${Number(log.nightPhysicalCash).toLocaleString('en-IN')} | UPI/Cards: ₹${((Number(log.idfcSoundbox)||0) + (Number(log.paytmEDC)||0)).toLocaleString('en-IN')}`;
-          totalRevBadge = `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-md">Total: ₹${grand.toLocaleString('en-IN')}</span>`;
+          closingText = `₹${Number(log.nightPhysicalCash).toLocaleString('en-IN')} (Vyapar: ₹${Number(log.nightVyaparCash).toLocaleString('en-IN')}) by ${log.nightBy}`;
+          if (log.nightDifference === 0) {
+            diffBadge = '<span class="text-[9px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-md">Balanced</span>';
+          } else if (log.nightDifference > 0) {
+            diffBadge = `<span class="text-[9px] bg-blue-100 text-blue-800 font-black px-2 py-0.5 rounded-md">+₹${log.nightDifference} Surplus</span>`;
+          } else {
+            diffBadge = `<span class="text-[9px] bg-red-100 text-red-800 font-black px-2 py-0.5 rounded-md">-₹${Math.abs(log.nightDifference)} Short</span>`;
+          }
         }
 
         const card = document.createElement('div');
@@ -3238,7 +3156,7 @@
         card.innerHTML = `
           <div class="flex justify-between items-center border-b pb-1.5">
             <span class="font-black text-slate-900">${log.date}</span>
-            ${totalRevBadge}
+            ${diffBadge}
           </div>
           <div class="grid grid-cols-2 gap-2 text-slate-600">
             <div>
@@ -3246,7 +3164,7 @@
               <div class="font-bold text-slate-800 text-[11px]">${morningText}</div>
             </div>
             <div>
-              <div class="text-[9px] uppercase font-bold text-slate-400">Night Settlement</div>
+              <div class="text-[9px] uppercase font-bold text-slate-400">Night Reconciliation</div>
               <div class="font-bold text-slate-800 text-[11px]">${closingText}</div>
             </div>
           </div>
@@ -3258,19 +3176,13 @@
 
     function exportAttendanceCSV() {
       appState = loadState();
-      const isRachana = (currentAuthUser.phone === '7676573670');
-      const filtered = (appState.attendance || []).filter(a => {
-        if (isRachana && a.employeeId === 'owner_1') return false;
-        return true;
-      });
-
-      if (!filtered.length) {
+      if (!appState.attendance.length) {
         showToast('No records to export', true);
         return;
       }
 
       let csv = 'Store Name,Employee Name,Phone,Date,Punch In,Punch Out,Total Minutes Worked,Break Mins,Overtime Mins,Is Late,Late Delay Mins,Admin Override Note\n';
-      filtered.forEach(a => {
+      appState.attendance.forEach(a => {
         const emp = (appState.employees || []).find(e => e.id === a.employeeId) || { name: 'N/A', phone: 'N/A' };
         const isLateVal = (emp.phone === '8088504219') ? 'FLEX' : (a.isLate ? 'YES' : 'NO');
         csv += `"Wellwith Mangaluru","${emp.name}","${emp.phone}","${a.date}","${a.punchInTime || ''}","${a.punchOutTime || ''}","${a.totalMinutes || 0}","${a.totalBreakMins || 0}","${a.overtimeMinutes || 0}","${isLateVal}","${a.lateMinutes || 0}"\n`;
@@ -3294,21 +3206,20 @@
         return;
       }
 
-      let csv = 'Store Name,Date,Morning Float (INR),Morning Staff,Night Physical Cash (INR),IDFC Soundbox UPI (INR),Paytm EDC (INR),Total Revenue Realized (INR),Night Staff,Remarks\n';
+      let csv = 'Store Name,Date,Morning Float (INR),Morning Staff,Night Physical Cash (INR),Vyapar Cash Report (INR),IDFC Soundbox (INR),Paytm EDC (INR),Difference (INR),Night Staff,Remarks\n';
       appState.cashDrawerLogs.forEach(c => {
-        const grand = (Number(c.nightPhysicalCash) || 0) + (Number(c.idfcSoundbox) || 0) + (Number(c.paytmEDC) || 0);
-        csv += `"Wellwith Mangaluru","${c.date}","${c.morningCash || 0}","${c.morningBy || ''}","${c.nightPhysicalCash || 0}","${c.idfcSoundbox || 0}","${c.paytmEDC || 0}","${grand}","${c.nightBy || ''}","${c.nightNote || ''}"\n`;
+        csv += `"Wellwith Mangaluru","${c.date}","${c.morningCash || 0}","${c.morningBy || ''}","${c.nightPhysicalCash || 0}","${c.nightVyaparCash || 0}","${c.idfcSoundbox || 0}","${c.paytmEDC || 0}","${c.nightDifference || 0}","${c.nightBy || ''}","${c.nightNote || ''}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `wellwith_mangaluru_settlement_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `wellwith_mangaluru_cash_settlement_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast('Settlement CSV exported!');
+      showToast('Cash Drawer CSV exported!');
     }
 
     // ================= CONFIG & MASTER RESTORE ================= //
@@ -3362,7 +3273,7 @@
         weekOff: weekOff
       });
       saveState(appState);
-      showToast(`Employee "${name}" registered successfully as ${role}!`);
+      showToast(`Employee "${name}" created & synced to cloud!`);
       nEl.value = '';
       pEl.value = '';
       pinEl.value = '';
@@ -3378,6 +3289,145 @@
                 Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
                 Math.sin(dLon / 2) ** 2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function initPassiveGeolocation() {
+      if (!navigator.geolocation) return;
+      const opts = { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 };
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          cachedLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: Date.now() };
+          const dot = document.getElementById('gps-status-dot');
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        },
+        (err) => {
+          const dot = document.getElementById('gps-status-dot');
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+        },
+        opts
+      );
+    }
+
+    function getInstantLocation() {
+      return new Promise((resolve, reject) => {
+        if (cachedLocation && (Date.now() - cachedLocation.time < 120000)) {
+          return resolve(cachedLocation);
+        }
+        if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            cachedLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: Date.now() };
+            resolve(cachedLocation);
+          },
+          (err) => {
+            if (cachedLocation) return resolve(cachedLocation);
+            reject(new Error('Could not get GPS. Please enable phone location.'));
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+      });
+    }
+
+    function isPrimaryOwner() {
+      if (!currentAuthUser) return false;
+      return (currentAuthUser.phone === '8088504219');
+    }
+
+    function isAdminRole() {
+      if (!currentAuthUser) return false;
+      return (isPrimaryOwner() || currentAuthUser.phone === '7676573670' || currentAuthUser.role === 'ADMIN');
+    }
+
+    function isPettyCashReconciledToday() {
+      const today = new Date().toISOString().split('T')[0];
+      const todayExpenses = (appState.pettyCashExpenses || []).filter(e => e.date === today);
+      if (todayExpenses.length > 0) return true;
+      const zeroDeclaration = (appState.pettyDeclarations || []).find(d => d.date === today);
+      return !!zeroDeclaration;
+    }
+
+    function isStoreNightClosingDoneToday() {
+      const today = new Date().toISOString().split('T')[0];
+      const chk = (appState.nightClosingChecklists || []).find(c => c.date === today);
+      const rec = (appState.cashDrawerLogs || []).find(c => c.date === today);
+      return !!(chk && rec && rec.nightPhysicalCash !== null && isPettyCashReconciledToday());
+    }
+
+    function getStoreNightClosingRecordToday() {
+      const today = new Date().toISOString().split('T')[0];
+      return (appState.nightClosingChecklists || []).find(c => c.date === today);
+    }
+
+    function getLatestTodayAttendance(empId) {
+      const today = new Date().toISOString().split('T')[0];
+      const logs = (appState.attendance || []).filter(a => a.employeeId === empId && a.date === today);
+      return logs.length ? logs[logs.length - 1] : null;
+    }
+
+    function autoCleanDuplicateSessions() {
+      const today = new Date().toISOString().split('T')[0];
+      let cleaned = false;
+
+      (appState.employees || []).forEach(emp => {
+        const empTodayLogs = (appState.attendance || []).filter(a => a.employeeId === emp.id && a.date === today);
+        if (empTodayLogs.length > 1) {
+          const bestRecord = empTodayLogs[empTodayLogs.length - 1];
+          appState.attendance = appState.attendance.filter(a => !(a.employeeId === emp.id && a.date === today) || a.id === bestRecord.id);
+          cleaned = true;
+        }
+      });
+
+      if (cleaned) saveState(appState);
+    }
+
+    function cleanCorruptedDuplicatesToday() {
+      autoCleanDuplicateSessions();
+      showToast('Today’s duplicate attendance records cleaned!');
+      renderEmployeePersonalData();
+      renderAdminRoster();
+      updateLockPills();
+    }
+
+    function isPunchedInToday() {
+      if (!currentAuthUser) return false;
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      return !!(rec && rec.punchInTime && !rec.punchOutTime);
+    }
+
+    function isShiftFinishedToday() {
+      if (!currentAuthUser) return false;
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      return !!(rec && rec.punchInTime && rec.punchOutTime);
+    }
+
+    function hasClockedInAtAllToday() {
+      if (!currentAuthUser) return false;
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      return !!(rec && rec.punchInTime);
+    }
+
+    function updateShiftProgressGauge() {
+      const bar = document.getElementById('shift-gauge-bar');
+      const text = document.getElementById('shift-gauge-percent');
+      if (!bar || !text || !currentAuthUser) return;
+
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+
+      if (!rec || !rec.punchInTime) {
+        bar.style.strokeDashoffset = 100;
+        text.innerText = '0%';
+        return;
+      }
+
+      const inTime = new Date(rec.punchInTime);
+      const now = rec.punchOutTime ? new Date(rec.punchOutTime) : new Date();
+      const diffMins = Math.max(0, Math.floor((now - inTime) / (1000 * 60)));
+      
+      const percent = Math.min(100, Math.round((diffMins / 780) * 100));
+      const offset = 100 - percent;
+      bar.style.strokeDashoffset = offset;
+      text.innerText = `${percent}%`;
     }
 
     function startCamera() {
@@ -3439,9 +3489,11 @@
       if (confirm('Clear all petty cash records and declarations?')) {
         appState.pettyCashExpenses = [];
         appState.pettyDeclarations = [];
+        appState.bankTransfers = [];
         saveState(appState);
         renderPettyCashExpenses();
-        showToast('Petty cash records cleared.');
+        renderBankTransfers();
+        showToast('Petty cash & bank transfer records cleared.');
       }
     }
 
@@ -3456,6 +3508,72 @@
         alert('Store records have been reset.');
         location.reload();
       }
+    }
+
+    // ================= SAFE FIREBASE INITIALIZATION ================= //
+    let cloudDb = null;
+    function initFirebaseSync() {
+      try {
+        if (typeof firebase !== 'undefined') {
+          const firebaseConfig = {
+            apiKey: "AIzaSyB6LPf8577gPsXBbpML39jkc4BFWaSMZow",
+            authDomain: "wellwith-mangalore.firebaseapp.com",
+            databaseURL: "https://wellwith-mangalore-default-rtdb.firebaseio.com",
+            projectId: "wellwith-mangalore",
+            storageBucket: "wellwith-mangalore.firebasestorage.app",
+            messagingSenderId: "633324318360",
+            appId: "1:633324318360:web:74a6570c0a0b2385936aed"
+          };
+
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          cloudDb = firebase.database();
+
+          const storeRef = cloudDb.ref('storeState');
+          storeRef.on('value', (snapshot) => {
+            const val = snapshot.val();
+            if (val) {
+              appState = val;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } else {
+              storeRef.set(appState);
+            }
+            const syncDot = document.getElementById('cloud-sync-status');
+            if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+            refreshActiveScreen();
+          }, (err) => {
+            const syncDot = document.getElementById('cloud-sync-status');
+            if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          });
+        }
+      } catch (err) {
+        const syncDot = document.getElementById('cloud-sync-status');
+        if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+      }
+    }
+
+    function syncToCloud(state) {
+      if (cloudDb) {
+        try {
+          cloudDb.ref('storeState').set(state);
+        } catch(e) {}
+      }
+    }
+
+    function refreshActiveScreen() {
+      if (!currentAuthUser) return;
+      if (currentActivePage === 'page-dashboard') renderEmployeePersonalData();
+      else if (currentActivePage === 'page-history') renderPersonalLedgerView();
+      else if (currentActivePage === 'page-leaves') renderPersonalLeaveHistory();
+      else if (currentActivePage === 'page-shift') renderShiftTabDetails();
+      else if (currentActivePage === 'page-cash') renderManagerCashDesk();
+      else if (currentActivePage === 'page-enquiries') renderCounterDeskView();
+      else if (currentActivePage === 'page-closing') renderClosingProtocolView();
+      else if (currentActivePage === 'page-roster') renderAdminRoster();
+      else if (currentActivePage === 'page-admin-leaves') renderAdminLeavesList();
+      else if (currentActivePage === 'page-ledger') { renderCashLedger(); renderLedgerTable(); }
+      updateLockPills();
     }
   </script>
 </body>
