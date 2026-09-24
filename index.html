@@ -1791,7 +1791,7 @@
     }
 
     // ================= SECURE AUTHENTICATION ================= //
-    function handleLoginSubmit() {
+    async function handleLoginSubmit() {
       const phoneInput = document.getElementById('input-phone');
       const pinInput = document.getElementById('input-pin');
       if (!phoneInput || !pinInput) return;
@@ -1804,8 +1804,32 @@
         return;
       }
 
+      // Firebase /users is the shared account source. The storeState copy intentionally
+      // does not contain PINs, so wait briefly for the Firebase users listener before
+      // declaring the login invalid. This prevents a race on a fresh device/page load.
       appState = loadState();
-      const user = (appState.employees || []).find(e => e.phone === phone && e.pin === pin);
+      let user = (appState.employees || []).find(e => String(e.phone) === phone && String(e.pin || '') === pin);
+
+      if (!user && cloudUsers && cloudUsers.length) {
+        user = cloudUsers.find(e => String(e.phone) === phone && String(e.pin || '') === pin);
+      }
+
+      if (!user && cloudDb && !firebaseUsersLoaded) {
+        showToast('Connecting to store accounts…');
+        try {
+          const snap = await cloudDb.ref('users').once('value');
+          const users = normalizeFirebaseUsers(snap.val());
+          if (users.length) {
+            cloudUsers = users;
+            firebaseUsersLoaded = true;
+            mergeFirebaseUsers(users);
+            appState = loadState();
+            user = users.find(e => String(e.phone) === phone && String(e.pin || '') === pin);
+          }
+        } catch (e) {
+          console.warn('Firebase user lookup unavailable:', e);
+        }
+      }
 
       if (!user) {
         showToast('Invalid Phone or PIN.', true);
