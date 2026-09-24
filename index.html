@@ -53,7 +53,7 @@
             <h1 id="page-title" class="text-xs font-black tracking-tight text-emerald-50">Wellwith Mangaluru</h1>
             <span id="cloud-sync-status" class="w-2 h-2 rounded-full bg-emerald-400" title="Cloud Active"></span>
           </div>
-          <p id="page-subtitle" class="text-[10px] text-emerald-300/80 font-semibold tracking-wide">Live Multi-Device Terminal</p>
+          <p id="page-subtitle" class="text-[10px] text-emerald-300/80 font-semibold tracking-wide">Terminal Operational</p>
         </div>
       </div>
       <div id="auth-controls" class="hidden flex items-center gap-2">
@@ -79,6 +79,7 @@
         <div>
           <div id="sidebar-user-name" class="font-extrabold text-sm tracking-tight text-white">--</div>
           <div class="flex items-center gap-1.5 mt-1">
+            <!-- Ghosted Badge: Super Admin visually displays as STORE OWNER to conceal superuser identity -->
             <span id="sidebar-role-badge" class="text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-white/10 text-emerald-200 border border-white/10">STAFF</span>
             <span id="sidebar-duty-badge" class="text-[9px] uppercase font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">Not Punched</span>
           </div>
@@ -114,7 +115,7 @@
         <div id="side-cat-admin" class="hidden">
           <div class="text-[9px] uppercase font-black text-emerald-800 px-3 pt-4 pb-1 tracking-widest">Management Desk</div>
           <button onclick="haptic(8); navigateTo('page-admin-desk')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
-            <span>⚙️</span> <span>Admin Management Console</span>
+            <span>⚙️</span> <span>Administration Console</span>
           </button>
         </div>
       </nav>
@@ -159,42 +160,21 @@
         </button>
       </section>
 
-      <!-- ================= MODULE 1: LOGIN SCREEN (WITH BIOMETRIC SUPPORT) ================= -->
-      <section id="page-login" class="hidden space-y-5 my-auto">
+      <!-- ================= MODULE 1: LOGIN SCREEN ================= -->
+      <section id="page-login" class="hidden space-y-6 my-auto">
         <div class="flex items-center justify-between">
           <button type="button" onclick="haptic(8); navigateTo('page-welcome')" class="text-xs font-bold text-slate-500 flex items-center gap-1 cursor-pointer">← Back</button>
           <span class="text-[10px] font-black uppercase text-slate-400">Step 1 of 2</span>
         </div>
         <div class="text-center space-y-1">
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Terminal Sign-In</h2>
-          <p class="text-xs text-slate-500">Provide registered mobile and authenticate</p>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Enter PIN</h2>
+          <p class="text-xs text-slate-500">Provide registered phone & 4-digit PIN</p>
         </div>
-
-        <div class="space-y-3.5">
-          <div>
-            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Mobile Number</label>
-            <input id="input-phone" type="tel" maxlength="10" placeholder="10-digit Mobile Number" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-sm font-semibold tracking-wide shadow-sm font-mono">
-          </div>
-
-          <div>
-            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">4-Digit Security PIN</label>
-            <input id="input-pin" type="password" maxlength="4" placeholder="••••" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-center text-xl tracking-widest font-black shadow-sm font-mono">
-          </div>
-
+        <div class="space-y-4">
+          <input id="input-phone" type="tel" maxlength="10" placeholder="10-digit Phone" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-sm font-semibold tracking-wide shadow-sm font-mono">
+          <input id="input-pin" type="password" maxlength="4" placeholder="••••" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-center text-xl tracking-widest font-black shadow-sm font-mono">
           <button type="button" id="btn-login-submit" onclick="haptic(10); handleLoginSubmit()" class="w-full bg-[#05281b] hover:bg-[#073624] active:scale-[0.98] text-white font-black py-4 rounded-2xl shadow-lg text-xs tracking-wide transition cursor-pointer">
-            Access with PIN
-          </button>
-
-          <div class="relative flex py-1 items-center">
-            <div class="flex-grow border-t border-slate-200"></div>
-            <span class="flex-shrink mx-3 text-[10px] uppercase font-black text-slate-400">Or Device Biometrics</span>
-            <div class="flex-grow border-t border-slate-200"></div>
-          </div>
-
-          <!-- WebAuthn Biometric Button -->
-          <button type="button" onclick="haptic(12); handleBiometricAuth()" class="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 active:scale-[0.98] text-emerald-950 font-black py-3.5 rounded-2xl text-xs tracking-wide transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-            <span class="text-base">👆</span>
-            <span>Sign In with Fingerprint / Face ID</span>
+            Access Portal
           </button>
         </div>
       </section>
@@ -208,22 +188,10 @@
             <div id="data-user-phone" class="text-xs text-slate-500 font-semibold font-mono">--</div>
           </div>
           <div class="text-right">
+            <!-- Ghosted Badge: Super Admin visually displays as OWNER -->
             <span id="data-role-badge" class="px-2.5 py-1 text-[10px] font-black rounded-lg bg-emerald-100 text-emerald-800">STAFF</span>
             <div id="data-user-weekoff" class="text-[10px] text-slate-500 mt-1 font-bold">Week-Off: --</div>
           </div>
-        </div>
-
-        <!-- Biometric Registration Reminder Box -->
-        <div id="box-biometric-enroll" class="hidden bg-white border border-emerald-300 p-3.5 rounded-2xl flex items-center justify-between shadow-2xs">
-          <div>
-            <span class="text-xs font-black text-emerald-950 flex items-center gap-1.5">
-              <span>👆</span> Setup Instant Biometric Sign-In
-            </span>
-            <p class="text-[10px] text-slate-500">Enable Touch ID / Fingerprint on this device</p>
-          </div>
-          <button onclick="registerBiometricsForCurrentUser()" class="bg-emerald-800 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl cursor-pointer active:scale-95 shadow-xs">
-            Link Fingerprint
-          </button>
         </div>
 
         <div id="banner-checkin-needed" class="bg-gradient-to-br from-[#05281b] to-emerald-950 text-white p-5 rounded-3xl shadow-lg space-y-3">
@@ -240,16 +208,16 @@
           </button>
         </div>
 
-        <!-- Super Admin Optional Banner -->
+        <!-- Super Admin / Owner Optional Banner -->
         <div id="admin-flex-banner" class="hidden bg-gradient-to-r from-emerald-950 to-[#05281b] text-white p-3.5 rounded-2xl shadow-sm space-y-2 text-xs">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-1.5 font-black text-emerald-200">
               <span>👑</span>
-              <span>Super Admin Flexibility</span>
+              <span>Executive Schedule Flexibility</span>
             </div>
             <span class="text-[9px] bg-white/10 px-2 py-0.5 rounded text-emerald-300 font-bold">Optional Mode</span>
           </div>
-          <p class="text-[11px] text-emerald-100/80">Opening sequence is optional for Super Admin. Complete it below or bypass directly.</p>
+          <p class="text-[11px] text-emerald-100/80">Opening sequence is optional for executive tier. Complete it below or bypass directly.</p>
           <div class="flex gap-2 pt-0.5">
             <button onclick="toggleAdminSkip(true)" id="btn-admin-skip-toggle" class="flex-1 bg-white/15 hover:bg-white/20 active:scale-95 text-white font-bold py-1.5 rounded-xl text-[11px] transition">
               ⚡ Hide / Skip Protocol
@@ -330,7 +298,7 @@
               <span id="step-2-float-recorded-text" class="font-mono font-bold">Float: ₹0</span>
               <div class="flex items-center gap-2">
                 <span id="step-2-by-text" class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.5 rounded">Saved ✓</span>
-                <button onclick="openFloatEditModal()" class="text-[10px] bg-slate-800 hover:bg-black text-white font-bold px-2 py-0.5 rounded cursor-pointer active:scale-95 shadow-xs">
+                <button id="btn-open-float-edit" onclick="openFloatEditModal()" class="text-[10px] bg-slate-800 hover:bg-black text-white font-bold px-2 py-0.5 rounded cursor-pointer active:scale-95 shadow-xs">
                   Edit Float ✍️
                 </button>
               </div>
@@ -468,7 +436,7 @@
               <span id="radar-live-indicator" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
             </div>
             <div id="gate-radar-distance" class="text-xl font-black tracking-tight text-white">Acquiring GPS...</div>
-            <p id="gate-instruction-text" class="text-[11px] text-emerald-200/90 font-medium">Must be within 100m of Wellwith Mangaluru.[cite: 2]</p>
+            <p id="gate-instruction-text" class="text-[11px] text-emerald-200/90 font-medium">Must be within 100m of Wellwith Mangaluru.</p>
             <div class="flex gap-2 pt-1">
               <button onclick="updateGateRadarDistance(true)" class="text-[10px] bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded font-bold text-emerald-100 flex items-center gap-1 cursor-pointer">
                 <span>🔄</span> <span>Refresh GPS</span>
@@ -501,8 +469,8 @@
 
         <div id="admin-bypass-container" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-3xl space-y-2 text-center">
           <div class="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-lg font-black">🏢</div>
-          <h3 id="admin-bypass-title" class="font-black text-xs text-slate-900">Admin Arrival Check-In</h3>
-          <p id="admin-bypass-subtitle" class="text-[11px] text-slate-500">Camera selfie bypassed. Confirm arrival below within store premises.</p>
+          <h3 id="admin-bypass-title" class="font-black text-xs text-slate-900">Executive Check-In</h3>
+          <p id="admin-bypass-subtitle" class="text-[11px] text-slate-500">Camera snapshot bypassed for leadership. Confirm floor arrival below.</p>
         </div>
 
         <div class="space-y-2 pt-1">
@@ -582,7 +550,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span id="cash-locked-morning-float" class="font-mono font-black text-emerald-950 text-base">₹0</span>
-            <button type="button" onclick="haptic(10); openFloatEditModal()" class="bg-[#05281b] hover:bg-[#073624] text-white font-bold text-[10px] px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm">
+            <button id="btn-edit-float-cashdesk" type="button" onclick="haptic(10); openFloatEditModal()" class="bg-[#05281b] hover:bg-[#073624] text-white font-bold text-[10px] px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm">
               <span>Edit ✍️</span>
             </button>
           </div>
@@ -974,12 +942,12 @@
 
       <!-- ================= MODULE 5: ADMIN MANAGEMENT CONSOLE ================= -->
       <section id="page-admin-desk" class="hidden space-y-4">
-        <div class="bg-white border rounded-2xl px-3 py-2 flex justify-between text-[11px] font-bold text-slate-600 shadow-2xs">
-          <button onclick="switchAdminTab('roster')" id="tab-roster" class="text-emerald-950 border-b-2 border-emerald-900 pb-1 font-black">Floor Roster</button>
-          <button onclick="switchAdminTab('staff')" id="tab-staff" class="text-slate-400 pb-1 font-bold">Staff Accounts</button>
-          <button onclick="switchAdminTab('leaves')" id="tab-leaves" class="text-slate-400 pb-1 font-bold">Leaves Desk</button>
-          <button onclick="switchAdminTab('reports')" id="tab-reports" class="text-slate-400 pb-1 font-bold">Reports & CSV</button>
-          <button onclick="switchAdminTab('geofence')" id="tab-geofence" class="text-slate-400 pb-1 font-bold">Store Setup</button>
+        <div class="bg-white border rounded-2xl px-3 py-2 flex justify-between text-[11px] font-bold text-slate-600 shadow-2xs overflow-x-auto">
+          <button onclick="switchAdminTab('roster')" id="tab-roster" class="text-emerald-950 border-b-2 border-emerald-900 pb-1 font-black shrink-0 px-2">Floor Roster</button>
+          <button onclick="switchAdminTab('staff')" id="tab-staff" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Staff & Roles</button>
+          <button onclick="switchAdminTab('leaves')" id="tab-leaves" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Leaves Desk</button>
+          <button onclick="switchAdminTab('reports')" id="tab-reports" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Reports & Exports</button>
+          <button onclick="switchAdminTab('geofence')" id="tab-geofence" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Store Setup</button>
         </div>
 
         <!-- 1. Live Floor Roster Tab -->
@@ -994,20 +962,21 @@
           <div id="roster-card-list" class="space-y-2"></div>
         </div>
 
-        <!-- 2. Staff Management Tab (Super Admin Only) -->
+        <!-- 2. Staff Management Tab (Super Admin Role Allocation Powered) -->
         <div id="view-admin-staff" class="hidden space-y-4">
           <div id="box-add-staff" class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5 text-xs">
             <div class="flex items-center justify-between border-b pb-2">
-              <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Add New Staff Member</h3>
-              <span class="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-black">Super Admin</span>
+              <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Add User & Assign Role</h3>
+              <span id="role-creation-badge" class="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-black">Authorized</span>
             </div>
             <input id="new-emp-name" placeholder="Full Name (e.g. Anand Kumar)" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none">
             <input id="new-emp-phone" type="tel" maxlength="10" placeholder="10-digit Mobile Number" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none font-mono">
             <input id="new-emp-pin" type="password" maxlength="4" placeholder="4-digit Terminal PIN" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none font-mono text-center tracking-widest font-black">
             <div class="grid grid-cols-2 gap-2">
               <select id="new-emp-role" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white font-semibold">
-                <option value="STAFF">Store Staff</option>
-                <option value="ADMIN">Store Admin / Manager</option>
+                <option value="STAFF">Store Staff (Floor Execution)</option>
+                <option value="MANAGER">Store Manager (Supervision)</option>
+                <option value="OWNER">Store Owner (Executive)</option>
               </select>
               <select id="new-emp-weekoff" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white font-semibold">
                 <option value="Sunday">Sunday Off</option>
@@ -1020,16 +989,16 @@
               </select>
             </div>
             <button onclick="haptic(10); registerNewStaff()" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-2.5 rounded-xl text-xs transition cursor-pointer">
-              Create Employee Record
+              Register User Account
             </button>
           </div>
 
           <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5 text-xs">
             <div class="flex justify-between items-center border-b pb-2">
-              <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Registered Accounts</h3>
-              <span id="total-staff-count-badge" class="font-mono text-slate-500 font-bold text-[10px]">0 Staff</span>
+              <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Store Users Hierarchy</h3>
+              <span id="total-staff-count-badge" class="font-mono text-slate-500 font-bold text-[10px]">0 Members</span>
             </div>
-            <div id="settings-staff-list" class="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar"></div>
+            <div id="settings-staff-list" class="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar"></div>
           </div>
         </div>
 
@@ -1045,7 +1014,7 @@
           <div id="admin-leaves-list" class="space-y-2"></div>
         </div>
 
-        <!-- 4. Reports & CSV Tab (INCLUDES SECURE MASTER TRANSACTION RESET) -->
+        <!-- 4. Reports & CSV Tab (Option A Master Reset Included) -->
         <div id="view-admin-reports" class="hidden space-y-4 text-xs">
           <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
             <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Store CSV Exports</h2>
@@ -1074,8 +1043,8 @@
             </button>
           </div>
 
-          <!-- OPTION A: SUPER ADMIN MASTER RESET CARD -->
-          <div id="card-superadmin-reset" class="bg-red-50/80 border border-red-200 p-4.5 rounded-3xl space-y-2.5">
+          <!-- OPTION A: SUPER ADMIN MASTER RESET CARD (GHOSTED: Visible only to Root Super Admin) -->
+          <div id="card-superadmin-reset" class="hidden bg-red-50/80 border border-red-200 p-4.5 rounded-3xl space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="text-lg">⚠️</span>
@@ -1084,7 +1053,7 @@
                   <p class="text-[10px] text-red-700 font-medium">Wipe test punches, floats & cash settlements</p>
                 </div>
               </div>
-              <span class="text-[9px] bg-red-200 text-red-950 font-black px-2 py-0.5 rounded">Owner Only</span>
+              <span class="text-[9px] bg-red-200 text-red-950 font-black px-2 py-0.5 rounded">Super Admin</span>
             </div>
             <p class="text-[11px] text-red-800">
               Option A: Cleans all shifts, cash sheets, petty expenses, and logs across devices. All staff accounts and store geofence settings are strictly preserved.
@@ -1101,7 +1070,7 @@
             <div class="flex items-center justify-between border-b pb-2">
               <div>
                 <h3 class="font-black text-slate-900 uppercase tracking-wider text-[11px]">Store Geofence Anchor</h3>
-                <p class="text-[10px] text-slate-400">Stored coordinates for 100m attendance gate[cite: 2]</p>
+                <p class="text-[10px] text-slate-400">Stored coordinates for 100m attendance gate</p>
               </div>
               <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Active</span>
             </div>
@@ -1113,25 +1082,25 @@
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-500 font-medium">Stored Latitude:</span>
-                <span id="cfg-lat-val" class="font-bold font-mono text-emerald-800">12.879739</span>[cite: 2]
+                <span id="cfg-lat-val" class="font-bold font-mono text-emerald-800">12.879739</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-500 font-medium">Stored Longitude:</span>
-                <span id="cfg-lng-val" class="font-bold font-mono text-emerald-800">74.857761</span>[cite: 2]
+                <span id="cfg-lng-val" class="font-bold font-mono text-emerald-800">74.857761</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-500 font-medium">Geofence Radius:</span>
-                <span class="font-bold text-emerald-800">100 Meters</span>[cite: 2]
+                <span class="font-bold text-emerald-800">100 Meters</span>
               </div>
             </div>
 
-            <button onclick="haptic(10); fetchAndStoreCurrentGPS()" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98">
+            <button id="btn-calibrate-gps" onclick="haptic(10); fetchAndStoreCurrentGPS()" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98">
               <span>📍</span> <span>Fetch Current Phone GPS & Save Store Anchor</span>
             </button>
             <p id="gps-accuracy-info" class="text-[10px] text-slate-400 text-center italic">Stand inside Wellwith Mangaluru counter and tap to calibrate.</p>
           </div>
 
-          <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div id="box-manual-gps-override" class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
             <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Manual Coordinate Override</h3>
             <p class="text-[10px] text-slate-400">Paste exact coordinates from Google Maps if preferred:</p>
             <div class="grid grid-cols-2 gap-2">
@@ -1200,7 +1169,38 @@
     </div>
   </div>
 
-  <!-- ================= IN-APP MODAL: SUPER ADMIN RESET CONFIRMATION ================= -->
+  <!-- ================= IN-APP MODAL: CONFIRM USER DELETION ================= -->
+  <div id="modal-confirm-delete" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-white rounded-3xl p-5 shadow-2xl space-y-4 text-xs border border-red-200">
+      <div class="flex justify-between items-center border-b pb-2">
+        <div class="flex items-center gap-1.5 text-red-600 font-black">
+          <span class="text-base">🗑️</span>
+          <h3 class="font-black text-slate-900 text-sm">Delete Account</h3>
+        </div>
+        <button type="button" onclick="closeDeleteUserModal()" class="text-slate-400 hover:text-slate-800 font-bold p-1 text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="space-y-2 text-slate-600">
+        <p class="text-[11px] font-medium leading-relaxed">
+          Permanently remove employee <strong id="delete-target-name" class="text-slate-900 font-bold font-mono">--</strong>?
+        </p>
+        <p class="text-[10px] text-red-600 font-semibold bg-red-50 p-2 rounded-xl border border-red-100">
+          This revokes access on all connected store terminals and deletes the account from the database.
+        </p>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="executeUserDeletion()" class="flex-1 bg-red-600 hover:bg-red-700 active:scale-98 text-white font-black py-2.5 rounded-xl transition cursor-pointer shadow-md">
+          Yes, Delete
+        </button>
+        <button type="button" onclick="closeDeleteUserModal()" class="px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= IN-APP MODAL: MASTER RESET CONFIRMATION (OPTION A) ================= -->
   <div id="modal-master-reset" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="w-full max-w-xs bg-white rounded-3xl p-5 shadow-2xl space-y-4 text-xs border border-red-200">
       <div class="flex justify-between items-center border-b pb-2">
@@ -1217,7 +1217,7 @@
         </p>
         <div class="space-y-1 pt-1">
           <label class="block text-[10px] font-black uppercase text-slate-500">Confirm with Super Admin PIN</label>
-          <input id="input-reset-pin" type="password" maxlength="4" placeholder="Enter PIN (1614)" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-center text-lg tracking-widest font-black outline-none focus:ring-2 focus:ring-red-600">
+          <input id="input-reset-pin" type="password" maxlength="4" placeholder="Enter PIN" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-center text-lg tracking-widest font-black outline-none focus:ring-2 focus:ring-red-600">
         </div>
       </div>
 
@@ -1232,7 +1232,7 @@
     </div>
   </div>
 
-  <!-- Modal: Employee Profile, Weekly Off Editor & Hours Graph -->
+  <!-- Modal: Employee Profile, Role Allocation & Hours Graph -->
   <div id="modal-employee-detail" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
       <div class="bg-[#05281b] text-white p-4.5 px-5 flex items-center justify-between shrink-0">
@@ -1275,6 +1275,21 @@
           <div id="modal-chart-labels" class="flex justify-between text-[9px] font-mono text-slate-400 px-1 pt-1"></div>
         </div>
 
+        <!-- Super Admin Role Power Control Box -->
+        <div id="modal-role-power-box" class="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-800 block">Assign Authority Role</span>
+              <p class="text-[10px] text-slate-400">Controls terminal capabilities & visibility</p>
+            </div>
+            <select id="modal-emp-role-select" onchange="updateEmployeeRoleBySuperAdmin(this.value)" class="px-2.5 py-1.5 bg-slate-50 border rounded-xl font-bold text-xs outline-none">
+              <option value="STAFF">Staff (Floor Worker)</option>
+              <option value="MANAGER">Store Manager</option>
+              <option value="OWNER">Store Owner</option>
+            </select>
+          </div>
+        </div>
+
         <div class="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-2">
           <div class="flex justify-between items-center">
             <div>
@@ -1300,7 +1315,7 @@
 
         <div id="modal-delete-emp-container" class="pt-1">
           <button onclick="deleteStaffMemberFromModal()" class="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
-            <span>🗑️</span> Delete Staff Account Permanently
+            <span>🗑️</span> Delete User Account Permanently
           </button>
         </div>
       </div>
@@ -1308,9 +1323,14 @@
   </div>
 
   <script>
-    // ================= STATE & CORE ARCHITECTURE ================= //
+    // ================= STATE & HIERARCHY ARCHITECTURE ================= //
     const STORAGE_KEY = 'WELLWITH_MANGALURU_MASTER_V56';
 
+    // Hierarchy Definition:
+    // SUPER_ADMIN (Level 4 - Ghost Root): Invisible to anyone, full role & system control
+    // OWNER (Level 3): Executive management, financial oversight
+    // MANAGER (Level 2): Store floor lead, registers & checklists
+    // STAFF (Level 1): Daily shift workers, punches & stock leads
     const defaultState = {
       storeConfig: {
         name: 'Wellwith Mangaluru',
@@ -1322,9 +1342,9 @@
         graceMins: 15
       },
       employees: [
-        { id: 'owner_1', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'ADMIN', weekOff: 'Sunday' },
-        { id: 'owner_2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'ADMIN', weekOff: 'Sunday' },
-        { id: 'staff_1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday' }
+        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'Sunday' },
+        { id: 'usr_owner2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'OWNER', weekOff: 'Sunday' },
+        { id: 'usr_staff1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday' }
       ],
       attendance: [],
       cashDrawerLogs: [],
@@ -1338,12 +1358,19 @@
       nightClosingChecklists: []
     };
 
+    // Defensively ensure state arrays, while preserving user deletions.
+    // Sole Invariant: Root Super Admin (8088504219) is retained to prevent bricking.
     function ensureStateArrays(parsed) {
       if (!parsed) parsed = {};
       if (!Array.isArray(parsed.employees)) parsed.employees = JSON.parse(JSON.stringify(defaultState.employees));
-      if (!parsed.employees.some(e => e.phone === '8088504219')) parsed.employees.push(defaultState.employees[0]);
-      if (!parsed.employees.some(e => e.phone === '7676573670')) parsed.employees.push(defaultState.employees[1]);
-      if (!parsed.employees.some(e => e.phone === '8618486377')) parsed.employees.push(defaultState.employees[2]);
+      
+      // Ensure Root Super Admin is always anchored
+      if (!parsed.employees.some(e => e.phone === '8088504219')) {
+        parsed.employees.unshift(defaultState.employees[0]);
+      } else {
+        const root = parsed.employees.find(e => e.phone === '8088504219');
+        root.role = 'SUPER_ADMIN'; // Ensure highest ghost role is preserved
+      }
       
       if (!Array.isArray(parsed.attendance)) parsed.attendance = [];
       if (!Array.isArray(parsed.cashDrawerLogs)) parsed.cashDrawerLogs = [];
@@ -1385,6 +1412,7 @@
     let cameraStream = null;
     let currentActivePage = 'page-welcome';
     let selectedModalEmployeeId = null;
+    let pendingDeleteEmployee = null;
     let cachedLocation = null;
     let watchId = null;
 
@@ -1409,13 +1437,32 @@
       setTimeout(() => toast.classList.add('hidden'), 4000);
     }
 
+    // Role Hierarchy Checking Utilities
+    function isSuperAdmin() {
+      return !!(currentAuthUser && (currentAuthUser.phone === '8088504219' || currentAuthUser.role === 'SUPER_ADMIN'));
+    }
+
+    function isOwnerRole() {
+      return !!(currentAuthUser && (isSuperAdmin() || currentAuthUser.role === 'OWNER'));
+    }
+
+    function isManagerRole() {
+      return !!(currentAuthUser && (isOwnerRole() || currentAuthUser.role === 'MANAGER' || currentAuthUser.role === 'ADMIN'));
+    }
+
+    // Ghosting display helper: Super Admin is visually shown as "STORE OWNER" to conceal root access from other tiers
+    function getDisplayRole(role) {
+      if (role === 'SUPER_ADMIN' || role === 'OWNER') return 'STORE OWNER';
+      if (role === 'MANAGER' || role === 'ADMIN') return 'STORE MANAGER';
+      return 'STAFF';
+    }
+
     // ================= REALTIME CLOCK & STARTUP ================= //
     function updateClock() {
-      const wClock = document.getElementById('welcome-live-clock');
-      if (!wClock) return;
       const now = new Date();
       const str = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      wClock.innerText = str;
+      const wClock = document.getElementById('welcome-live-clock');
+      if (wClock) wClock.innerText = str;
       if (now.getHours() >= 21) {
         const el = document.getElementById('overtime-indicator');
         if (el) el.classList.remove('hidden');
@@ -1424,6 +1471,7 @@
     }
 
     setInterval(updateClock, 1000);
+    updateClock();
 
     window.addEventListener('DOMContentLoaded', () => {
       updateClock();
@@ -1464,8 +1512,8 @@
       toggleSidebar(false);
 
       const adminOnlyPages = ['page-admin-desk'];
-      if (adminOnlyPages.includes(pageId) && !isAdminRole()) {
-        showToast('Access Denied. Admin permission required.', true);
+      if (adminOnlyPages.includes(pageId) && !isManagerRole()) {
+        showToast('Access Denied. Management authorization required.', true);
         navigateTo('page-dashboard');
         return;
       }
@@ -1476,7 +1524,7 @@
         return;
       }
 
-      if (!isPrimaryOwner()) {
+      if (!isOwnerRole()) {
         const requiresActiveShift = ['page-shift', 'page-cash'];
         if (requiresActiveShift.includes(pageId) && !isPunchedInToday()) {
           if (isShiftFinishedToday()) {
@@ -1536,7 +1584,7 @@
         else if (pageId === 'page-shift') { titleEl.innerText = 'Shift & Lunch Break'; subtitleEl.innerText = 'Floor Duty Tracker'; }
         else if (pageId === 'page-cash') { titleEl.innerText = 'Cash & Closing Desk'; subtitleEl.innerText = 'Reconciliation & Exit'; }
         else if (pageId === 'page-enquiries') { titleEl.innerText = 'Enquiries & Stock'; subtitleEl.innerText = 'Counter Leads & Alerts'; }
-        else if (pageId === 'page-admin-desk') { titleEl.innerText = 'Management Console'; subtitleEl.innerText = 'Super Admin Control'; }
+        else if (pageId === 'page-admin-desk') { titleEl.innerText = 'Administration Console'; subtitleEl.innerText = 'Management Control'; }
       }
 
       ['dashboard', 'shift', 'cash'].forEach(k => {
@@ -1574,7 +1622,7 @@
       }
     }
 
-    // ================= SECURE AUTHENTICATION & WEBAUTHN BIOMETRICS ================= //
+    // ================= SECURE AUTHENTICATION ================= //
     function handleLoginSubmit() {
       const phoneInput = document.getElementById('input-phone');
       const pinInput = document.getElementById('input-pin');
@@ -1604,103 +1652,6 @@
       showToast(`Welcome back, ${user.name}!`);
     }
 
-    async function handleBiometricAuth() {
-      const phoneInput = document.getElementById('input-phone');
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-
-      if (!phone) {
-        showToast('Please enter your 10-digit mobile number above first.', true);
-        return;
-      }
-
-      appState = loadState();
-      const user = (appState.employees || []).find(e => e.phone === phone);
-      if (!user) {
-        showToast('Mobile number not found in store roster.', true);
-        return;
-      }
-
-      const bioKey = 'WW_BIO_CRED_' + user.phone;
-      const registeredCredId = localStorage.getItem(bioKey);
-
-      if (!registeredCredId) {
-        showToast(`Biometrics not set up for ${user.name} on this phone yet. Sign in with PIN once to link it!`, true);
-        return;
-      }
-
-      if (!window.PublicKeyCredential) {
-        showToast('Biometric authentication is not supported on this browser.', true);
-        return;
-      }
-
-      try {
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge: challenge,
-            timeout: 60000,
-            allowCredentials: [{
-              id: Uint8Array.from(atob(registeredCredId), c => c.charCodeAt(0)),
-              type: 'public-key'
-            }],
-            userVerification: 'required'
-          }
-        });
-
-        if (assertion) {
-          currentAuthUser = user;
-          localStorage.setItem('AROVI_CURRENT_USER', JSON.stringify(user));
-          if (phoneInput) phoneInput.value = '';
-          setupSession();
-          showToast(`Biometric Verified! Welcome, ${user.name}.`);
-        }
-      } catch (err) {
-        showToast('Biometric verification cancelled or failed. Please use PIN.', true);
-      }
-    }
-
-    async function registerBiometricsForCurrentUser() {
-      if (!currentAuthUser) return;
-      if (!window.PublicKeyCredential) {
-        showToast('WebAuthn / Biometrics not supported on this device.', true);
-        return;
-      }
-
-      try {
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-
-        const credential = await navigator.credentials.create({
-          publicKey: {
-            challenge: challenge,
-            rp: { name: 'Wellwith Mangaluru' },
-            user: {
-              id: Uint8Array.from(currentAuthUser.phone, c => c.charCodeAt(0)),
-              name: currentAuthUser.phone,
-              displayName: currentAuthUser.name
-            },
-            pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
-            authenticatorSelection: {
-              authenticatorAttachment: 'platform',
-              userVerification: 'required'
-            },
-            timeout: 60000
-          }
-        });
-
-        if (credential) {
-          const rawId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-          localStorage.setItem('WW_BIO_CRED_' + currentAuthUser.phone, rawId);
-          showToast('Fingerprint / Face ID linked successfully to this device!');
-          document.getElementById('box-biometric-enroll')?.classList.add('hidden');
-        }
-      } catch (err) {
-        showToast('Biometric setup cancelled: ' + (err.message || 'Verification skipped'), true);
-      }
-    }
-
     function handleLogout() {
       stopCamera();
       localStorage.removeItem('AROVI_CURRENT_USER');
@@ -1713,16 +1664,11 @@
       if (!currentAuthUser) return;
       document.getElementById('sidebar-user-name').innerText = currentAuthUser.name;
       
-      const isAdmin = isAdminRole();
+      const isLead = isManagerRole();
 
-      document.getElementById('sidebar-role-badge').innerText = isAdmin ? 'ADMIN' : 'STAFF';
-      document.getElementById('side-cat-admin').classList.toggle('hidden', !isAdmin);
-
-      const bioKey = 'WW_BIO_CRED_' + currentAuthUser.phone;
-      const boxBio = document.getElementById('box-biometric-enroll');
-      if (boxBio) {
-        boxBio.classList.toggle('hidden', !window.PublicKeyCredential || !!localStorage.getItem(bioKey));
-      }
+      // Ghosting Super Admin display: Shows as "STORE OWNER"
+      document.getElementById('sidebar-role-badge').innerText = getDisplayRole(currentAuthUser.role);
+      document.getElementById('side-cat-admin').classList.toggle('hidden', !isLead);
 
       updateLockPills();
       navigateTo('page-dashboard');
@@ -1757,7 +1703,7 @@
       document.getElementById('btn-admin-skip-toggle').classList.toggle('hidden', skip);
       document.getElementById('btn-admin-show-toggle').classList.toggle('hidden', !skip);
       renderDashboardSteps();
-      showToast(skip ? 'Opening sequence bypassed for Admin.' : 'Opening sequence visible.');
+      showToast(skip ? 'Opening sequence bypassed for executive schedule.' : 'Opening sequence visible.');
     }
 
     function renderDashboardSteps() {
@@ -1773,7 +1719,7 @@
         return;
       }
 
-      if (isPrimaryOwner()) {
+      if (isOwnerRole()) {
         if (adminBanner) adminBanner.classList.remove('hidden');
         if (adminBypassedOpening) {
           moduleEl.classList.add('hidden');
@@ -1835,7 +1781,7 @@
         } else {
           card2.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200 opacity-100';
           badge2.className = 'w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]';
-          status2.innerText = isPrimaryOwner() ? 'Optional' : 'Action Required';
+          status2.innerText = isOwnerRole() ? 'Optional' : 'Action Required';
           status2.className = 'text-[10px] font-extrabold text-amber-700';
           floatInput.disabled = false;
           floatBtn.disabled = false;
@@ -1844,12 +1790,12 @@
           doneSummary2.classList.add('hidden');
         }
 
-        document.getElementById('steps-completion-tag').innerText = isPrimaryOwner() ? 'Optional' : 'Step 2 of 2 Pending';
+        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional' : 'Step 2 of 2 Pending';
       } else {
         card1.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200';
         badge1.className = 'w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]';
         badge1.innerText = '1';
-        status1.innerText = isPrimaryOwner() ? 'Optional' : 'Pending 4 Checks';
+        status1.innerText = isOwnerRole() ? 'Optional' : 'Pending 4 Checks';
         status1.className = 'text-[10px] font-extrabold text-amber-700';
         checkBody1.classList.remove('hidden');
         doneSummary1.classList.add('hidden');
@@ -1862,12 +1808,19 @@
         floatBtn.disabled = true;
         floatBtn.className = 'bg-slate-300 text-slate-500 font-black px-4 py-2 rounded-xl text-xs transition cursor-not-allowed';
 
-        document.getElementById('steps-completion-tag').innerText = isPrimaryOwner() ? 'Optional' : 'Step 1 of 2 Pending';
+        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional' : 'Step 1 of 2 Pending';
       }
+
+      // Hide float edit capability from pure floor staff
+      const editFloatBtn1 = document.getElementById('btn-open-float-edit');
+      const editFloatBtn2 = document.getElementById('btn-edit-float-cashdesk');
+      if (editFloatBtn1) editFloatBtn1.classList.toggle('hidden', !isOwnerRole());
+      if (editFloatBtn2) editFloatBtn2.classList.toggle('hidden', !isOwnerRole());
     }
 
     // ================= IN-APP MODAL: EDIT MORNING FLOAT ================= //
     function openFloatEditModal() {
+      if (!isOwnerRole()) return showToast('Permission Denied: Executive access required.', true);
       const rec = getTodayCashRecord();
       const currentVal = (rec.morningCash !== null && rec.morningCash !== undefined) ? rec.morningCash : '';
       const inputEl = document.getElementById('input-modal-float-val');
@@ -1881,6 +1834,7 @@
     }
 
     function saveFloatFromModal() {
+      if (!isOwnerRole()) return showToast('Permission Denied: Executive access required.', true);
       const inputEl = document.getElementById('input-modal-float-val');
       const newVal = parseFloat(inputEl?.value);
 
@@ -1891,7 +1845,7 @@
       appState = loadState();
       const rec = getTodayCashRecord();
       rec.morningCash = Math.round(newVal * 100) / 100;
-      rec.morningBy = currentAuthUser ? currentAuthUser.name : 'Admin (Override)';
+      rec.morningBy = currentAuthUser ? currentAuthUser.name : 'Owner';
       rec.morningTimestamp = new Date().toISOString();
       saveState(appState);
 
@@ -1965,7 +1919,7 @@
       appState = loadState();
       document.getElementById('data-user-name').innerText = currentAuthUser.name;
       document.getElementById('data-user-phone').innerText = currentAuthUser.phone;
-      document.getElementById('data-role-badge').innerText = isAdminRole() ? 'ADMIN' : 'STAFF';
+      document.getElementById('data-role-badge').innerText = getDisplayRole(currentAuthUser.role);
       document.getElementById('data-user-weekoff').innerText = `Week-Off: ${currentAuthUser.weekOff || 'Sunday'}`;
 
       const onDuty = isPunchedInToday();
@@ -1978,7 +1932,7 @@
 
       if (todayRec && todayRec.punchInTime) {
         const inStr = new Date(todayRec.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const statusNote = isPrimaryOwner() ? '(Flexible)' : (todayRec.isLate ? `(Late: +${todayRec.lateMinutes}m)` : '(On Time)');
+        const statusNote = isOwnerRole() ? '(Flexible)' : (todayRec.isLate ? `(Late: +${todayRec.lateMinutes}m)` : '(On Time)');
         document.getElementById('personal-clockin-time').innerText = `Clocked in at ${inStr} ${statusNote}`;
       }
 
@@ -1997,7 +1951,7 @@
       let totalOtMinutes = 0;
 
       userLogs.forEach(l => {
-        if (l.isLate && !isPrimaryOwner()) {
+        if (l.isLate && !isOwnerRole()) {
           lateCount++;
           lateMinsTotal += (l.lateMinutes || 0);
         }
@@ -2006,8 +1960,8 @@
       });
 
       document.getElementById('stat-days-present').innerText = daysPresent;
-      document.getElementById('stat-late-marks').innerText = isPrimaryOwner() ? '--' : lateCount;
-      document.getElementById('stat-late-mins').innerText = isPrimaryOwner() ? 'Flexible Hours' : `${lateMinsTotal} mins delay`;
+      document.getElementById('stat-late-marks').innerText = isOwnerRole() ? '--' : lateCount;
+      document.getElementById('stat-late-mins').innerText = isOwnerRole() ? 'Flexible Hours' : `${lateMinsTotal} mins delay`;
       document.getElementById('stat-net-hours').innerText = `${Math.floor(totalWorkMinutes / 60)}h ${totalWorkMinutes % 60}m`;
       document.getElementById('stat-ot-hours').innerText = `${totalOtMinutes} mins`;
 
@@ -2033,7 +1987,7 @@
         const durStr = log.punchOutTime ? `${nh}h ${nm}m` : '--';
 
         let badge = '<span class="text-emerald-700 font-bold">On Time</span>';
-        if (isPrimaryOwner()) {
+        if (isOwnerRole()) {
           badge = '<span class="text-emerald-800 font-bold">Logged (Flex)</span>';
         } else if (log.isLate) {
           badge = `<span class="text-amber-700 font-bold">Late (+${log.lateMinutes}m)</span>`;
@@ -2409,15 +2363,15 @@
 
     // ================= RESILIENT GEOFENCE RADAR & DUAL TRIGGER ================= //
     async function prepareGatekeeperUI() {
-      const isAdmin = isAdminRole();
+      const isLead = isOwnerRole();
       const cameraBox = document.getElementById('employee-camera-container');
       const adminBox = document.getElementById('admin-bypass-container');
       const instruction = document.getElementById('gate-instruction-text');
 
-      if (isAdmin) {
+      if (isLead) {
         cameraBox.classList.add('hidden');
         adminBox.classList.remove('hidden');
-        instruction.innerText = 'Admin Check-In: GPS verification enabled. Camera bypassed.';
+        instruction.innerText = 'Executive Check-In: GPS verification enabled. Camera bypassed.';
         stopCamera();
       } else {
         cameraBox.classList.remove('hidden');
@@ -2475,20 +2429,20 @@
           coords = await getInstantLocation();
           const dist = calculateDistance(coords.lat, coords.lng, appState.storeConfig.lat, appState.storeConfig.lng);
 
-          if (dist > appState.storeConfig.radius && !isPrimaryOwner()) {
+          if (dist > appState.storeConfig.radius && !isOwnerRole()) {
             showToast(`❌ Geofence Failed! You are ${Math.round(dist)}m away from store. Allowed: ${appState.storeConfig.radius}m.`, true);
             return;
           }
         } catch (gpsErr) {
-          if (!isPrimaryOwner()) {
+          if (!isOwnerRole()) {
             showToast('Could not acquire GPS. Please ensure phone location is ON.', true);
             return;
           }
         }
 
-        const isAdmin = isAdminRole();
+        const isLead = isOwnerRole();
         let selfie = null;
-        if (!isAdmin) {
+        if (!isLead) {
           selfie = captureSelfieSnapshot();
           if (!selfie) {
             selfie = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%2305281b"/><text x="50" y="55" fill="white" font-size="20" text-anchor="middle" font-family="sans-serif">Staff</text></svg>';
@@ -2499,7 +2453,7 @@
         let isLate = false;
         let lateMinutes = 0;
 
-        if (!isPrimaryOwner()) {
+        if (!isOwnerRole()) {
           const [shHour, shMin] = appState.storeConfig.shiftStart.split(':').map(Number);
           const cutoff = new Date(now);
           cutoff.setHours(shHour, shMin + appState.storeConfig.graceMins, 0, 0);
@@ -2527,7 +2481,7 @@
           breaks: [],
           isLate,
           lateMinutes,
-          adminOverrideNote: isPrimaryOwner() ? 'Flexible Hours (Owner)' : (isAdmin ? 'Admin Punch' : null)
+          adminOverrideNote: isOwnerRole() ? 'Flexible Hours (Executive)' : null
         };
 
         if (!Array.isArray(appState.attendance)) appState.attendance = [];
@@ -2547,7 +2501,7 @@
       const today = new Date().toISOString().split('T')[0];
       const isStoreDone = isStoreNightClosingDoneToday();
 
-      if (!isPrimaryOwner() && !isStoreDone) {
+      if (!isOwnerRole() && !isStoreDone) {
         const rec = getTodayCashRecord();
         if (rec.nightPhysicalCash === null) {
           showToast('Cannot punch out! Complete Night Cash Settlement first.', true);
@@ -2578,7 +2532,7 @@
         try {
           coords = await getInstantLocation();
           const dist = calculateDistance(coords.lat, coords.lng, appState.storeConfig.lat, appState.storeConfig.lng);
-          if (dist > appState.storeConfig.radius && !isPrimaryOwner()) {
+          if (dist > appState.storeConfig.radius && !isOwnerRole()) {
             showToast(`❌ Cannot Punch Out! Must be at store premises (${Math.round(dist)}m away).`, true);
             return;
           }
@@ -2612,7 +2566,7 @@
         const netMinutes = Math.max(1, grossMinutes - excessBreak);
 
         let overtimeMins = 0;
-        if (!isPrimaryOwner()) {
+        if (!isOwnerRole()) {
           const shiftEnd = new Date(now);
           shiftEnd.setHours(21, 0, 0, 0);
           if (now > shiftEnd) overtimeMins = Math.floor((now - shiftEnd) / (1000 * 60));
@@ -2623,7 +2577,7 @@
         log.overtimeMinutes = overtimeMins;
         log.totalBreakMins = totalBreakMins;
 
-        if (!isStoreDone && !isPrimaryOwner()) {
+        if (!isStoreDone && !isOwnerRole()) {
           appState.nightClosingChecklists.push({ date: today, by: currentAuthUser.name, timestamp: now.toISOString() });
         }
 
@@ -2731,7 +2685,7 @@
       const label = document.getElementById('punch-out-label');
 
       if (slider && thumb && label) {
-        if (isPrimaryOwner() || isStoreDone || totalCount === 7) {
+        if (isOwnerRole() || isStoreDone || totalCount === 7) {
           slider.className = 'relative w-full h-14 bg-slate-200/80 rounded-2xl overflow-hidden border border-slate-300 p-1 flex items-center slider-track shadow-inner opacity-100 pointer-events-auto';
           thumb.className = 'relative z-10 w-12 h-12 bg-[#05281b] rounded-xl text-white flex items-center justify-center font-black shadow-lg cursor-grab active:cursor-grabbing text-sm';
           thumb.innerText = '📍';
@@ -2757,16 +2711,23 @@
         document.getElementById(`view-admin-${id}`).classList.toggle('hidden', id !== tabId);
         const tabBtn = document.getElementById(`tab-${id}`);
         if (id === tabId) {
-          tabBtn.className = 'text-emerald-950 border-b-2 border-emerald-900 pb-1 font-black';
+          tabBtn.className = 'text-emerald-950 border-b-2 border-emerald-900 pb-1 font-black shrink-0 px-2';
         } else {
-          tabBtn.className = 'text-slate-400 pb-1 font-bold';
+          tabBtn.className = 'text-slate-400 pb-1 font-bold shrink-0 px-2';
         }
       });
 
       if (tabId === 'roster') renderAdminRoster();
       if (tabId === 'staff') renderSettingsStaffList();
       if (tabId === 'leaves') renderAdminLeavesList();
+      if (tabId === 'reports') renderReportsTabUI();
       if (tabId === 'geofence') updateGeofenceSettingsUI();
+    }
+
+    function renderReportsTabUI() {
+      // Option A Reset button card is ghosted and strictly shown ONLY to Super Admin
+      const resetCard = document.getElementById('card-superadmin-reset');
+      if (resetCard) resetCard.classList.toggle('hidden', !isSuperAdmin());
     }
 
     function updateGeofenceSettingsUI() {
@@ -2778,11 +2739,17 @@
       const manualLng = document.getElementById('input-manual-lng');
       if (manualLat) manualLat.value = appState.storeConfig.lat;
       if (manualLng) manualLng.value = appState.storeConfig.lng;
+
+      // Calibration restricted to Super Admin
+      const btnCalibrate = document.getElementById('btn-calibrate-gps');
+      const boxManual = document.getElementById('box-manual-gps-override');
+      if (btnCalibrate) btnCalibrate.disabled = !isSuperAdmin();
+      if (boxManual) boxManual.classList.toggle('hidden', !isSuperAdmin());
     }
 
     async function fetchAndStoreCurrentGPS() {
-      if (!isPrimaryOwner()) {
-        return showToast('Permission Denied: Only Super Admin can calibrate store GPS.', true);
+      if (!isSuperAdmin()) {
+        return showToast('Permission Denied: Root access required to alter store GPS.', true);
       }
 
       showToast('Fetching high accuracy phone GPS...');
@@ -2812,7 +2779,7 @@
           updateGateRadarDistance(true);
         },
         (err) => {
-          showToast('Failed to fetch GPS. Ensure phone Location is turned ON and permissions granted.', true);
+          showToast('Failed to fetch GPS. Ensure phone Location is ON.', true);
           if (accuracyInfo) accuracyInfo.innerText = 'GPS error. Try using Manual Override below.';
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -2820,8 +2787,8 @@
     }
 
     function saveManualCoordinates() {
-      if (!isPrimaryOwner()) {
-        return showToast('Permission Denied: Only Super Admin can calibrate store GPS.', true);
+      if (!isSuperAdmin()) {
+        return showToast('Permission Denied: Root access required to alter store GPS.', true);
       }
 
       const latInput = parseFloat(document.getElementById('input-manual-lat')?.value);
@@ -2866,7 +2833,7 @@
         card.onclick = () => openEmployeeModal(emp.id);
         card.innerHTML = `
           <div>
-            <div class="font-bold text-slate-900 text-xs">${emp.name} <span class="text-[9px] text-slate-400">(${emp.role})</span></div>
+            <div class="font-bold text-slate-900 text-xs">${emp.name} <span class="text-[9px] text-slate-400">(${getDisplayRole(emp.role)})</span></div>
             <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • ${subtext}</div>
           </div>
           ${badgeHtml}
@@ -2876,13 +2843,18 @@
     }
 
     function registerNewStaff() {
-      if (!isPrimaryOwner()) return showToast('Permission Denied: Super Admin only.', true);
+      if (!isOwnerRole()) return showToast('Permission Denied: Management level only.', true);
 
       const name = document.getElementById('new-emp-name').value.trim();
       const phone = document.getElementById('new-emp-phone').value.trim();
       const pin = document.getElementById('new-emp-pin').value.trim();
-      const role = document.getElementById('new-emp-role').value;
+      let role = document.getElementById('new-emp-role').value;
       const weekOff = document.getElementById('new-emp-weekoff').value;
+
+      // Only Super Admin can allocate OWNER or MANAGER roles.
+      if (!isSuperAdmin() && (role === 'OWNER' || role === 'MANAGER')) {
+        role = 'STAFF'; // Co-Owners & Managers can only recruit Staff
+      }
 
       if (!name || phone.length !== 10 || pin.length !== 4) {
         return showToast('Provide name, 10-digit mobile, and 4-digit PIN', true);
@@ -2893,36 +2865,61 @@
         return showToast('Employee with this mobile already exists', true);
       }
 
-      appState.employees.push({ id: 'emp_' + Date.now(), name, phone, pin, role, weekOff });
+      appState.employees.push({ id: 'usr_' + Date.now(), name, phone, pin, role, weekOff });
       saveState(appState);
 
       document.getElementById('new-emp-name').value = '';
       document.getElementById('new-emp-phone').value = '';
       document.getElementById('new-emp-pin').value = '';
-      showToast(`Employee "${name}" registered!`);
+      showToast(`User "${name}" enrolled as ${getDisplayRole(role)}!`);
       renderSettingsStaffList();
     }
 
-    function deleteStaffMember(empId, empName) {
-      if (!isPrimaryOwner()) return showToast('Permission Denied: Super Admin only.', true);
+    // ================= IN-APP MODAL: CONFIRM USER DELETION ================= //
+    function openDeleteUserModal(empId, empName) {
+      if (!isSuperAdmin()) return showToast('Permission Denied: Only Super Admin can delete users.', true);
 
       const emp = (appState.employees || []).find(e => e.id === empId);
-      if (emp && emp.phone === '8088504219') return showToast('Super Admin account cannot be deleted.', true);
+      if (emp && emp.phone === '8088504219') return showToast('Root Super Admin cannot be deleted.', true);
 
-      // Defensively avoid native modal if possible or keep confirmation lightweight
+      pendingDeleteEmployee = { id: empId, name: empName };
+      document.getElementById('delete-target-name').innerText = `${empName} (${emp ? emp.phone : ''})`;
+      document.getElementById('modal-confirm-delete')?.classList.remove('hidden');
+    }
+
+    function closeDeleteUserModal() {
+      document.getElementById('modal-confirm-delete')?.classList.add('hidden');
+      pendingDeleteEmployee = null;
+    }
+
+    function executeUserDeletion() {
+      if (!isSuperAdmin() || !pendingDeleteEmployee) {
+        closeDeleteUserModal();
+        return;
+      }
+
+      const { id, name } = pendingDeleteEmployee;
       appState = loadState();
-      appState.employees = appState.employees.filter(e => e.id !== empId);
-      saveState(appState);
 
-      showToast(`Deleted employee "${empName}".`);
-      renderSettingsStaffList();
+      // Permanent filter from array
+      appState.employees = appState.employees.filter(e => e.id !== id);
+      
+      // Clean up orphaned shifts from active day views
+      appState.attendance = (appState.attendance || []).filter(a => a.employeeId !== id);
+
+      saveState(appState);
+      closeDeleteUserModal();
       closeEmployeeModal();
+      haptic(25);
+      showToast(`Account for "${name}" permanently deleted.`);
+      renderSettingsStaffList();
+      renderAdminRoster();
     }
 
     function deleteStaffMemberFromModal() {
       if (!selectedModalEmployeeId) return;
       const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
-      if (emp) deleteStaffMember(emp.id, emp.name);
+      if (emp) openDeleteUserModal(emp.id, emp.name);
     }
 
     function renderSettingsStaffList() {
@@ -2932,27 +2929,30 @@
       container.innerHTML = '';
 
       appState = loadState();
-      badge.innerText = `${appState.employees.length} Staff`;
+      badge.innerText = `${appState.employees.length} Accounts`;
 
       appState.employees.forEach(emp => {
         const isRoot = (emp.phone === '8088504219');
         let delBtn = '';
 
-        if (isPrimaryOwner() && !isRoot) {
-          delBtn = `<button onclick="event.stopPropagation(); haptic(10); deleteStaffMember('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 font-bold p-1 text-xs cursor-pointer" title="Delete Account">✕</button>`;
+        if (isSuperAdmin() && !isRoot) {
+          delBtn = `<button onclick="event.stopPropagation(); haptic(10); openDeleteUserModal('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg text-xs font-black cursor-pointer transition active:scale-90" title="Delete Account">✕</button>`;
         } else if (isRoot) {
-          delBtn = `<span class="text-[9px] text-emerald-800 font-black">Owner</span>`;
+          delBtn = `<span class="text-[9px] text-emerald-800 font-black">Anchor</span>`;
         }
 
+        const displayRole = getDisplayRole(emp.role);
+        const roleColor = (emp.role === 'SUPER_ADMIN' || emp.role === 'OWNER') ? 'bg-emerald-100 text-emerald-800' : (emp.role === 'MANAGER' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700');
+
         const row = document.createElement('div');
-        row.className = 'flex justify-between items-center p-2 bg-slate-50 border rounded-xl text-xs';
+        row.className = 'flex justify-between items-center p-2.5 bg-slate-50 border rounded-2xl text-xs';
         row.innerHTML = `
           <div>
-            <div class="font-bold text-slate-900">${emp.name} <span class="text-[9px] uppercase font-black px-1.5 py-0.2 rounded ${emp.role === 'ADMIN' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}">${emp.role}</span></div>
+            <div class="font-bold text-slate-900">${emp.name} <span class="text-[9px] uppercase font-black px-1.5 py-0.2 rounded ${roleColor}">${displayRole}</span></div>
             <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • Off: ${emp.weekOff || 'Sunday'}</div>
           </div>
           <div class="flex items-center gap-2">
-            ${isPrimaryOwner() ? `<span class="font-mono text-slate-600 bg-white px-1.5 py-0.5 rounded border text-[10px]">${emp.pin}</span>` : ''}
+            ${isSuperAdmin() ? `<span class="font-mono text-slate-600 bg-white px-1.5 py-0.5 rounded border text-[10px]">${emp.pin}</span>` : ''}
             ${delBtn}
           </div>
         `;
@@ -2961,7 +2961,7 @@
     }
 
     function openEmployeeModal(employeeId) {
-      if (!isAdminRole()) return;
+      if (!isManagerRole()) return;
       selectedModalEmployeeId = employeeId;
       appState = loadState();
       const emp = (appState.employees || []).find(e => e.id === employeeId);
@@ -2969,15 +2969,27 @@
 
       document.getElementById('modal-emp-name').innerText = emp.name;
       document.getElementById('modal-emp-phone').innerText = emp.phone;
-      document.getElementById('modal-emp-role').innerText = emp.role;
+      document.getElementById('modal-emp-role').innerText = getDisplayRole(emp.role);
       document.getElementById('modal-emp-pin').innerText = emp.pin;
+
+      // Super Admin Role Power Control Box
+      const rolePowerBox = document.getElementById('modal-role-power-box');
+      const roleSelect = document.getElementById('modal-emp-role-select');
+      if (rolePowerBox && roleSelect) {
+        if (isSuperAdmin() && emp.phone !== '8088504219') {
+          rolePowerBox.classList.remove('hidden');
+          roleSelect.value = emp.role === 'SUPER_ADMIN' ? 'OWNER' : (emp.role || 'STAFF');
+        } else {
+          rolePowerBox.classList.add('hidden');
+        }
+      }
 
       const selectOff = document.getElementById('modal-emp-weekoff-select');
       selectOff.value = emp.weekOff || 'Sunday';
-      selectOff.disabled = !isPrimaryOwner();
+      selectOff.disabled = !isOwnerRole();
 
-      document.getElementById('modal-delete-emp-container').classList.toggle('hidden', !isPrimaryOwner() || emp.phone === '8088504219');
-      document.getElementById('modal-pin-box').classList.toggle('hidden', !isPrimaryOwner());
+      document.getElementById('modal-delete-emp-container').classList.toggle('hidden', !isSuperAdmin() || emp.phone === '8088504219');
+      document.getElementById('modal-pin-box').classList.toggle('hidden', !isSuperAdmin());
 
       renderEmployeeAnalyticsChart(emp.id);
       document.getElementById('modal-employee-detail').classList.remove('hidden');
@@ -2988,8 +3000,23 @@
       selectedModalEmployeeId = null;
     }
 
+    // Role Promotion / Demotion powered by Super Admin
+    function updateEmployeeRoleBySuperAdmin(newRole) {
+      if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
+      appState = loadState();
+      const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
+      if (emp && emp.phone !== '8088504219') {
+        emp.role = newRole;
+        saveState(appState);
+        document.getElementById('modal-emp-role').innerText = getDisplayRole(newRole);
+        showToast(`Role power for ${emp.name} updated to ${getDisplayRole(newRole)}.`);
+        renderSettingsStaffList();
+        renderAdminRoster();
+      }
+    }
+
     function updateEmployeeWeekOff(val) {
-      if (!isPrimaryOwner()) return showToast('Permission Denied: Super Admin only.', true);
+      if (!isOwnerRole()) return showToast('Permission Denied: Management level only.', true);
       appState = loadState();
       const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
       if (emp) {
@@ -3088,7 +3115,7 @@
     }
 
     function reviewLeaveRequest(reqId, status) {
-      if (!isAdminRole()) return;
+      if (!isManagerRole()) return;
       appState = loadState();
       const req = (appState.leaveRequests || []).find(l => l.id === reqId);
       if (!req) return;
@@ -3104,7 +3131,7 @@
 
     // ================= MASTER RESET PROTOCOL (OPTION A) ================= //
     function openMasterResetModal() {
-      if (!isPrimaryOwner()) {
+      if (!isSuperAdmin()) {
         return showToast('Permission Denied: Root Super Admin only.', true);
       }
       const pinInput = document.getElementById('input-reset-pin');
@@ -3118,7 +3145,7 @@
     }
 
     function executeMasterReset() {
-      if (!isPrimaryOwner()) {
+      if (!isSuperAdmin()) {
         closeMasterResetModal();
         return showToast('Permission Denied: Root Super Admin only.', true);
       }
@@ -3146,7 +3173,7 @@
       saveState(appState);
       closeMasterResetModal();
       haptic(40);
-      showToast('Option A Reset Completed! All shifts & cash data cleared across all devices.');
+      showToast('Option A Reset Completed! Shifts & cash logs wiped across all devices.');
 
       // Refresh local UI states
       resetDenominations();
@@ -3249,7 +3276,7 @@
     }
 
     function clearPettyCashHistory() {
-      if (!isPrimaryOwner()) return;
+      if (!isOwnerRole()) return;
       appState = loadState();
       appState.pettyCashExpenses = [];
       appState.pettyDeclarations = [];
@@ -3284,14 +3311,6 @@
     }
 
     // ================= HELPERS & REFRESH ================= //
-    function isPrimaryOwner() {
-      return (currentAuthUser && currentAuthUser.phone === '8088504219');
-    }
-
-    function isAdminRole() {
-      return (isPrimaryOwner() || (currentAuthUser && (currentAuthUser.phone === '7676573670' || currentAuthUser.role === 'ADMIN')));
-    }
-
     function isPettyCashReconciledToday() {
       const today = new Date().toISOString().split('T')[0];
       const exps = (appState.pettyCashExpenses || []).filter(e => e.date === today);
@@ -3410,10 +3429,19 @@
             resolve(cachedLocation);
           },
           () => {
-            cachedLocation = { lat: appState.storeConfig.lat, lng: appState.storeConfig.lng, time: Date.now() };
-            resolve(cachedLocation);
+            navigator.geolocation.getCurrentPosition(
+              (posFallback) => {
+                cachedLocation = { lat: posFallback.coords.latitude, lng: posFallback.coords.longitude, time: Date.now() };
+                resolve(cachedLocation);
+              },
+              () => {
+                cachedLocation = { lat: appState.storeConfig.lat, lng: appState.storeConfig.lng, time: Date.now() };
+                resolve(cachedLocation);
+              },
+              { enableHighAccuracy: false, timeout: 3500, maximumAge: 60000 }
+            );
           },
-          { enableHighAccuracy: false, timeout: 3500, maximumAge: 60000 }
+          { enableHighAccuracy: true, timeout: 4000, maximumAge: 30000 }
         );
       });
     }
@@ -3458,7 +3486,7 @@
 
     function renderShiftTabDetails() {
       const rec = getLatestTodayAttendance(currentAuthUser.id);
-      document.getElementById('shift-window-label').innerText = isPrimaryOwner() ? 'Flexible Schedule (Tracked)' : '8:00 AM – 9:00 PM';
+      document.getElementById('shift-window-label').innerText = isOwnerRole() ? 'Flexible Schedule (Tracked)' : '8:00 AM – 9:00 PM';
 
       let totalBreakMinutes = 0;
       let isOnBreak = false;
