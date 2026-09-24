@@ -1,0 +1,3647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#05281b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Wellwith Mangaluru — Store Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase Compat Libraries -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: contain;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .gauge-circle {
+      transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    .radar-pulse {
+      animation: ripple 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    }
+    @keyframes ripple {
+      0% { transform: scale(0.6); opacity: 0.8; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+    .slider-track { touch-action: none; user-select: none; }
+  </style>
+</head>
+<body class="bg-neutral-950 min-h-screen text-slate-800 flex justify-center items-center sm:p-4 select-none">
+
+  <!-- Main Mobile Frame Container -->
+  <div class="w-full max-w-md bg-[#fcfcfb] min-h-screen sm:min-h-[854px] sm:max-h-[854px] sm:rounded-[36px] shadow-2xl flex flex-col overflow-hidden relative border border-neutral-800/40">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-[#05281b] text-white px-5 pt-6 pb-4 shadow-sm z-30 shrink-0 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <button id="btn-sidebar-toggle" onclick="haptic(10); toggleSidebar(true)" class="hidden p-2 rounded-xl bg-white/10 active:scale-95 text-emerald-100 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center font-black text-xs text-emerald-300">
+          WW
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 id="page-title" class="text-xs font-black tracking-tight text-emerald-50">Wellwith Mangaluru</h1>
+            <span id="cloud-sync-status" class="w-2 h-2 rounded-full bg-emerald-400" title="Cloud Active"></span>
+          </div>
+          <p id="page-subtitle" class="text-[10px] text-emerald-300/80 font-semibold tracking-wide">Terminal Operational</p>
+        </div>
+      </div>
+      <div id="auth-controls" class="hidden flex items-center gap-2">
+        <span id="gps-status-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="GPS Active"></span>
+        <button onclick="haptic(15); handleLogout()" class="text-[11px] bg-white/10 hover:bg-red-950/60 active:scale-95 text-slate-200 px-3 py-1.5 rounded-xl font-bold transition cursor-pointer">
+          Exit
+        </button>
+      </div>
+    </header>
+
+    <!-- Global Floating Toast Notification -->
+    <div id="toast" class="hidden absolute top-20 left-4 right-4 z-50 p-3.5 rounded-2xl text-xs font-semibold shadow-2xl transition-all duration-300 border backdrop-blur-md"></div>
+
+    <!-- Slide-Out Sidebar Drawer -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar(false)" class="hidden absolute inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"></div>
+    
+    <aside id="app-sidebar" class="absolute top-0 bottom-0 left-0 w-[80%] max-w-[310px] bg-white z-50 shadow-2xl flex flex-col transform -translate-x-full transition-transform duration-300 ease-out border-r border-slate-100">
+      <div class="bg-[#05281b] text-white p-5 space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center font-black text-xs text-emerald-300">WW</span>
+          <button onclick="toggleSidebar(false)" class="text-slate-400 hover:text-white text-sm font-bold p-1 cursor-pointer">✕</button>
+        </div>
+        <div>
+          <div id="sidebar-user-name" class="font-extrabold text-sm tracking-tight text-white">--</div>
+          <div class="flex items-center gap-1.5 mt-1">
+            <span id="sidebar-role-badge" class="text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-white/10 text-emerald-200 border border-white/10">STAFF</span>
+            <span id="sidebar-duty-badge" class="text-[9px] uppercase font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">Not Punched</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 text-xs font-bold text-slate-600">
+        <div class="text-[9px] uppercase font-black text-slate-400 px-3 pt-2 pb-1 tracking-widest">Self-Service</div>
+        <button onclick="haptic(8); navigateTo('page-dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+          <span>🏠</span> <span>Dashboard Overview</span>
+        </button>
+        <button onclick="haptic(8); navigateTo('page-history')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+          <span>📜</span> <span>Shift & Attendance Logs</span>
+        </button>
+        <button onclick="haptic(8); navigateTo('page-leaves')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+          <span>🏖️</span> <span>Holidays & Off Requests</span>
+        </button>
+
+        <div class="text-[9px] uppercase font-black text-slate-400 px-3 pt-3 pb-1 tracking-widest">Store Operations</div>
+        <button id="nav-item-gate" onclick="haptic(8); navigateTo('page-gate')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+          <span>📍</span> <span>Attendance Gate</span>
+        </button>
+        <button onclick="haptic(8); navigateTo('page-shift')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+          <span>⏱️</span> <span>Shift & Lunch Break</span>
+        </button>
+        <button onclick="haptic(8); navigateTo('page-cash')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+          <span>💵</span> <span>Cash Settlement Desk</span>
+        </button>
+        <button onclick="haptic(8); navigateTo('page-enquiries')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+          <span>📦</span> <span>Stock & Customer Enquiries</span>
+        </button>
+
+        <div id="side-cat-admin" class="hidden">
+          <div class="text-[9px] uppercase font-black text-emerald-800 px-3 pt-4 pb-1 tracking-widest">Management Desk</div>
+          <button onclick="haptic(8); navigateTo('page-admin-desk')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer">
+            <span>⚙️</span> <span>Administration Console</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="p-3 border-t border-slate-100">
+        <button onclick="haptic(15); handleLogout()" class="w-full py-3 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 active:scale-95 rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer">
+          <span>🚪</span> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- App Main Body -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar p-5 flex flex-col justify-start pb-20">
+
+      <!-- ================= MODULE 1: WELCOME SCREEN ================= -->
+      <section id="page-welcome" class="space-y-6 my-auto text-center">
+        <div class="relative mx-auto w-20 h-20 bg-[#05281b] rounded-3xl shadow-xl flex items-center justify-center text-white border border-emerald-500/20">
+          <span class="text-3xl">🌿</span>
+        </div>
+        <div class="space-y-1">
+          <span class="text-[10px] font-black uppercase tracking-widest text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60">
+            Store Operations
+          </span>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight pt-1">Wellwith Mangaluru</h2>
+          <p class="text-xs text-slate-500 font-medium max-w-xs mx-auto">
+            Organic Wellness Retail Operations & Attendance
+          </p>
+        </div>
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-2 text-left text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Clock</span>
+            <span id="welcome-live-clock" class="font-black text-emerald-950 text-sm font-mono">--:--:--</span>
+          </div>
+          <div class="h-px bg-slate-100"></div>
+          <div class="flex justify-between text-slate-600"><span>Shift Timings:</span><span class="font-bold text-slate-900">8:00 AM – 9:00 PM</span></div>
+          <div class="flex justify-between text-slate-600"><span>Grace Cutoff:</span><span class="font-bold text-amber-700">8:15 AM (Staff & Store Head)</span></div>
+          <div class="flex justify-between text-slate-600"><span>Lunch Window:</span><span class="font-bold text-emerald-800">1 Hour Allocated</span></div>
+        </div>
+        <button type="button" onclick="haptic(10); navigateTo('page-login')" class="w-full bg-[#05281b] hover:bg-[#073624] active:scale-[0.98] text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-950/20 text-xs tracking-wide transition flex items-center justify-center gap-2 cursor-pointer">
+          <span>Sign In to Terminal</span>
+          <span>→</span>
+        </button>
+      </section>
+
+      <!-- ================= MODULE 1: LOGIN SCREEN ================= -->
+      <section id="page-login" class="hidden space-y-6 my-auto">
+        <div class="flex items-center justify-between">
+          <button type="button" onclick="haptic(8); navigateTo('page-welcome')" class="text-xs font-bold text-slate-500 flex items-center gap-1 cursor-pointer">← Back</button>
+          <span class="text-[10px] font-black uppercase text-slate-400">Step 1 of 2</span>
+        </div>
+        <div class="text-center space-y-1">
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Enter PIN</h2>
+          <p class="text-xs text-slate-500">Provide registered phone & 4-digit PIN</p>
+        </div>
+        <div class="space-y-4">
+          <input id="input-phone" type="tel" maxlength="10" placeholder="10-digit Phone" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-sm font-semibold tracking-wide shadow-sm font-mono">
+          <input id="input-pin" type="password" maxlength="4" placeholder="••••" class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-800 text-center text-xl tracking-widest font-black shadow-sm font-mono">
+          <button type="button" id="btn-login-submit" onclick="haptic(10); handleLoginSubmit()" class="w-full bg-[#05281b] hover:bg-[#073624] active:scale-[0.98] text-white font-black py-4 rounded-2xl shadow-lg text-xs tracking-wide transition cursor-pointer">
+            Access Portal
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= MODULE 3: DASHBOARD & OPENING SEQUENCE ================= -->
+      <section id="page-dashboard" class="hidden space-y-4">
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Account Profile</div>
+            <div id="data-user-name" class="text-base font-black text-slate-900">--</div>
+            <div id="data-user-phone" class="text-xs text-slate-500 font-semibold font-mono">--</div>
+          </div>
+          <div class="text-right">
+            <span id="data-role-badge" class="px-2.5 py-1 text-[10px] font-black rounded-lg bg-emerald-100 text-emerald-800">STAFF</span>
+            <div id="data-user-weekoff" class="text-[10px] text-slate-500 mt-1 font-bold">Week-Off: --</div>
+          </div>
+        </div>
+
+        <div id="banner-checkin-needed" class="bg-gradient-to-br from-[#05281b] to-emerald-950 text-white p-5 rounded-3xl shadow-lg space-y-3">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold flex items-center gap-1.5 text-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+              Today's Shift Attendance Pending
+            </span>
+            <span class="text-[9px] bg-white/10 px-2 py-0.5 rounded text-emerald-100 font-semibold">100m Geofence</span>
+          </div>
+          <p class="text-[11px] text-emerald-100/80">At the counter? Proceed to verify store arrival via GPS.</p>
+          <button onclick="haptic(10); navigateTo('page-gate')" class="w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-black py-3.5 rounded-2xl text-xs transition shadow flex items-center justify-center gap-1.5 cursor-pointer">
+            <span>📍</span> <span>Clock In for Today</span>
+          </button>
+        </div>
+
+        <!-- Super Admin / Owner Optional Banner -->
+        <div id="admin-flex-banner" class="hidden bg-gradient-to-r from-emerald-950 to-[#05281b] text-white p-3.5 rounded-2xl shadow-sm space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5 font-black text-emerald-200">
+              <span>👑</span>
+              <span>Executive Schedule Flexibility</span>
+            </div>
+            <span class="text-[9px] bg-white/10 px-2 py-0.5 rounded text-emerald-300 font-bold">Optional Mode</span>
+          </div>
+          <p class="text-[11px] text-emerald-100/80">Opening sequence is optional for executive tier. Complete it below or bypass directly.</p>
+          <div class="flex gap-2 pt-0.5">
+            <button onclick="toggleAdminSkip(true)" id="btn-admin-skip-toggle" class="flex-1 bg-white/15 hover:bg-white/20 active:scale-95 text-white font-bold py-1.5 rounded-xl text-[11px] transition">
+              ⚡ Hide / Skip Protocol
+            </button>
+            <button onclick="toggleAdminSkip(false)" id="btn-admin-show-toggle" class="hidden flex-1 bg-emerald-400 text-emerald-950 font-black py-1.5 rounded-xl text-[11px] transition">
+              📋 Show Opening Sequence
+            </button>
+          </div>
+        </div>
+
+        <!-- 2-Step Sequential Opening (Step 1 -> Step 2) -->
+        <div id="module-opening-steps" class="hidden bg-white p-4.5 rounded-3xl border border-slate-200 shadow-sm space-y-3.5">
+          <div class="flex justify-between items-center border-b pb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📋</span>
+              <h3 class="font-black text-xs text-slate-900 uppercase tracking-wider">Morning Opening Sequence</h3>
+            </div>
+            <span id="steps-completion-tag" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Action Required</span>
+          </div>
+
+          <div id="card-step-1" class="p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200">
+            <div class="flex justify-between items-center">
+              <span class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span id="badge-step-1" class="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]">1</span>
+                <span>Step 1: Store Opening Protocol (SOP)</span>
+              </span>
+              <span id="status-step-1" class="text-[10px] font-extrabold text-amber-700">Pending 4 Checks</span>
+            </div>
+
+            <div id="step-1-checklist-body" class="space-y-1.5 text-xs text-slate-700 pt-1">
+              <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-100 cursor-pointer">
+                <input type="checkbox" onchange="haptic(5); checkDashboardSOPProgress()" id="chk-dash-sop-1" class="w-4 h-4 rounded text-emerald-700">
+                <span class="font-medium text-[11px]">1. Main lights, track lighting & board ON</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-100 cursor-pointer">
+                <input type="checkbox" onchange="haptic(5); checkDashboardSOPProgress()" id="chk-dash-sop-2" class="w-4 h-4 rounded text-emerald-700">
+                <span class="font-medium text-[11px]">2. Shelves dusted, Seabuckthorn aligned, floor swept</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-100 cursor-pointer">
+                <input type="checkbox" onchange="haptic(5); checkDashboardSOPProgress()" id="chk-dash-sop-3" class="w-4 h-4 rounded text-emerald-700">
+                <span class="font-medium text-[11px]">3. Laptop powered ON, billing printer paper verified</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-100 cursor-pointer">
+                <input type="checkbox" onchange="haptic(5); checkDashboardSOPProgress()" id="chk-dash-sop-4" class="w-4 h-4 rounded text-emerald-700">
+                <span class="font-medium text-[11px]">4. Water dispenser refilled & clean glasses placed</span>
+              </label>
+              <button id="btn-dash-complete-sop" onclick="haptic(10); completeDashboardSOP()" disabled class="w-full bg-slate-200 text-slate-400 font-black py-2.5 rounded-xl text-xs transition mt-1 cursor-not-allowed">
+                Complete All 4 Protocol Checks
+              </button>
+            </div>
+            
+            <div id="step-1-done-summary" class="hidden text-[11px] text-emerald-800 font-semibold bg-emerald-100/50 p-2 rounded-xl flex justify-between items-center">
+              <span>✓ Verified & locked for the store.</span>
+              <span id="step-1-by-text" class="text-[9px] text-emerald-700">--</span>
+            </div>
+          </div>
+
+          <div id="card-step-2" class="p-3.5 rounded-2xl border transition-all space-y-2.5 bg-slate-50 border-slate-200 opacity-60">
+            <div class="flex justify-between items-center">
+              <span class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span id="badge-step-2" class="w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center text-[10px]">2</span>
+                <span>Step 2: Morning Cash Register Float</span>
+              </span>
+              <span id="status-step-2" class="text-[10px] font-bold text-slate-400">Locked</span>
+            </div>
+
+            <div id="step-2-input-body" class="space-y-2 text-xs">
+              <p class="text-[10px] text-slate-500 font-medium">Count morning physical drawer cash and save opening float:</p>
+              <div class="flex gap-2">
+                <input id="input-dash-float" type="number" placeholder="Enter Cash (₹)" disabled class="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none font-bold text-xs font-mono">
+                <button id="btn-dash-save-float" onclick="haptic(10); submitDashboardFloat()" disabled class="bg-slate-300 text-slate-500 font-black px-4 py-2 rounded-xl text-xs transition cursor-not-allowed">
+                  Save Float
+                </button>
+              </div>
+            </div>
+
+            <div id="step-2-done-summary" class="hidden text-[11px] text-emerald-800 font-semibold bg-emerald-100/50 p-2 rounded-xl flex justify-between items-center">
+              <span id="step-2-float-recorded-text" class="font-mono font-bold">Float: ₹0</span>
+              <div class="flex items-center gap-2">
+                <span id="step-2-by-text" class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.5 rounded">Saved ✓</span>
+                <button id="btn-open-float-edit" onclick="openFloatEditModal()" class="text-[10px] bg-slate-800 hover:bg-black text-white font-bold px-2 py-0.5 rounded cursor-pointer active:scale-95 shadow-xs">
+                  Edit Float ✍️
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="banner-checkin-done" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-900 p-4.5 rounded-3xl text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="font-bold text-sm">Store Active & Ready</span>
+            </div>
+            <span class="text-[10px] font-black text-emerald-800 bg-emerald-200/50 px-2 py-0.5 rounded-md">On Duty</span>
+          </div>
+          <p id="personal-clockin-time" class="text-[11px] text-emerald-700 font-semibold">Clocked in at --</p>
+          <div class="flex gap-2 pt-1.5">
+            <button onclick="haptic(8); navigateTo('page-shift')" class="flex-1 bg-white border border-emerald-300 text-emerald-900 font-bold py-2 rounded-xl text-center shadow-sm cursor-pointer">
+              Lunch & Break →
+            </button>
+            <button onclick="haptic(8); navigateTo('page-cash')" class="flex-1 bg-emerald-800 text-white font-bold py-2 rounded-xl text-center shadow-sm cursor-pointer">
+              Cash Desk →
+            </button>
+          </div>
+        </div>
+
+        <div id="banner-checkout-done" class="hidden bg-slate-100 border border-slate-200 text-slate-800 p-5 rounded-3xl text-xs space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🏁</span>
+            <span class="font-bold text-sm text-slate-900">Shift Completed for Today</span>
+          </div>
+          <p id="personal-clockout-summary" class="text-[11px] text-slate-600 font-medium">Recorded. See your stats below.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs pt-1">
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-1">
+            <span class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Days Present</span>
+            <div id="stat-days-present" class="text-2xl font-black text-slate-800">0</div>
+            <p class="text-[10px] text-slate-400 font-medium">Verified shifts</p>
+          </div>
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-1">
+            <span class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Late Marks</span>
+            <div id="stat-late-marks" class="text-2xl font-black text-amber-700">0</div>
+            <p id="stat-late-mins" class="text-[10px] text-amber-600 font-medium">0m delay</p>
+          </div>
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-1">
+            <span class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Net Work Hours</span>
+            <div id="stat-net-hours" class="text-2xl font-black text-emerald-800">0h 0m</div>
+            <p class="text-[10px] text-slate-400 font-medium">Floor duration</p>
+          </div>
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-1">
+            <span class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Overtime Tally</span>
+            <div id="stat-ot-hours" class="text-2xl font-black text-blue-700">0 mins</div>
+            <p class="text-[10px] text-slate-400 font-medium">Past 9:00 PM</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= LOGS: ATTENDANCE LEDGER ================= -->
+      <section id="page-history" class="hidden space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+          <div>
+            <h2 class="text-sm font-black text-slate-900">Attendance Transparency Ledger</h2>
+            <p class="text-[10px] text-slate-500">Your verified store shifts & hour breakdowns</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100/60 text-slate-600 font-bold uppercase text-[9px]">
+                <tr>
+                  <th class="p-2.5">Date</th>
+                  <th class="p-2.5">In</th>
+                  <th class="p-2.5">Out</th>
+                  <th class="p-2.5">Net</th>
+                  <th class="p-2.5">Status</th>
+                </tr>
+              </thead>
+              <tbody id="my-personal-ledger-body" class="divide-y divide-slate-100 text-slate-700 font-semibold text-[11px]"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= LEAVES: HOLIDAYS & OFFS ================= -->
+      <section id="page-leaves" class="hidden space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+          <div>
+            <h2 class="text-sm font-black text-slate-900">Holiday & Weekly Off Desk</h2>
+            <p class="text-[10px] text-slate-500">Apply for time off or request week-off swaps</p>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3 text-xs">
+          <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Submit Request</h3>
+          <div class="space-y-2">
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Request Type</label>
+              <select id="input-leave-type" class="w-full px-3 py-2 border rounded-xl outline-none bg-white font-semibold">
+                <option value="HOLIDAY">Paid Holiday / Casual Leave</option>
+                <option value="SICK">Medical / Sick Leave</option>
+                <option value="WEEK_OFF_SWAP">Weekly Off Swap</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Target Date</label>
+              <input id="input-leave-date" type="date" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Reason / Notes</label>
+              <input id="input-leave-reason" placeholder="e.g., Family event, Personal work" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
+            </div>
+            <button onclick="haptic(10); submitLeaveRequest()" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-3 rounded-2xl text-xs transition cursor-pointer">
+              Submit to Management
+            </button>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-2.5">
+          <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">My Leave History & Status</h3>
+          <div id="my-leave-history-list" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar"></div>
+        </div>
+      </section>
+
+      <!-- ================= MODULE 2: ATTENDANCE GATE ================= -->
+      <section id="page-gate" class="hidden space-y-4 my-auto">
+        <div class="flex items-center justify-between">
+          <button onclick="haptic(8); navigateTo('page-dashboard')" class="text-xs font-bold text-slate-500 cursor-pointer">← Back</button>
+          <span id="gate-tag" class="text-[10px] font-black uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">Store On-Site</span>
+        </div>
+
+        <!-- Animated GPS Proximity Radar Card -->
+        <div class="bg-gradient-to-br from-[#05281b] to-emerald-950 rounded-3xl p-4.5 text-white shadow-xl flex items-center justify-between relative overflow-hidden">
+          <div class="space-y-1 z-10">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] uppercase font-black tracking-widest text-emerald-300">Geofence Radar</span>
+              <span id="radar-live-indicator" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            </div>
+            <div id="gate-radar-distance" class="text-xl font-black tracking-tight text-white">Acquiring GPS...</div>
+            <p id="gate-instruction-text" class="text-[11px] text-emerald-200/90 font-medium">Must be within 100m of Wellwith Mangaluru.</p>
+            <div class="flex gap-2 pt-1">
+              <button onclick="updateGateRadarDistance(true)" class="text-[10px] bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded font-bold text-emerald-100 flex items-center gap-1 cursor-pointer">
+                <span>🔄</span> <span>Refresh GPS</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="relative w-14 h-14 flex items-center justify-center shrink-0">
+            <div id="radar-pulse-ring" class="absolute inset-0 rounded-full bg-emerald-400/20 radar-pulse"></div>
+            <div class="w-9 h-9 rounded-full bg-emerald-500/30 border border-emerald-400/50 flex items-center justify-center shadow-inner">
+              <div id="radar-center-dot" class="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-md shadow-emerald-400"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="employee-camera-container" class="space-y-3">
+          <div class="relative w-full aspect-square max-h-[230px] bg-slate-900 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center border border-slate-800">
+            <video id="webcam-el" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            <canvas id="photo-canvas" class="hidden"></canvas>
+            <div id="camera-fallback" class="hidden absolute inset-0 bg-slate-900 text-white flex flex-col items-center justify-center p-4 text-center">
+              <span class="text-3xl mb-1">📸</span>
+              <p class="text-xs font-bold">Camera Standby</p>
+              <p class="text-[10px] text-slate-400 mt-1">Verification snapshot enabled</p>
+            </div>
+            <div class="absolute bottom-2 inset-x-3 bg-black/60 backdrop-blur-md text-white text-[10px] py-1 rounded-xl text-center font-bold">
+              Front Camera Selfie Required for Staff
+            </div>
+          </div>
+        </div>
+
+        <div id="admin-bypass-container" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-3xl space-y-2 text-center">
+          <div class="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-lg font-black">🏢</div>
+          <h3 id="admin-bypass-title" class="font-black text-xs text-slate-900">Executive Check-In</h3>
+          <p id="admin-bypass-subtitle" class="text-[11px] text-slate-500">Camera snapshot bypassed for leadership. Confirm arrival below within store premises.</p>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <div id="punch-in-slider-box" class="relative w-full h-14 bg-slate-200/80 rounded-2xl overflow-hidden border border-slate-300 p-1 flex items-center slider-track shadow-inner">
+            <div id="punch-in-track-bg" class="absolute left-0 top-0 bottom-0 bg-emerald-700 rounded-2xl w-0 transition-all duration-75"></div>
+            <div id="punch-in-label" class="absolute inset-0 flex items-center justify-center text-xs font-black text-slate-600 pointer-events-none tracking-wide">
+              Slide to Confirm Clock In ➔
+            </div>
+            <div id="punch-in-thumb" class="relative z-10 w-12 h-12 bg-[#05281b] rounded-xl text-white flex items-center justify-center font-black shadow-lg cursor-grab active:cursor-grabbing text-sm">
+              📍
+            </div>
+          </div>
+
+          <button type="button" onclick="haptic(15); executePunchIn()" class="w-full py-3 bg-[#05281b] hover:bg-[#073624] text-white font-black rounded-2xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md active:scale-98">
+            <span>📍</span> <span>Direct Punch In (1-Tap Confirmation)</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= MODULE 3: SHIFT & LUNCH BREAK ================= -->
+      <section id="page-shift" class="hidden space-y-4">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div class="space-y-1">
+            <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Scheduled Shift</div>
+            <div id="shift-window-label" class="text-base font-black text-slate-900">8:00 AM – 9:00 PM</div>
+            <p id="shift-punchin-summary" class="text-xs text-emerald-800 font-bold">Clocked in at --</p>
+            <div id="overtime-indicator" class="hidden text-[10px] font-black text-emerald-700 animate-pulse">⭐ Overtime Active</div>
+          </div>
+          <div class="relative w-20 h-20 shrink-0">
+            <svg class="w-full h-full" viewBox="0 0 36 36">
+              <path class="text-slate-100" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path id="shift-gauge-bar" class="gauge-circle text-emerald-700" stroke-width="3.5" stroke-dasharray="100, 100" stroke-dashoffset="100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="shift-gauge-percent" class="text-xs font-black text-slate-900 font-mono">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+              <span>🍱</span> Lunch Break (1 Hour Free)
+            </span>
+            <span id="break-status-badge" class="text-[9px] bg-slate-100 text-slate-700 font-black px-2.5 py-0.5 rounded-full">Not on Break</span>
+          </div>
+          <p class="text-[11px] text-slate-500 font-medium">
+            Break taken today: <strong id="total-break-mins" class="text-slate-900 font-bold font-mono">0 mins</strong>. Time past 60m is deducted automatically.
+          </p>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="btn-start-break" onclick="haptic(10); toggleLunchBreak(true)" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-2xl text-xs transition flex items-center justify-center gap-1 cursor-pointer">
+              <span>🥪</span> Start Lunch
+            </button>
+            <button id="btn-end-break" onclick="haptic(10); toggleLunchBreak(false)" disabled class="bg-slate-100 text-slate-400 font-bold py-2.5 rounded-2xl text-xs transition flex items-center justify-center gap-1">
+              <span>⏱️</span> Resume Duty
+            </button>
+          </div>
+        </div>
+
+        <div id="completed-shift-block" class="hidden p-6 bg-slate-100 rounded-3xl border border-slate-200 text-center space-y-2">
+          <div class="text-3xl">🏁</div>
+          <div class="text-sm font-black text-slate-900">Shift Completed Today</div>
+          <p id="completed-summary-text" class="text-xs text-slate-600 font-medium">--</p>
+          <div id="ot-reward-banner" class="hidden bg-emerald-100 text-emerald-900 text-xs font-bold p-2.5 rounded-2xl border border-emerald-200">
+            🌟 Overtime Appreciated: <span id="ot-reward-mins">0</span> mins overtime logged!
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= MODULE 4: CASH SETTLEMENT DESK ================= -->
+      <section id="page-cash" class="hidden space-y-4">
+        <!-- Interactive Morning Baseline Card with Direct Edit Button -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 text-xs flex items-center justify-between shadow-2xs">
+          <div>
+            <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Morning Register Float</span>
+            <p class="text-[11px] text-slate-500 font-medium">Baseline drawer cash from 8:00 AM</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="cash-locked-morning-float" class="font-mono font-black text-emerald-950 text-base">₹0</span>
+            <button id="btn-edit-float-cashdesk" type="button" onclick="haptic(10); openFloatEditModal()" class="bg-[#05281b] hover:bg-[#073624] text-white font-bold text-[10px] px-3 py-1.5 rounded-xl flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm">
+              <span>Edit ✍️</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Today's Total Sales -->
+        <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-[#05281b] text-white flex items-center justify-center text-xs font-black">1</span>
+              <div>
+                <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Today's Total Sales</h2>
+                <p class="text-[10px] text-slate-400">Cash & digital collections</p>
+              </div>
+            </div>
+            <span id="badge-total-sales" class="font-mono font-black text-emerald-800 text-xs">Total: ₹0</span>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Cash Sales (From Vyapar Report)</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2.5 font-bold text-slate-400">₹</span>
+                <input id="sale-cash" type="number" placeholder="0" oninput="calculateSettlement()" class="w-full pl-7 pr-3 py-2 bg-slate-50 focus:bg-white border rounded-xl font-black font-mono text-sm outline-none">
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-2xl border space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-800">Digital Collections</span>
+                <span id="sub-digital-sales" class="font-mono font-bold text-slate-600 text-[11px]">₹0</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[9px] uppercase font-bold text-slate-400 mb-1">Paytm EDC Machine</label>
+                  <div class="relative">
+                    <span class="absolute left-2.5 top-1.5 font-bold text-slate-400 text-xs">₹</span>
+                    <input id="sale-edc" type="number" placeholder="0" oninput="calculateSettlement()" class="w-full pl-6 pr-2 py-1.5 bg-white border rounded-lg font-bold font-mono text-xs outline-none">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[9px] uppercase font-bold text-slate-400 mb-1">IDFC Soundbox UPI</label>
+                  <div class="relative">
+                    <span class="absolute left-2.5 top-1.5 font-bold text-slate-400 text-xs">₹</span>
+                    <input id="sale-soundbox" type="number" placeholder="0" oninput="calculateSettlement()" class="w-full pl-6 pr-2 py-1.5 bg-white border rounded-lg font-bold font-mono text-xs outline-none">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Day Petty Cash Outflows -->
+        <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-[#05281b] text-white flex items-center justify-center text-xs font-black">2</span>
+              <div>
+                <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Day Petty Cash Outflows</h2>
+                <p class="text-[10px] text-slate-400">Tea, milk, courier, tape, cleaning</p>
+              </div>
+            </div>
+            <span id="badge-total-petty" class="font-mono font-black text-red-600 text-xs">₹0 Spent</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex gap-2">
+              <input id="input-petty-reason" placeholder="Reason (e.g. Milk, Tape)" class="flex-1 px-3 py-2 border rounded-xl outline-none bg-slate-50 focus:bg-white text-xs">
+              <input id="input-petty-amount" type="number" placeholder="₹ Amount" class="w-24 px-2 py-2 border rounded-xl outline-none font-bold text-center bg-slate-50 focus:bg-white text-xs font-mono">
+              <button type="button" onclick="addPettyExpense()" class="bg-slate-800 text-white font-bold px-3 py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer">Add</button>
+            </div>
+
+            <div class="flex items-center justify-between pt-0.5">
+              <button type="button" onclick="declareZeroPetty()" class="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition cursor-pointer">
+                ✓ Declare ₹0 Petty Cash Spent
+              </button>
+              <span id="petty-status-tag" class="text-[10px] font-bold text-amber-700">⚠️ Pending</span>
+            </div>
+
+            <div id="petty-list-container" class="space-y-1.5 max-h-28 overflow-y-auto custom-scrollbar pt-1"></div>
+          </div>
+        </div>
+
+        <!-- 3. Cash Put to Bank / Safe -->
+        <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-[#05281b] text-white flex items-center justify-center text-xs font-black">3</span>
+              <div>
+                <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Cash Put to Bank / Safe</h2>
+                <p class="text-[10px] text-slate-400">Cash removed from drawer mid-day or closing</p>
+              </div>
+            </div>
+            <span id="badge-total-bank" class="font-mono font-black text-emerald-800 text-xs">Total: ₹0</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+              <div class="relative">
+                <span class="absolute left-2.5 top-2 font-bold text-slate-400 text-xs">₹</span>
+                <input id="input-bank-amt" type="number" placeholder="Amount (₹)" class="w-full pl-6 pr-2 py-1.5 bg-slate-50 focus:bg-white border rounded-xl font-bold font-mono text-xs outline-none">
+              </div>
+              <select id="input-bank-dest" class="w-full px-2 py-1.5 bg-slate-50 border rounded-xl text-xs font-semibold outline-none">
+                <option value="IDFC Current A/C">IDFC Bank Account</option>
+                <option value="Store Safe / Vault">Store Safe / Vault</option>
+                <option value="Handed to Samrajya">Handed to Samrajya</option>
+              </select>
+            </div>
+            <div class="flex gap-2">
+              <input id="input-bank-by" placeholder="Deposited by / Handed to" class="flex-1 px-3 py-1.5 bg-slate-50 focus:bg-white border rounded-xl text-xs outline-none">
+              <button type="button" onclick="addBankDrop()" class="bg-[#05281b] hover:bg-[#073624] text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer">
+                + Add Deposit
+              </button>
+            </div>
+
+            <div id="bank-list-container" class="space-y-1.5 max-h-28 overflow-y-auto custom-scrollbar pt-1"></div>
+          </div>
+        </div>
+
+        <!-- 4. Final Cash Left in Counter -->
+        <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-[#05281b] text-white flex items-center justify-center text-xs font-black">4</span>
+              <div>
+                <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Final Cash Left in Counter</h2>
+                <p class="text-[10px] text-slate-400">Physical notes & coins in drawer right now</p>
+              </div>
+            </div>
+            <span id="badge-counted-cash" class="font-mono font-black text-emerald-800 text-sm">Counted: ₹0</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+              <!-- ₹500 -->
+              <div class="p-2 bg-slate-50 rounded-2xl border flex items-center justify-between">
+                <div><span class="font-black text-xs">₹500</span><div id="sub-500" class="text-[10px] text-slate-400 font-mono">₹0</div></div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="changeNote(500, -1)" class="w-7 h-7 rounded-xl bg-white border font-black text-slate-700 active:scale-90">-</button>
+                  <span id="qty-500" class="w-4 text-center font-black font-mono">0</span>
+                  <button type="button" onclick="changeNote(500, 1)" class="w-7 h-7 rounded-xl bg-[#05281b] font-black text-white active:scale-90">+</button>
+                </div>
+              </div>
+              <!-- ₹200 -->
+              <div class="p-2 bg-slate-50 rounded-2xl border flex items-center justify-between">
+                <div><span class="font-black text-xs">₹200</span><div id="sub-200" class="text-[10px] text-slate-400 font-mono">₹0</div></div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="changeNote(200, -1)" class="w-7 h-7 rounded-xl bg-white border font-black text-slate-700 active:scale-90">-</button>
+                  <span id="qty-200" class="w-4 text-center font-black font-mono">0</span>
+                  <button type="button" onclick="changeNote(200, 1)" class="w-7 h-7 rounded-xl bg-[#05281b] font-black text-white active:scale-90">+</button>
+                </div>
+              </div>
+              <!-- ₹100 -->
+              <div class="p-2 bg-slate-50 rounded-2xl border flex items-center justify-between">
+                <div><span class="font-black text-xs">₹100</span><div id="sub-100" class="text-[10px] text-slate-400 font-mono">₹0</div></div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="changeNote(100, -1)" class="w-7 h-7 rounded-xl bg-white border font-black text-slate-700 active:scale-90">-</button>
+                  <span id="qty-100" class="w-4 text-center font-black font-mono">0</span>
+                  <button type="button" onclick="changeNote(100, 1)" class="w-7 h-7 rounded-xl bg-[#05281b] font-black text-white active:scale-90">+</button>
+                </div>
+              </div>
+              <!-- ₹50 -->
+              <div class="p-2 bg-slate-50 rounded-2xl border flex items-center justify-between">
+                <div><span class="font-black text-xs">₹50</span><div id="sub-50" class="text-[10px] text-slate-400 font-mono">₹0</div></div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="changeNote(50, -1)" class="w-7 h-7 rounded-xl bg-white border font-black text-slate-700 active:scale-90">-</button>
+                  <span id="qty-50" class="w-4 text-center font-black font-mono">0</span>
+                  <button type="button" onclick="changeNote(50, 1)" class="w-7 h-7 rounded-xl bg-[#05281b] font-black text-white active:scale-90">+</button>
+                </div>
+              </div>
+              <!-- ₹20 -->
+              <div class="p-2 bg-slate-50 rounded-2xl border flex items-center justify-between">
+                <div><span class="font-black text-xs">₹20</span><div id="sub-20" class="text-[10px] text-slate-400 font-mono">₹0</div></div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="changeNote(20, -1)" class="w-7 h-7 rounded-xl bg-white border font-black text-slate-700 active:scale-90">-</button>
+                  <span id="qty-20" class="w-4 text-center font-black font-mono">0</span>
+                  <button type="button" onclick="changeNote(20, 1)" class="w-7 h-7 rounded-xl bg-[#05281b] font-black text-white active:scale-90">+</button>
+                </div>
+              </div>
+              <!-- ₹10 -->
+              <div class="p-2 bg-slate-50 rounded-2xl border flex items-center justify-between">
+                <div><span class="font-black text-xs">₹10</span><div id="sub-10" class="text-[10px] text-slate-400 font-mono">₹0</div></div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="changeNote(10, -1)" class="w-7 h-7 rounded-xl bg-white border font-black text-slate-700 active:scale-90">-</button>
+                  <span id="qty-10" class="w-4 text-center font-black font-mono">0</span>
+                  <button type="button" onclick="changeNote(10, 1)" class="w-7 h-7 rounded-xl bg-[#05281b] font-black text-white active:scale-90">+</button>
+                </div>
+              </div>
+              <!-- Loose Coins -->
+              <div class="p-2 bg-slate-50 rounded-2xl border col-span-2 flex items-center justify-between px-3">
+                <span class="font-bold text-slate-700">Total Loose Coins (₹):</span>
+                <div class="flex items-center gap-2">
+                  <input id="input-coins" type="number" placeholder="0" oninput="calculateSettlement()" class="w-20 px-2 py-1 bg-white border rounded-lg text-center font-bold font-mono outline-none text-xs">
+                  <button type="button" onclick="resetDenominations()" class="text-[10px] text-red-600 font-bold underline cursor-pointer">Reset</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Settlement Totals & Counter Balancing -->
+        <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center text-xs font-black">5</span>
+              <div>
+                <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Settlement Totals</h2>
+                <p class="text-[10px] text-slate-400">Total store sales & counter balancing</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span id="tag-settlement-lock" class="text-[10px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md font-bold">Unsaved</span>
+              <button id="btn-unlock-edit" onclick="unlockSettlement()" class="hidden text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2 py-0.5 rounded cursor-pointer">
+                Edit ✍️
+              </button>
+            </div>
+          </div>
+
+          <!-- Grand Store Sales Collection -->
+          <div class="p-3 bg-slate-900 text-white rounded-2xl space-y-1.5 text-xs">
+            <div class="text-[9px] uppercase font-black text-emerald-400 tracking-wider">Today's Grand Revenue (Cash + Digital)</div>
+            <div class="flex justify-between items-baseline">
+              <span class="text-slate-300">Total Store Collection:</span>
+              <span id="display-grand-total" class="text-lg font-black text-emerald-300 font-mono">₹0</span>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-400 pt-0.5 border-t border-slate-800">
+              <span>Cash Sales: <strong id="tally-cash-sales" class="text-white font-mono">₹0</strong></span>
+              <span>Digital (EDC+Soundbox): <strong id="tally-digital-sales" class="text-white font-mono">₹0</strong></span>
+            </div>
+          </div>
+
+          <!-- Physical Counter Cash Balancing Equation -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border space-y-1.5 text-xs">
+            <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Physical Cash Drawer Equation</div>
+            <div class="flex justify-between text-slate-600 text-[11px]">
+              <span>1. Morning Register Float (Baseline):</span>
+              <span id="eq-morning-float" class="font-mono font-bold text-slate-900">+ ₹0</span>
+            </div>
+            <div class="flex justify-between text-slate-600 text-[11px]">
+              <span>2. Cash Sales Inflow:</span>
+              <span id="eq-cash-sales" class="font-mono font-bold text-slate-900">+ ₹0</span>
+            </div>
+            <div class="flex justify-between text-slate-600 text-[11px]">
+              <span>3. Less Petty Cash Spent:</span>
+              <span id="eq-petty-spent" class="font-mono font-bold text-red-600">- ₹0</span>
+            </div>
+            <div class="flex justify-between text-slate-600 text-[11px]">
+              <span>4. Less Cash Put to Bank/Safe:</span>
+              <span id="eq-bank-deposit" class="font-mono font-bold text-emerald-800">- ₹0</span>
+            </div>
+            <div class="h-px bg-slate-200 my-1"></div>
+            <div class="flex justify-between font-black text-slate-900">
+              <span>Target Cash Left in Counter:</span>
+              <span id="eq-target-counter" class="font-mono text-xs">₹0</span>
+            </div>
+            <div class="flex justify-between font-black text-slate-900">
+              <span>Actual Cash Counted in Counter:</span>
+              <span id="eq-actual-counter" class="font-mono text-xs text-emerald-800">₹0</span>
+            </div>
+          </div>
+
+          <!-- Status Card -->
+          <div id="balance-status-card" class="p-3 rounded-2xl border bg-slate-100 text-center font-bold text-xs text-slate-600">
+            Enter sales and count cash to check balance
+          </div>
+
+          <button type="button" id="btn-lock-settlement" onclick="lockSettlement()" class="w-full py-3.5 bg-[#05281b] hover:bg-[#073624] text-white font-black rounded-2xl text-xs transition cursor-pointer active:scale-98">
+            Lock & Save Daily Settlement
+          </button>
+        </div>
+
+        <!-- 6. Night Closing Checklist Protocol -->
+        <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3 text-xs">
+          <div class="flex justify-between items-center border-b pb-2">
+            <div>
+              <h3 class="font-black text-slate-900 uppercase tracking-wider text-[11px]">Night Closing Protocol</h3>
+              <p class="text-[10px] text-slate-500">First-come protocol: Whoever finishes first clears for store</p>
+            </div>
+            <span id="checklist-progress" class="text-[10px] font-black text-amber-700 font-mono">0 of 7 Done</span>
+          </div>
+
+          <div id="closing-checklist-card" class="space-y-2 text-xs text-slate-700">
+            <div id="protocol-cash-status-box" class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span id="protocol-cash-icon" class="text-base">⚠️</span>
+                <div>
+                  <span class="font-bold text-slate-900">1. Cash Register Settled</span>
+                  <p id="protocol-cash-note" class="text-[10px] text-amber-800">Lock settlement above.</p>
+                </div>
+              </div>
+              <span id="protocol-cash-tag" class="text-[9px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded">Pending</span>
+            </div>
+
+            <div id="protocol-petty-status-box" class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span id="protocol-petty-icon" class="text-base">⚠️</span>
+                <div>
+                  <span class="font-bold text-slate-900">2. Petty Cash Outflows</span>
+                  <p id="protocol-petty-note" class="text-[10px] text-amber-800">Log expenses or declare ₹0.</p>
+                </div>
+              </div>
+              <span id="protocol-petty-tag" class="text-[9px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded">Pending</span>
+            </div>
+
+            <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-2xl cursor-pointer">
+              <input type="checkbox" onchange="checkClosingProgress()" id="chk-lights" class="w-4 h-4 rounded text-emerald-700">
+              <span class="font-semibold text-slate-800">3. Lights: Three Switches OFF</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-2xl cursor-pointer">
+              <input type="checkbox" onchange="checkClosingProgress()" id="chk-ac" class="w-4 h-4 rounded text-emerald-700">
+              <span class="font-semibold text-slate-800">4. AC Units: Completely Powered OFF</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-2xl cursor-pointer">
+              <input type="checkbox" onchange="checkClosingProgress()" id="chk-board" class="w-4 h-4 rounded text-emerald-700">
+              <span class="font-semibold text-slate-800">5. Outside Board Light: Switched ON</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-2xl cursor-pointer">
+              <input type="checkbox" onchange="checkClosingProgress()" id="chk-laptop" class="w-4 h-4 rounded text-emerald-700">
+              <span class="font-semibold text-slate-800">6. Close Laptop & Turn OFF Printers</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-2xl cursor-pointer">
+              <input type="checkbox" onchange="checkClosingProgress()" id="chk-shutter" class="w-4 h-4 rounded text-emerald-700">
+              <span class="font-semibold text-slate-800">7. Main Shutter: Locked & Padlocked</span>
+            </label>
+          </div>
+
+          <!-- Slide-to-Punch-Out Slider -->
+          <div id="punch-out-slider-box" class="relative w-full h-14 bg-slate-200/80 rounded-2xl overflow-hidden border border-slate-300 p-1 flex items-center slider-track shadow-inner opacity-50 pointer-events-none">
+            <div id="punch-out-track-bg" class="absolute left-0 top-0 bottom-0 bg-[#05281b] rounded-2xl w-0 transition-all duration-75"></div>
+            <div id="punch-out-label" class="absolute inset-0 flex items-center justify-center text-xs font-black text-slate-500 pointer-events-none tracking-wide">
+              Pending Checklist & Register to Unlock
+            </div>
+            <div id="punch-out-thumb" class="relative z-10 w-12 h-12 bg-slate-400 rounded-xl text-white flex items-center justify-center font-black shadow-lg cursor-grab active:cursor-grabbing text-sm">
+              🔒
+            </div>
+          </div>
+
+          <button type="button" onclick="shareWhatsAppDigest()" class="w-full bg-[#128c7e] hover:bg-[#075e54] active:scale-[0.98] text-white font-black py-3.5 rounded-2xl text-xs transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+            <span>💬</span> <span>Send WhatsApp Settlement Digest</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= ENQUIRIES & LOW STOCK ALERTS ================= -->
+      <section id="page-enquiries" class="hidden space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+          <div>
+            <h2 class="text-sm font-black text-slate-900">Counter Enquiries & Stock</h2>
+            <p class="text-[10px] text-slate-500">Replenishment alerts and customer callbacks</p>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3 text-xs">
+          <div class="flex justify-between items-center">
+            <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">📦 Alert Low Shelf Stock</h3>
+            <span id="stock-alerts-count" class="text-[9px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">0 Active</span>
+          </div>
+          <div class="space-y-2">
+            <input id="input-stock-product" placeholder="Product (e.g., Wellwith Seabuckthorn 750ml)" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
+            <div class="grid grid-cols-2 gap-2">
+              <input id="input-stock-qty" type="number" placeholder="Units Left (e.g., 2)" class="w-full px-3 py-2 border rounded-xl outline-none font-bold font-mono">
+              <select id="input-stock-urgency" class="w-full px-3 py-2 border rounded-xl outline-none bg-white font-bold">
+                <option value="URGENT">Urgent Restock</option>
+                <option value="NORMAL">Normal Refill</option>
+              </select>
+            </div>
+            <button onclick="haptic(10); submitStockAlert()" class="w-full bg-[#05281b] text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+              Log Low Stock Alert
+            </button>
+          </div>
+          <div id="stock-alerts-list" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pt-1"></div>
+        </div>
+
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3 text-xs">
+          <div class="flex justify-between items-center">
+            <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">📞 Customer Product Enquiry / Lead</h3>
+            <span id="customer-leads-count" class="text-[9px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full">0 Pending</span>
+          </div>
+          <div class="space-y-2">
+            <input id="input-cust-name" placeholder="Customer Name" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
+            <input id="input-cust-phone" type="tel" maxlength="10" placeholder="10-digit Phone Number" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold font-mono">
+            <input id="input-cust-product" placeholder="Requested Product / Notes" class="w-full px-3 py-2 border rounded-xl outline-none font-semibold">
+            <button onclick="haptic(10); submitCustomerEnquiry()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+              Save Customer Enquiry
+            </button>
+          </div>
+          <div id="customer-enquiries-list" class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar pt-1"></div>
+        </div>
+      </section>
+
+      <!-- ================= MODULE 5: ADMIN MANAGEMENT CONSOLE ================= -->
+      <section id="page-admin-desk" class="hidden space-y-4">
+        <div class="bg-white border rounded-2xl px-3 py-2 flex justify-between text-[11px] font-bold text-slate-600 shadow-2xs overflow-x-auto">
+          <button onclick="switchAdminTab('roster')" id="tab-roster" class="text-emerald-950 border-b-2 border-emerald-900 pb-1 font-black shrink-0 px-2">Floor Roster</button>
+          <button onclick="switchAdminTab('staff')" id="tab-staff" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Staff & Roles</button>
+          <button onclick="switchAdminTab('leaves')" id="tab-leaves" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Leaves Desk</button>
+          <button onclick="switchAdminTab('reports')" id="tab-reports" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Reports & Exports</button>
+          <button onclick="switchAdminTab('geofence')" id="tab-geofence" class="text-slate-400 pb-1 font-bold shrink-0 px-2">Store Setup</button>
+        </div>
+
+        <!-- 1. Live Floor Roster Tab -->
+        <div id="view-admin-roster" class="space-y-3">
+          <div class="flex justify-between items-center text-xs">
+            <div>
+              <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Live Floor Presence</h2>
+              <p class="text-[10px] text-slate-400">Tap any name for hours graph & profile</p>
+            </div>
+            <button onclick="renderAdminRoster()" class="text-xs text-emerald-800 font-bold hover:underline cursor-pointer">Refresh</button>
+          </div>
+          <div id="roster-card-list" class="space-y-2"></div>
+        </div>
+
+        <!-- 2. Staff Management Tab (Super Admin Role Allocation Powered) -->
+        <div id="view-admin-staff" class="hidden space-y-4">
+          <div id="box-add-staff" class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5 text-xs">
+            <div class="flex items-center justify-between border-b pb-2">
+              <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Add User & Assign Role</h3>
+              <span id="role-creation-badge" class="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-black">Authorized</span>
+            </div>
+            <input id="new-emp-name" placeholder="Full Name (e.g. Anand Kumar)" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none">
+            <input id="new-emp-phone" type="tel" maxlength="10" placeholder="10-digit Mobile Number" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none font-mono">
+            <input id="new-emp-pin" type="password" maxlength="4" placeholder="4-digit Terminal PIN" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none font-mono text-center tracking-widest font-black">
+            <div class="grid grid-cols-2 gap-2">
+              <select id="new-emp-role" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white font-semibold">
+                <option value="STAFF">Store Staff (Floor Execution)</option>
+                <option value="MANAGER">Store Manager (Supervision)</option>
+                <option value="OWNER">Store Owner (Executive)</option>
+              </select>
+              <select id="new-emp-weekoff" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white font-semibold">
+                <option value="Sunday">Sunday Off</option>
+                <option value="Monday">Monday Off</option>
+                <option value="Tuesday">Tuesday Off</option>
+                <option value="Wednesday">Wednesday Off</option>
+                <option value="Thursday">Thursday Off</option>
+                <option value="Friday">Friday Off</option>
+                <option value="Saturday">Saturday Off</option>
+              </select>
+            </div>
+            <button onclick="haptic(10); registerNewStaff()" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-2.5 rounded-xl text-xs transition cursor-pointer">
+              Register User Account
+            </button>
+          </div>
+
+          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5 text-xs">
+            <div class="flex justify-between items-center border-b pb-2">
+              <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Store Users Hierarchy</h3>
+              <span id="total-staff-count-badge" class="font-mono text-slate-500 font-bold text-[10px]">0 Members</span>
+            </div>
+            <div id="settings-staff-list" class="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar"></div>
+          </div>
+        </div>
+
+        <!-- 3. Leaves Approvals Tab -->
+        <div id="view-admin-leaves" class="hidden space-y-3">
+          <div class="flex justify-between items-center text-xs">
+            <div>
+              <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Staff Leave & Off Desk</h2>
+              <p class="text-[10px] text-slate-400">Review employee requests</p>
+            </div>
+            <button onclick="renderAdminLeavesList()" class="text-xs text-emerald-800 font-bold hover:underline cursor-pointer">Refresh</button>
+          </div>
+          <div id="admin-leaves-list" class="space-y-2"></div>
+        </div>
+
+        <!-- 4. Reports & CSV Tab (Option A Master Reset Included) -->
+        <div id="view-admin-reports" class="hidden space-y-4 text-xs">
+          <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+            <h2 class="font-black text-slate-900 text-xs uppercase tracking-wider">Store CSV Exports</h2>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="haptic(10); exportAttendanceCSV()" class="p-3 bg-[#05281b] text-white rounded-2xl font-bold flex flex-col items-center gap-1 shadow-sm active:scale-95 transition cursor-pointer">
+                <span class="text-base">📅</span>
+                <span>Attendance CSV</span>
+              </button>
+              <button onclick="haptic(10); exportCashCSV()" class="p-3 bg-slate-800 text-white rounded-2xl font-bold flex flex-col items-center gap-1 shadow-sm active:scale-95 transition cursor-pointer">
+                <span class="text-base">💵</span>
+                <span>Cash Ledger CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2">
+            <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Store System Controls</h3>
+            <button onclick="exportSystemJSON()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <span>💾</span> Download Database JSON Backup
+            </button>
+            <button onclick="cleanCorruptedDuplicatesToday()" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl font-bold flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <span>🛠️</span> Clean Duplicate Shifts for Today
+            </button>
+            <button onclick="clearPettyCashHistory()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <span>🧹</span> Clear Petty Cash & Bank Drop Logs
+            </button>
+          </div>
+
+          <!-- OPTION A: SUPER ADMIN MASTER RESET CARD -->
+          <div id="card-superadmin-reset" class="hidden bg-red-50/80 border border-red-200 p-4.5 rounded-3xl space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">⚠️</span>
+                <div>
+                  <h3 class="font-black text-red-950 uppercase text-[11px] tracking-wider">Clear Trial & Testing Data</h3>
+                  <p class="text-[10px] text-red-700 font-medium">Wipe test punches, floats & cash settlements</p>
+                </div>
+              </div>
+              <span class="text-[9px] bg-red-200 text-red-950 font-black px-2 py-0.5 rounded">Super Admin</span>
+            </div>
+            <p class="text-[11px] text-red-800">
+              Option A: Cleans all shifts, cash sheets, petty expenses, and logs across devices. All staff accounts and store geofence settings are strictly preserved.
+            </p>
+            <button onclick="openMasterResetModal()" class="w-full py-3 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black rounded-2xl text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-red-900/10 cursor-pointer">
+              <span>🗑️</span> <span>Wipe Transactional Data (Option A)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. Store Geofence & Setup Tab -->
+        <div id="view-admin-geofence" class="hidden space-y-4 text-xs">
+          <div class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+            <div class="flex items-center justify-between border-b pb-2">
+              <div>
+                <h3 class="font-black text-slate-900 uppercase tracking-wider text-[11px]">Store Geofence Anchor</h3>
+                <p class="text-[10px] text-slate-400">Stored coordinates for 100m attendance gate</p>
+              </div>
+              <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Active</span>
+            </div>
+
+            <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Store Name:</span>
+                <span class="font-bold text-slate-900">Wellwith Mangaluru</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Stored Latitude:</span>
+                <span id="cfg-lat-val" class="font-bold font-mono text-emerald-800">12.879739</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Stored Longitude:</span>
+                <span id="cfg-lng-val" class="font-bold font-mono text-emerald-800">74.857761</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Geofence Radius:</span>
+                <span class="font-bold text-emerald-800">100 Meters</span>
+              </div>
+            </div>
+
+            <button id="btn-calibrate-gps" onclick="haptic(10); fetchAndStoreCurrentGPS()" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98">
+              <span>📍</span> <span>Fetch Current Phone GPS & Save Store Anchor</span>
+            </button>
+            <p id="gps-accuracy-info" class="text-[10px] text-slate-400 text-center italic">Stand inside Wellwith Mangaluru counter and tap to calibrate.</p>
+          </div>
+
+          <div id="box-manual-gps-override" class="bg-white p-4.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
+            <h3 class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Manual Coordinate Override</h3>
+            <p class="text-[10px] text-slate-400">Paste exact coordinates from Google Maps if preferred:</p>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="input-manual-lat" type="number" step="any" placeholder="Latitude" class="w-full px-3 py-2 bg-slate-50 border rounded-xl font-mono font-bold text-xs outline-none">
+              <input id="input-manual-lng" type="number" step="any" placeholder="Longitude" class="w-full px-3 py-2 bg-slate-50 border rounded-xl font-mono font-bold text-xs outline-none">
+            </div>
+            <button onclick="saveManualCoordinates()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">
+              Save Manual Coordinates
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Native App Bottom Navigation Bar -->
+    <nav id="app-bottom-nav" class="hidden absolute bottom-0 inset-x-0 bg-white border-t border-slate-200/80 px-4 py-2 z-30 flex justify-around items-center text-[10px] font-bold text-slate-500 shadow-lg">
+      <button onclick="haptic(6); navigateTo('page-dashboard')" id="bnav-dashboard" class="flex flex-col items-center gap-0.5 py-1 text-emerald-950 font-black cursor-pointer">
+        <span class="text-base">🏠</span>
+        <span>Home</span>
+      </button>
+      <button onclick="haptic(6); navigateTo('page-shift')" id="bnav-shift" class="flex flex-col items-center gap-0.5 py-1 cursor-pointer">
+        <span class="text-base">⏱️</span>
+        <span>Duty</span>
+      </button>
+      <button onclick="haptic(6); navigateTo('page-cash')" id="bnav-cash" class="flex flex-col items-center gap-0.5 py-1 cursor-pointer">
+        <span class="text-base">💵</span>
+        <span>Cash</span>
+      </button>
+      <button onclick="haptic(6); toggleSidebar(true)" id="bnav-menu" class="flex flex-col items-center gap-0.5 py-1 cursor-pointer">
+        <span class="text-base">☰</span>
+        <span>Menu</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ================= IN-APP MODAL: EDIT MORNING FLOAT ================= -->
+  <div id="modal-edit-float" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-white rounded-3xl p-5 shadow-2xl space-y-4 text-xs border border-slate-200">
+      <div class="flex justify-between items-center border-b pb-2">
+        <div>
+          <h3 class="font-black text-slate-900 text-sm">Edit Morning Float</h3>
+          <p class="text-[10px] text-slate-400">Update cash baseline for today</p>
+        </div>
+        <button type="button" onclick="closeFloatEditModal()" class="text-slate-400 hover:text-slate-800 font-bold p-1 text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-[10px] font-bold uppercase text-slate-500">New Float Amount (₹)</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2.5 font-bold text-slate-400">₹</span>
+          <input id="input-modal-float-val" type="number" placeholder="Enter Amount" class="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-black font-mono text-base outline-none focus:ring-2 focus:ring-emerald-800 text-slate-900">
+        </div>
+        <p class="text-[10px] text-slate-400 italic">This recalculates today's counter cash target.</p>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="saveFloatFromModal()" class="flex-1 bg-[#05281b] hover:bg-[#073624] text-white font-black py-2.5 rounded-xl transition cursor-pointer active:scale-98">
+          Save Float
+        </button>
+        <button type="button" onclick="closeFloatEditModal()" class="px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= IN-APP MODAL: CONFIRM USER DELETION ================= -->
+  <div id="modal-confirm-delete" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-white rounded-3xl p-5 shadow-2xl space-y-4 text-xs border border-red-200">
+      <div class="flex justify-between items-center border-b pb-2">
+        <div class="flex items-center gap-1.5 text-red-600 font-black">
+          <span class="text-base">🗑️</span>
+          <h3 class="font-black text-slate-900 text-sm">Delete Account</h3>
+        </div>
+        <button type="button" onclick="closeDeleteUserModal()" class="text-slate-400 hover:text-slate-800 font-bold p-1 text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="space-y-2 text-slate-600">
+        <p class="text-[11px] font-medium leading-relaxed">
+          Permanently remove employee <strong id="delete-target-name" class="text-slate-900 font-bold font-mono">--</strong>?
+        </p>
+        <p class="text-[10px] text-red-600 font-semibold bg-red-50 p-2 rounded-xl border border-red-100">
+          This revokes access on all connected store terminals and deletes the account from the database.
+        </p>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="executeUserDeletion()" class="flex-1 bg-red-600 hover:bg-red-700 active:scale-98 text-white font-black py-2.5 rounded-xl transition cursor-pointer shadow-md">
+          Yes, Delete
+        </button>
+        <button type="button" onclick="closeDeleteUserModal()" class="px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= IN-APP MODAL: MASTER RESET CONFIRMATION (OPTION A) ================= -->
+  <div id="modal-master-reset" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-white rounded-3xl p-5 shadow-2xl space-y-4 text-xs border border-red-200">
+      <div class="flex justify-between items-center border-b pb-2">
+        <div class="flex items-center gap-1.5 text-red-600 font-black">
+          <span class="text-base">⚠️</span>
+          <h3 class="font-black text-slate-900 text-sm">Wipe Testing Data</h3>
+        </div>
+        <button type="button" onclick="closeMasterResetModal()" class="text-slate-400 hover:text-slate-800 font-bold p-1 text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="space-y-2 text-slate-600">
+        <p class="text-[11px] font-medium leading-relaxed">
+          This permanently clears shift punches, cash sheets, petty expenses, and logs across cloud and terminals. Staff accounts and store geofence settings are retained.
+        </p>
+        <div class="space-y-1 pt-1">
+          <label class="block text-[10px] font-black uppercase text-slate-500">Confirm with Super Admin PIN</label>
+          <input id="input-reset-pin" type="password" maxlength="4" placeholder="Enter PIN" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-center text-lg tracking-widest font-black outline-none focus:ring-2 focus:ring-red-600">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="executeMasterReset()" class="flex-1 bg-red-600 hover:bg-red-700 active:scale-98 text-white font-black py-2.5 rounded-xl transition cursor-pointer shadow-md">
+          Confirm Wipe
+        </button>
+        <button type="button" onclick="closeMasterResetModal()" class="px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Employee Profile, Role Allocation & Hours Graph -->
+  <div id="modal-employee-detail" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="bg-[#05281b] text-white p-4.5 px-5 flex items-center justify-between shrink-0">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 id="modal-emp-name" class="font-black text-sm text-white">--</h3>
+            <span id="modal-emp-role" class="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-white/10 text-emerald-300">STAFF</span>
+          </div>
+          <p id="modal-emp-phone" class="text-[10px] text-emerald-300 font-mono">--</p>
+        </div>
+        <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-white p-1 text-sm font-bold cursor-pointer">✕</button>
+      </div>
+
+      <div class="p-4 space-y-4 overflow-y-auto custom-scrollbar flex-1 text-xs">
+        <div class="grid grid-cols-4 gap-1.5 text-center">
+          <div class="bg-slate-50 p-2 rounded-2xl border">
+            <span class="text-[8px] uppercase font-bold text-slate-400 block">Shifts</span>
+            <div id="modal-stat-shifts" class="font-black text-sm text-slate-800 font-mono">0</div>
+          </div>
+          <div class="bg-slate-50 p-2 rounded-2xl border">
+            <span class="text-[8px] uppercase font-bold text-slate-400 block">Total Hrs</span>
+            <div id="modal-stat-hours" class="font-black text-sm text-emerald-800 font-mono">0h</div>
+          </div>
+          <div class="bg-slate-50 p-2 rounded-2xl border">
+            <span class="text-[8px] uppercase font-bold text-slate-400 block">On-Time</span>
+            <div id="modal-stat-ontime" class="font-black text-sm text-blue-700 font-mono">100%</div>
+          </div>
+          <div class="bg-slate-50 p-2 rounded-2xl border">
+            <span class="text-[8px] uppercase font-bold text-slate-400 block">Overtime</span>
+            <div id="modal-stat-ot" class="font-black text-sm text-amber-700 font-mono">0m</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-2xl border space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-black text-slate-800 text-[11px] uppercase tracking-wider">7-Day Floor Hours Trend</span>
+            <span class="text-[9px] text-slate-400 font-semibold">Target: 13h/shift</span>
+          </div>
+          <div id="modal-chart-bars" class="h-28 flex items-end justify-between gap-1.5 pt-4 px-1 border-b border-slate-200"></div>
+          <div id="modal-chart-labels" class="flex justify-between text-[9px] font-mono text-slate-400 px-1 pt-1"></div>
+        </div>
+
+        <!-- Super Admin Role Power Control Box -->
+        <div id="modal-role-power-box" class="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-800 block">Assign Authority Role</span>
+              <p class="text-[10px] text-slate-400">Controls terminal capabilities & visibility</p>
+            </div>
+            <select id="modal-emp-role-select" onchange="updateEmployeeRoleBySuperAdmin(this.value)" class="px-2.5 py-1.5 bg-slate-50 border rounded-xl font-bold text-xs outline-none">
+              <option value="STAFF">Staff (Floor Worker)</option>
+              <option value="MANAGER">Store Manager</option>
+              <option value="OWNER">Store Owner</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-800 block">Assigned Weekly Off</span>
+              <p class="text-[10px] text-slate-400">Day allocated for roster rest</p>
+            </div>
+            <select id="modal-emp-weekoff-select" onchange="updateEmployeeWeekOff(this.value)" class="px-2.5 py-1.5 bg-slate-50 border rounded-xl font-bold text-xs outline-none">
+              <option value="Sunday">Sunday</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="modal-pin-box" class="p-3 bg-slate-50 rounded-2xl border flex justify-between items-center">
+          <span class="font-bold text-slate-700">Terminal Security PIN</span>
+          <span id="modal-emp-pin" class="font-mono font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">••••</span>
+        </div>
+
+        <div id="modal-delete-emp-container" class="pt-1">
+          <button onclick="deleteStaffMemberFromModal()" class="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+            <span>🗑️</span> Delete User Account Permanently
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= STATE & HIERARCHY ARCHITECTURE ================= //
+    const STORAGE_KEY = 'WELLWITH_MANGALURU_MASTER_V56';
+
+    const defaultState = {
+      storeConfig: {
+        name: 'Wellwith Mangaluru',
+        lat: 12.879738993658698,
+        lng: 74.8577612912935,
+        radius: 100,
+        shiftStart: '08:00',
+        shiftEnd: '21:00',
+        graceMins: 15
+      },
+      employees: [
+        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'Sunday' },
+        { id: 'usr_owner2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'OWNER', weekOff: 'Sunday' },
+        { id: 'usr_staff1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday' }
+      ],
+      attendance: [],
+      cashDrawerLogs: [],
+      pettyCashExpenses: [],
+      pettyDeclarations: [],
+      bankTransfers: [],
+      leaveRequests: [],
+      morningSOPLogs: [],
+      stockAlerts: [],
+      customerEnquiries: [],
+      nightClosingChecklists: []
+    };
+
+    // Sole Invariant: Root Super Admin (8088504219) is retained to prevent lockout.
+    // Other accounts are strictly preserved as deleted once removed.
+    function ensureStateArrays(parsed) {
+      if (!parsed) parsed = {};
+      if (!Array.isArray(parsed.employees)) parsed.employees = JSON.parse(JSON.stringify(defaultState.employees));
+      
+      const rootExists = parsed.employees.some(e => e.phone === '8088504219');
+      if (!rootExists) {
+        parsed.employees.unshift(defaultState.employees[0]);
+      } else {
+        const root = parsed.employees.find(e => e.phone === '8088504219');
+        root.role = 'SUPER_ADMIN';
+      }
+      
+      if (!Array.isArray(parsed.attendance)) parsed.attendance = [];
+      if (!Array.isArray(parsed.cashDrawerLogs)) parsed.cashDrawerLogs = [];
+      if (!Array.isArray(parsed.pettyCashExpenses)) parsed.pettyCashExpenses = [];
+      if (!Array.isArray(parsed.pettyDeclarations)) parsed.pettyDeclarations = [];
+      if (!Array.isArray(parsed.bankTransfers)) parsed.bankTransfers = [];
+      if (!Array.isArray(parsed.leaveRequests)) parsed.leaveRequests = [];
+      if (!Array.isArray(parsed.morningSOPLogs)) parsed.morningSOPLogs = [];
+      if (!Array.isArray(parsed.stockAlerts)) parsed.stockAlerts = [];
+      if (!Array.isArray(parsed.customerEnquiries)) parsed.customerEnquiries = [];
+      if (!Array.isArray(parsed.nightClosingChecklists)) parsed.nightClosingChecklists = [];
+      if (!parsed.storeConfig) parsed.storeConfig = defaultState.storeConfig;
+      return parsed;
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultState));
+          return JSON.parse(JSON.stringify(defaultState));
+        }
+        const parsed = JSON.parse(raw);
+        return ensureStateArrays(parsed);
+      } catch (e) {
+        return JSON.parse(JSON.stringify(defaultState));
+      }
+    }
+
+    function saveState(state) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        syncToCloud(state);
+      } catch (e) {}
+    }
+
+    let appState = loadState();
+    let currentAuthUser = null;
+    let cameraStream = null;
+    let currentActivePage = 'page-welcome';
+    let selectedModalEmployeeId = null;
+    let pendingDeleteEmployee = null;
+    let cachedLocation = null;
+    let watchId = null;
+
+    const denomCounts = { 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0 };
+    let actualCountedCash = 0;
+    let adminBypassedOpening = false;
+
+    function haptic(ms = 10) {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(ms); } catch (e) {}
+      }
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.innerText = msg;
+      toast.className = `absolute top-20 left-4 right-4 z-50 p-3.5 rounded-2xl text-xs font-semibold shadow-2xl transition-all duration-300 border ${
+        isError ? 'bg-red-50 text-red-900 border-red-200' : 'bg-emerald-950 text-emerald-100 border-emerald-800'
+      }`;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
+    function isSuperAdmin() {
+      return !!(currentAuthUser && (currentAuthUser.phone === '8088504219' || currentAuthUser.role === 'SUPER_ADMIN'));
+    }
+
+    function isOwnerRole() {
+      return !!(currentAuthUser && (isSuperAdmin() || currentAuthUser.role === 'OWNER'));
+    }
+
+    function isManagerRole() {
+      return !!(currentAuthUser && (isOwnerRole() || currentAuthUser.role === 'MANAGER' || currentAuthUser.role === 'ADMIN'));
+    }
+
+    function getDisplayRole(role) {
+      if (role === 'SUPER_ADMIN' || role === 'OWNER') return 'STORE OWNER';
+      if (role === 'MANAGER' || role === 'ADMIN') return 'STORE MANAGER';
+      return 'STAFF';
+    }
+
+    // ================= REALTIME CLOCK & STARTUP ================= //
+    function updateClock() {
+      const now = new Date();
+      const str = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const wClock = document.getElementById('welcome-live-clock');
+      if (wClock) wClock.innerText = str;
+      if (now.getHours() >= 21) {
+        const el = document.getElementById('overtime-indicator');
+        if (el) el.classList.remove('hidden');
+      }
+      updateShiftProgressGauge();
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateClock();
+      initPassiveGeolocation();
+      autoCleanDuplicateSessions();
+      initSlideControls();
+
+      const pInput = document.getElementById('input-phone');
+      const pinInput = document.getElementById('input-pin');
+      if (pInput) {
+        pInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && pinInput) pinInput.focus();
+        });
+      }
+      if (pinInput) {
+        pinInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') handleLoginSubmit();
+        });
+      }
+
+      const cachedUserRaw = localStorage.getItem('AROVI_CURRENT_USER');
+      if (cachedUserRaw) {
+        try {
+          currentAuthUser = JSON.parse(cachedUserRaw);
+          setupSession();
+        } catch(e) {
+          navigateTo('page-welcome');
+        }
+      } else {
+        navigateTo('page-welcome');
+      }
+
+      initFirebaseSync();
+    });
+
+    // ================= CENTRAL ROUTER / PAGE SWITCHER ================= //
+    function navigateTo(pageId) {
+      toggleSidebar(false);
+
+      const adminOnlyPages = ['page-admin-desk'];
+      if (adminOnlyPages.includes(pageId) && !isManagerRole()) {
+        showToast('Access Denied. Management authorization required.', true);
+        navigateTo('page-dashboard');
+        return;
+      }
+
+      if (pageId === 'page-gate' && hasClockedInAtAllToday()) {
+        showToast('You have already clocked in today!', false);
+        navigateTo(isPunchedInToday() ? 'page-shift' : 'page-dashboard');
+        return;
+      }
+
+      if (!isOwnerRole()) {
+        const requiresActiveShift = ['page-shift', 'page-cash'];
+        if (requiresActiveShift.includes(pageId) && !isPunchedInToday()) {
+          if (isShiftFinishedToday()) {
+            showToast('Shift completed for today. Review your hours in Logs.', false);
+            navigateTo('page-history');
+            return;
+          }
+          showToast('Feature locked. Please clock in on site first.', true);
+          navigateTo('page-gate');
+          return;
+        }
+      }
+
+      const allPages = [
+        'page-welcome', 'page-login', 'page-dashboard', 'page-history', 'page-leaves',
+        'page-gate', 'page-shift', 'page-cash', 'page-enquiries', 'page-admin-desk'
+      ];
+      allPages.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+      stopCamera();
+
+      const target = document.getElementById(pageId);
+      if (target) {
+        target.classList.remove('hidden');
+      } else {
+        document.getElementById('page-dashboard')?.classList.remove('hidden');
+      }
+
+      currentActivePage = pageId;
+
+      const titleEl = document.getElementById('page-title');
+      const subtitleEl = document.getElementById('page-subtitle');
+      const toggleBtn = document.getElementById('btn-sidebar-toggle');
+      const authControls = document.getElementById('auth-controls');
+      const bottomNav = document.getElementById('app-bottom-nav');
+
+      if (pageId === 'page-welcome' || pageId === 'page-login') {
+        if (toggleBtn) toggleBtn.classList.add('hidden');
+        if (authControls) authControls.classList.add('hidden');
+        if (bottomNav) bottomNav.classList.add('hidden');
+        if (titleEl) titleEl.innerText = 'Wellwith Mangaluru';
+        if (subtitleEl) subtitleEl.innerText = 'Terminal Operational';
+        if (pageId === 'page-login') {
+          setTimeout(() => document.getElementById('input-phone')?.focus(), 150);
+        }
+      } else {
+        if (toggleBtn) toggleBtn.classList.remove('hidden');
+        if (authControls) authControls.classList.remove('hidden');
+        if (bottomNav) bottomNav.classList.remove('hidden');
+
+        if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
+        else if (pageId === 'page-history') { titleEl.innerText = 'Attendance Logs'; subtitleEl.innerText = 'Transparency Ledger'; }
+        else if (pageId === 'page-leaves') { titleEl.innerText = 'Holidays & Offs'; subtitleEl.innerText = 'Requests & Status'; }
+        else if (pageId === 'page-gate') { titleEl.innerText = 'Attendance Gate'; subtitleEl.innerText = 'Geofence Radar'; }
+        else if (pageId === 'page-shift') { titleEl.innerText = 'Shift & Lunch Break'; subtitleEl.innerText = 'Floor Duty Tracker'; }
+        else if (pageId === 'page-cash') { titleEl.innerText = 'Cash & Closing Desk'; subtitleEl.innerText = 'Reconciliation & Exit'; }
+        else if (pageId === 'page-enquiries') { titleEl.innerText = 'Enquiries & Stock'; subtitleEl.innerText = 'Counter Leads & Alerts'; }
+        else if (pageId === 'page-admin-desk') { titleEl.innerText = 'Administration Console'; subtitleEl.innerText = 'Management Control'; }
+      }
+
+      ['dashboard', 'shift', 'cash'].forEach(k => {
+        const b = document.getElementById(`bnav-${k}`);
+        if (b) {
+          if (pageId === `page-${k}`) {
+            b.className = 'flex flex-col items-center gap-0.5 py-1 text-emerald-950 font-black cursor-pointer';
+          } else {
+            b.className = 'flex flex-col items-center gap-0.5 py-1 text-slate-400 font-bold cursor-pointer';
+          }
+        }
+      });
+
+      if (pageId === 'page-dashboard') renderEmployeePersonalData();
+      else if (pageId === 'page-history') renderPersonalLedgerView();
+      else if (pageId === 'page-leaves') renderPersonalLeaveHistory();
+      else if (pageId === 'page-gate') prepareGatekeeperUI();
+      else if (pageId === 'page-shift') renderShiftTabDetails();
+      else if (pageId === 'page-cash') renderManagerCashDesk();
+      else if (pageId === 'page-enquiries') renderCounterDeskView();
+      else if (pageId === 'page-admin-desk') { renderAdminRoster(); renderSettingsStaffList(); renderAdminLeavesList(); updateGeofenceSettingsUI(); }
+    }
+
+    function toggleSidebar(open) {
+      const sidebar = document.getElementById('app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (!sidebar || !backdrop) return;
+      if (open) {
+        updateLockPills();
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    // ================= SECURE AUTHENTICATION ================= //
+    function handleLoginSubmit() {
+      const phoneInput = document.getElementById('input-phone');
+      const pinInput = document.getElementById('input-pin');
+      if (!phoneInput || !pinInput) return;
+
+      const phone = phoneInput.value.trim();
+      const pin = pinInput.value.trim();
+
+      if (!phone || !pin) {
+        showToast('Please enter both Phone number and 4-digit PIN.', true);
+        return;
+      }
+
+      appState = loadState();
+      const user = (appState.employees || []).find(e => e.phone === phone && e.pin === pin);
+
+      if (!user) {
+        showToast('Invalid Phone or PIN.', true);
+        return;
+      }
+
+      currentAuthUser = user;
+      localStorage.setItem('AROVI_CURRENT_USER', JSON.stringify(user));
+      phoneInput.value = '';
+      pinInput.value = '';
+      setupSession();
+      showToast(`Welcome back, ${user.name}!`);
+    }
+
+    function handleLogout() {
+      stopCamera();
+      localStorage.removeItem('AROVI_CURRENT_USER');
+      currentAuthUser = null;
+      toggleSidebar(false);
+      navigateTo('page-welcome');
+    }
+
+    function setupSession() {
+      if (!currentAuthUser) return;
+      document.getElementById('sidebar-user-name').innerText = currentAuthUser.name;
+      
+      const isLead = isManagerRole();
+      document.getElementById('sidebar-role-badge').innerText = getDisplayRole(currentAuthUser.role);
+      document.getElementById('side-cat-admin').classList.toggle('hidden', !isLead);
+
+      updateLockPills();
+      navigateTo('page-dashboard');
+    }
+
+    function updateLockPills() {
+      const onDuty = isPunchedInToday();
+      const finished = isShiftFinishedToday();
+      const alreadyClockedIn = hasClockedInAtAllToday();
+      const dutyBadge = document.getElementById('sidebar-duty-badge');
+      
+      if (dutyBadge) {
+        if (onDuty) {
+          dutyBadge.innerText = 'On Duty';
+          dutyBadge.className = 'text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800';
+        } else if (finished) {
+          dutyBadge.innerText = 'Completed';
+          dutyBadge.className = 'text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-slate-200 text-slate-700';
+        } else {
+          dutyBadge.innerText = 'Not Punched';
+          dutyBadge.className = 'text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-900';
+        }
+      }
+
+      const gateNav = document.getElementById('nav-item-gate');
+      if (gateNav) gateNav.classList.toggle('hidden', alreadyClockedIn);
+    }
+
+    // ================= DASHBOARD OPENING ================= //
+    function toggleAdminSkip(skip) {
+      adminBypassedOpening = skip;
+      document.getElementById('btn-admin-skip-toggle').classList.toggle('hidden', skip);
+      document.getElementById('btn-admin-show-toggle').classList.toggle('hidden', !skip);
+      renderDashboardSteps();
+      showToast(skip ? 'Opening sequence bypassed for executive schedule.' : 'Opening sequence visible.');
+    }
+
+    function renderDashboardSteps() {
+      const today = new Date().toISOString().split('T')[0];
+      const onDuty = isPunchedInToday();
+      const moduleEl = document.getElementById('module-opening-steps');
+      const bannerDone = document.getElementById('banner-checkin-done');
+      const adminBanner = document.getElementById('admin-flex-banner');
+
+      if (!onDuty) {
+        moduleEl.classList.add('hidden');
+        if (adminBanner) adminBanner.classList.add('hidden');
+        return;
+      }
+
+      if (isOwnerRole()) {
+        if (adminBanner) adminBanner.classList.remove('hidden');
+        if (adminBypassedOpening) {
+          moduleEl.classList.add('hidden');
+          bannerDone.classList.remove('hidden');
+          return;
+        }
+      } else {
+        if (adminBanner) adminBanner.classList.add('hidden');
+      }
+
+      const sopDone = (appState.morningSOPLogs || []).some(s => s.date === today);
+      const rec = getTodayCashRecord();
+      const floatDone = (rec.morningCash !== null);
+
+      if (sopDone && floatDone) {
+        moduleEl.classList.add('hidden');
+        bannerDone.classList.remove('hidden');
+        return;
+      }
+
+      moduleEl.classList.remove('hidden');
+      bannerDone.classList.add('hidden');
+
+      const card1 = document.getElementById('card-step-1');
+      const badge1 = document.getElementById('badge-step-1');
+      const status1 = document.getElementById('status-step-1');
+      const checkBody1 = document.getElementById('step-1-checklist-body');
+      const doneSummary1 = document.getElementById('step-1-done-summary');
+
+      const card2 = document.getElementById('card-step-2');
+      const badge2 = document.getElementById('badge-step-2');
+      const status2 = document.getElementById('status-step-2');
+      const floatInput = document.getElementById('input-dash-float');
+      const floatBtn = document.getElementById('btn-dash-save-float');
+      const doneSummary2 = document.getElementById('step-2-done-summary');
+
+      if (sopDone) {
+        card1.className = 'p-3.5 rounded-2xl border transition-all space-y-1.5 bg-emerald-50/60 border-emerald-200';
+        badge1.className = 'w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px]';
+        badge1.innerText = '✓';
+        status1.innerText = 'Completed ✓';
+        status1.className = 'text-[10px] font-extrabold text-emerald-800';
+        checkBody1.classList.add('hidden');
+        doneSummary1.classList.remove('hidden');
+
+        const sopEntry = (appState.morningSOPLogs || []).find(s => s.date === today);
+        document.getElementById('step-1-by-text').innerText = `by ${sopEntry ? sopEntry.by : 'Staff'}`;
+
+        if (floatDone) {
+          card2.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-emerald-50/60 border-emerald-200 opacity-100';
+          badge2.className = 'w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px]';
+          badge2.innerText = '✓';
+          status2.innerText = 'Saved ✓';
+          status2.className = 'text-[10px] font-extrabold text-emerald-800';
+          document.getElementById('step-2-input-body').classList.add('hidden');
+          doneSummary2.classList.remove('hidden');
+          document.getElementById('step-2-float-recorded-text').innerText = `Float: ₹${Number(rec.morningCash).toLocaleString('en-IN')}`;
+          document.getElementById('step-2-by-text').innerText = `Saved by ${rec.morningBy || 'Staff'} ✓`;
+        } else {
+          card2.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200 opacity-100';
+          badge2.className = 'w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]';
+          status2.innerText = isOwnerRole() ? 'Optional' : 'Action Required';
+          status2.className = 'text-[10px] font-extrabold text-amber-700';
+          floatInput.disabled = false;
+          floatBtn.disabled = false;
+          floatBtn.className = 'bg-[#05281b] text-white font-black px-4 py-2 rounded-xl text-xs transition shadow cursor-pointer';
+          document.getElementById('step-2-input-body').classList.remove('hidden');
+          doneSummary2.classList.add('hidden');
+        }
+
+        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional' : 'Step 2 of 2 Pending';
+      } else {
+        card1.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200';
+        badge1.className = 'w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]';
+        badge1.innerText = '1';
+        status1.innerText = isOwnerRole() ? 'Optional' : 'Pending 4 Checks';
+        status1.className = 'text-[10px] font-extrabold text-amber-700';
+        checkBody1.classList.remove('hidden');
+        doneSummary1.classList.add('hidden');
+
+        card2.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-slate-50 border-slate-200 opacity-60';
+        badge2.className = 'w-5 h-5 rounded-full bg-slate-400 text-white flex items-center justify-center text-[10px]';
+        status2.innerText = 'Locked';
+        status2.className = 'text-[10px] font-bold text-slate-400';
+        floatInput.disabled = true;
+        floatBtn.disabled = true;
+        floatBtn.className = 'bg-slate-300 text-slate-500 font-black px-4 py-2 rounded-xl text-xs transition cursor-not-allowed';
+
+        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional' : 'Step 1 of 2 Pending';
+      }
+
+      const editFloatBtn1 = document.getElementById('btn-open-float-edit');
+      const editFloatBtn2 = document.getElementById('btn-edit-float-cashdesk');
+      if (editFloatBtn1) editFloatBtn1.classList.toggle('hidden', !isOwnerRole());
+      if (editFloatBtn2) editFloatBtn2.classList.toggle('hidden', !isOwnerRole());
+    }
+
+    // ================= IN-APP MODAL: EDIT MORNING FLOAT ================= //
+    function openFloatEditModal() {
+      if (!isOwnerRole()) return showToast('Permission Denied: Executive access required.', true);
+      const rec = getTodayCashRecord();
+      const currentVal = (rec.morningCash !== null && rec.morningCash !== undefined) ? rec.morningCash : '';
+      const inputEl = document.getElementById('input-modal-float-val');
+      if (inputEl) inputEl.value = currentVal;
+      document.getElementById('modal-edit-float')?.classList.remove('hidden');
+      setTimeout(() => inputEl?.focus(), 150);
+    }
+
+    function closeFloatEditModal() {
+      document.getElementById('modal-edit-float')?.classList.add('hidden');
+    }
+
+    function saveFloatFromModal() {
+      if (!isOwnerRole()) return showToast('Permission Denied: Executive access required.', true);
+      const inputEl = document.getElementById('input-modal-float-val');
+      const newVal = parseFloat(inputEl?.value);
+
+      if (isNaN(newVal) || newVal < 0) {
+        return showToast('Please enter a valid numeric float amount (₹).', true);
+      }
+
+      appState = loadState();
+      const rec = getTodayCashRecord();
+      rec.morningCash = Math.round(newVal * 100) / 100;
+      rec.morningBy = currentAuthUser ? currentAuthUser.name : 'Owner';
+      rec.morningTimestamp = new Date().toISOString();
+      saveState(appState);
+
+      closeFloatEditModal();
+      showToast(`Morning Float updated to ₹${newVal.toLocaleString('en-IN')}! Calculations refreshed.`);
+      renderDashboardSteps();
+      renderManagerCashDesk();
+    }
+
+    function checkDashboardSOPProgress() {
+      const c1 = document.getElementById('chk-dash-sop-1').checked;
+      const c2 = document.getElementById('chk-dash-sop-2').checked;
+      const c3 = document.getElementById('chk-dash-sop-3').checked;
+      const c4 = document.getElementById('chk-dash-sop-4').checked;
+
+      const total = [c1, c2, c3, c4].filter(Boolean).length;
+      const btn = document.getElementById('btn-dash-complete-sop');
+      const statusLabel = document.getElementById('status-step-1');
+
+      statusLabel.innerText = `${total} of 4 Checks Done`;
+
+      if (total === 4) {
+        statusLabel.className = 'text-[10px] font-extrabold text-emerald-700';
+        btn.disabled = false;
+        btn.className = 'w-full bg-[#05281b] active:scale-[0.98] text-white font-black py-2.5 rounded-xl text-xs transition shadow cursor-pointer';
+        btn.innerText = 'Confirm Step 1 (Protocol Verified)';
+      } else {
+        statusLabel.className = 'text-[10px] font-extrabold text-amber-700';
+        btn.disabled = true;
+        btn.className = 'w-full bg-slate-200 text-slate-400 font-black py-2.5 rounded-xl text-xs transition cursor-not-allowed';
+        btn.innerText = `Complete ${4 - total} Remaining Checks`;
+      }
+    }
+
+    function completeDashboardSOP() {
+      appState = loadState();
+      const today = new Date().toISOString().split('T')[0];
+
+      appState.morningSOPLogs.push({
+        date: today,
+        by: currentAuthUser.name,
+        timestamp: new Date().toISOString()
+      });
+
+      saveState(appState);
+      showToast('Step 1 verified! Now proceed to Step 2: Morning Cash Float.');
+      renderDashboardSteps();
+    }
+
+    function submitDashboardFloat() {
+      const val = parseFloat(document.getElementById('input-dash-float').value);
+      if (isNaN(val) || val < 0) {
+        showToast('Please enter a valid float amount (₹)', true);
+        return;
+      }
+
+      appState = loadState();
+      const rec = getTodayCashRecord();
+      rec.morningCash = Math.round(val * 100) / 100;
+      rec.morningTimestamp = new Date().toISOString();
+      rec.morningBy = currentAuthUser.name;
+      saveState(appState);
+
+      showToast(`Step 2 completed! Opening float ₹${val} saved.`);
+      document.getElementById('input-dash-float').value = '';
+      renderDashboardSteps();
+      renderManagerCashDesk();
+    }
+
+    function renderEmployeePersonalData() {
+      appState = loadState();
+      document.getElementById('data-user-name').innerText = currentAuthUser.name;
+      document.getElementById('data-user-phone').innerText = currentAuthUser.phone;
+      document.getElementById('data-role-badge').innerText = getDisplayRole(currentAuthUser.role);
+      document.getElementById('data-user-weekoff').innerText = `Week-Off: ${currentAuthUser.weekOff || 'Sunday'}`;
+
+      const onDuty = isPunchedInToday();
+      const finished = isShiftFinishedToday();
+      const todayRec = getLatestTodayAttendance(currentAuthUser.id);
+
+      document.getElementById('banner-checkin-needed').classList.toggle('hidden', onDuty || finished);
+      document.getElementById('banner-checkin-done').classList.toggle('hidden', !onDuty);
+      document.getElementById('banner-checkout-done').classList.toggle('hidden', !finished);
+
+      if (todayRec && todayRec.punchInTime) {
+        const inStr = new Date(todayRec.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const statusNote = isOwnerRole() ? '(Flexible)' : (todayRec.isLate ? `(Late: +${todayRec.lateMinutes}m)` : '(On Time)');
+        document.getElementById('personal-clockin-time').innerText = `Clocked in at ${inStr} ${statusNote}`;
+      }
+
+      if (todayRec && todayRec.punchOutTime) {
+        const outStr = new Date(todayRec.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const h = Math.floor((todayRec.totalMinutes || 0) / 60);
+        const m = (todayRec.totalMinutes || 0) % 60;
+        document.getElementById('personal-clockout-summary').innerText = `Checked out at ${outStr} • Duration worked: ${h}h ${m}m today.`;
+      }
+
+      const userLogs = (appState.attendance || []).filter(a => a.employeeId === currentAuthUser.id);
+      let daysPresent = userLogs.length;
+      let lateCount = 0;
+      let lateMinsTotal = 0;
+      let totalWorkMinutes = 0;
+      let totalOtMinutes = 0;
+
+      userLogs.forEach(l => {
+        if (l.isLate && !isOwnerRole()) {
+          lateCount++;
+          lateMinsTotal += (l.lateMinutes || 0);
+        }
+        totalWorkMinutes += (l.totalMinutes || 0);
+        totalOtMinutes += (l.overtimeMinutes || 0);
+      });
+
+      document.getElementById('stat-days-present').innerText = daysPresent;
+      document.getElementById('stat-late-marks').innerText = isOwnerRole() ? '--' : lateCount;
+      document.getElementById('stat-late-mins').innerText = isOwnerRole() ? 'Flexible Hours' : `${lateMinsTotal} mins delay`;
+      document.getElementById('stat-net-hours').innerText = `${Math.floor(totalWorkMinutes / 60)}h ${totalWorkMinutes % 60}m`;
+      document.getElementById('stat-ot-hours').innerText = `${totalOtMinutes} mins`;
+
+      renderDashboardSteps();
+    }
+
+    function renderPersonalLedgerView() {
+      appState = loadState();
+      const userLogs = (appState.attendance || []).filter(a => a.employeeId === currentAuthUser.id);
+      const tbody = document.getElementById('my-personal-ledger-body');
+      tbody.innerHTML = '';
+
+      if (userLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No attendance history found yet.</td></tr>';
+        return;
+      }
+
+      userLogs.slice().reverse().forEach(log => {
+        const inStr = new Date(log.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const outStr = log.punchOutTime ? new Date(log.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'In Progress';
+        const nh = Math.floor((log.totalMinutes || 0) / 60);
+        const nm = (log.totalMinutes || 0) % 60;
+        const durStr = log.punchOutTime ? `${nh}h ${nm}m` : '--';
+
+        let badge = '<span class="text-emerald-700 font-bold">On Time</span>';
+        if (isOwnerRole()) {
+          badge = '<span class="text-emerald-800 font-bold">Logged (Flex)</span>';
+        } else if (log.isLate) {
+          badge = `<span class="text-amber-700 font-bold">Late (+${log.lateMinutes}m)</span>`;
+        }
+        if (log.overtimeMinutes > 0) badge += ` <span class="text-blue-700 font-bold">• OT +${log.overtimeMinutes}m</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="p-2.5 font-bold text-slate-800">${log.date}</td>
+          <td class="p-2.5 text-slate-600 font-mono">${inStr}</td>
+          <td class="p-2.5 text-slate-600 font-mono">${outStr}</td>
+          <td class="p-2.5 font-semibold text-slate-800 font-mono">${durStr}</td>
+          <td class="p-2.5">${badge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ================= MODULE 4: CASH SETTLEMENT DESK ================= //
+    function changeNote(denom, delta) {
+      denomCounts[denom] = Math.max(0, denomCounts[denom] + delta);
+      document.getElementById(`qty-${denom}`).innerText = denomCounts[denom];
+      document.getElementById(`sub-${denom}`).innerText = `₹${(denomCounts[denom] * denom).toLocaleString('en-IN')}`;
+      recalcDenominations();
+    }
+
+    function resetDenominations() {
+      [500, 200, 100, 50, 20, 10].forEach(v => {
+        denomCounts[v] = 0;
+        document.getElementById(`qty-${v}`).innerText = '0';
+        document.getElementById(`sub-${v}`).innerText = '₹0';
+      });
+      document.getElementById('input-coins').value = '';
+      recalcDenominations();
+    }
+
+    function recalcDenominations() {
+      const coins = parseFloat(document.getElementById('input-coins')?.value) || 0;
+      let totalNotes = coins;
+      Object.entries(denomCounts).forEach(([v, qty]) => {
+        totalNotes += (parseInt(v) * qty);
+      });
+
+      actualCountedCash = Math.round(totalNotes * 100) / 100;
+      document.getElementById('badge-counted-cash').innerText = `Counted: ₹${actualCountedCash.toLocaleString('en-IN')}`;
+      calculateSettlement();
+    }
+
+    function addPettyExpense() {
+      const r = document.getElementById('input-petty-reason').value.trim();
+      const a = parseFloat(document.getElementById('input-petty-amount').value);
+      if (!r || isNaN(a) || a <= 0) return showToast('Enter reason & valid amount', true);
+
+      appState = loadState();
+      const today = new Date().toISOString().split('T')[0];
+      appState.pettyCashExpenses.push({ id: 'exp_' + Date.now(), date: today, reason: r, amount: Math.round(a * 100) / 100, by: currentAuthUser.name });
+      saveState(appState);
+
+      document.getElementById('input-petty-reason').value = '';
+      document.getElementById('input-petty-amount').value = '';
+      renderPetty();
+      calculateSettlement();
+    }
+
+    function removePettyExpense(id) {
+      appState = loadState();
+      appState.pettyCashExpenses = appState.pettyCashExpenses.filter(e => e.id !== id);
+      saveState(appState);
+      renderPetty();
+      calculateSettlement();
+      showToast('Petty expense removed.');
+    }
+
+    function declareZeroPetty() {
+      appState = loadState();
+      const today = new Date().toISOString().split('T')[0];
+      const existing = appState.pettyDeclarations.find(d => d.date === today);
+      if (!existing) {
+        appState.pettyDeclarations.push({ date: today, declaredBy: currentAuthUser.name, timestamp: new Date().toISOString(), amount: 0 });
+      }
+      saveState(appState);
+      renderPetty();
+      calculateSettlement();
+      showToast('Declared ₹0 petty cash spent.');
+    }
+
+    function renderPetty() {
+      const today = new Date().toISOString().split('T')[0];
+      const listEl = document.getElementById('petty-list-container');
+      const badge = document.getElementById('badge-total-petty');
+      const tag = document.getElementById('petty-status-tag');
+      const todayExps = (appState.pettyCashExpenses || []).filter(e => e.date === today);
+      const total = todayExps.reduce((s, e) => s + e.amount, 0);
+
+      listEl.innerHTML = '';
+      todayExps.forEach(e => {
+        listEl.innerHTML += `
+          <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl text-[11px] font-semibold text-slate-700">
+            <span>${e.reason} <span class="text-slate-400">(${e.by})</span></span>
+            <div class="flex items-center gap-2">
+              <span class="text-red-600 font-mono font-bold">-₹${e.amount}</span>
+              <button onclick="removePettyExpense('${e.id}')" class="text-red-400 hover:text-red-700 font-bold px-1 text-xs cursor-pointer" title="Remove Entry">✕</button>
+            </div>
+          </div>`;
+      });
+
+      badge.innerText = `Total: ₹${total.toLocaleString('en-IN')}`;
+      const isReconciled = isPettyCashReconciledToday();
+      if (isReconciled) {
+        tag.innerText = '✓ Reconciled';
+        tag.className = 'text-[10px] font-extrabold text-emerald-700';
+      } else {
+        tag.innerText = '⚠️ Pending';
+        tag.className = 'text-[10px] font-bold text-amber-700';
+      }
+      checkClosingProgress();
+    }
+
+    function addBankDrop() {
+      const amtInput = document.getElementById('input-bank-amt');
+      const destInput = document.getElementById('input-bank-dest');
+      const byInput = document.getElementById('input-bank-by');
+
+      const amount = parseFloat(amtInput.value);
+      const destination = destInput.value;
+      const person = byInput.value.trim() || currentAuthUser.name;
+
+      if (isNaN(amount) || amount <= 0) return showToast('Please enter a valid deposit amount', true);
+
+      appState = loadState();
+      const today = new Date().toISOString().split('T')[0];
+      appState.bankTransfers.push({
+        id: 'bt_' + Date.now(),
+        date: today,
+        amount: Math.round(amount * 100) / 100,
+        destination,
+        person,
+        timestamp: new Date().toISOString()
+      });
+      saveState(appState);
+
+      amtInput.value = '';
+      byInput.value = '';
+      showToast(`Logged ₹${amount} deposited to ${destination}`);
+      renderBankDrops();
+      calculateSettlement();
+    }
+
+    function removeBankDrop(id) {
+      appState = loadState();
+      appState.bankTransfers = appState.bankTransfers.filter(t => t.id !== id);
+      saveState(appState);
+      renderBankDrops();
+      calculateSettlement();
+      showToast('Deposit entry removed.');
+    }
+
+    function renderBankDrops() {
+      const today = new Date().toISOString().split('T')[0];
+      const listEl = document.getElementById('bank-list-container');
+      const badge = document.getElementById('badge-total-bank');
+      const todayTransfers = (appState.bankTransfers || []).filter(t => t.date === today);
+      const total = todayTransfers.reduce((s, t) => s + t.amount, 0);
+
+      listEl.innerHTML = '';
+      if (todayTransfers.length === 0) {
+        listEl.innerHTML = `<div class="text-[10px] text-slate-400 italic text-center py-1">No bank deposits logged</div>`;
+      } else {
+        todayTransfers.forEach(t => {
+          listEl.innerHTML += `
+            <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px]">
+              <div>
+                <span class="font-bold text-slate-800">${t.destination}</span>
+                <span class="text-[10px] text-slate-400"> (${t.person})</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-black text-emerald-800 font-mono">₹${t.amount.toLocaleString('en-IN')}</span>
+                <button onclick="removeBankDrop('${t.id}')" class="text-red-500 hover:text-red-700 font-bold px-1 text-xs cursor-pointer" title="Delete Entry">✕</button>
+              </div>
+            </div>`;
+        });
+      }
+      badge.innerText = `Total: ₹${total.toLocaleString('en-IN')}`;
+    }
+
+    function calculateSettlement() {
+      const rec = getTodayCashRecord();
+      const morningFloat = rec.morningCash || 0;
+      document.getElementById('cash-locked-morning-float').innerText = `₹${morningFloat.toLocaleString('en-IN')}`;
+
+      const cashSales = parseFloat(document.getElementById('sale-cash')?.value) || 0;
+      const edcSales = parseFloat(document.getElementById('sale-edc')?.value) || 0;
+      const soundboxSales = parseFloat(document.getElementById('sale-soundbox')?.value) || 0;
+      const digitalSales = Math.round((edcSales + soundboxSales) * 100) / 100;
+      const grandTotalSales = Math.round((cashSales + digitalSales) * 100) / 100;
+
+      document.getElementById('sub-digital-sales').innerText = `₹${digitalSales.toLocaleString('en-IN')}`;
+      document.getElementById('badge-total-sales').innerText = `Total: ₹${grandTotalSales.toLocaleString('en-IN')}`;
+      document.getElementById('display-grand-total').innerText = `₹${grandTotalSales.toLocaleString('en-IN')}`;
+      document.getElementById('tally-cash-sales').innerText = `₹${cashSales.toLocaleString('en-IN')}`;
+      document.getElementById('tally-digital-sales').innerText = `₹${digitalSales.toLocaleString('en-IN')}`;
+
+      const today = new Date().toISOString().split('T')[0];
+      const totalPetty = (appState.pettyCashExpenses || []).filter(e => e.date === today).reduce((sum, e) => sum + e.amount, 0);
+      const totalBank = (appState.bankTransfers || []).filter(t => t.date === today).reduce((sum, t) => sum + t.amount, 0);
+
+      const coins = parseFloat(document.getElementById('input-coins')?.value) || 0;
+      let totalNotes = coins;
+      Object.entries(denomCounts).forEach(([v, qty]) => {
+        totalNotes += (parseInt(v) * qty);
+      });
+      actualCountedCash = Math.round(totalNotes * 100) / 100;
+      document.getElementById('badge-counted-cash').innerText = `Counted: ₹${actualCountedCash.toLocaleString('en-IN')}`;
+
+      const targetCounterCash = Math.round(((morningFloat + cashSales) - totalPetty - totalBank) * 100) / 100;
+      const diff = Math.round((actualCountedCash - targetCounterCash) * 100) / 100;
+
+      document.getElementById('eq-morning-float').innerText = `+ ₹${morningFloat.toLocaleString('en-IN')}`;
+      document.getElementById('eq-cash-sales').innerText = `+ ₹${cashSales.toLocaleString('en-IN')}`;
+      document.getElementById('eq-petty-spent').innerText = `- ₹${totalPetty.toLocaleString('en-IN')}`;
+      document.getElementById('eq-bank-deposit').innerText = `- ₹${totalBank.toLocaleString('en-IN')}`;
+      document.getElementById('eq-target-counter').innerText = `₹${targetCounterCash.toLocaleString('en-IN')}`;
+      document.getElementById('eq-actual-counter').innerText = `₹${actualCountedCash.toLocaleString('en-IN')}`;
+
+      const card = document.getElementById('balance-status-card');
+      if (actualCountedCash === 0 && cashSales === 0) {
+        card.className = 'p-3 rounded-2xl border bg-slate-100 text-center font-bold text-xs text-slate-600';
+        card.innerHTML = 'Enter sales and count cash to check balance';
+      } else if (diff === 0) {
+        card.className = 'p-3 rounded-2xl border bg-emerald-100 border-emerald-300 text-center font-black text-xs text-emerald-900';
+        card.innerHTML = '✅ Perfect! Counter Cash is 100% Balanced (₹0 Diff)';
+      } else if (diff > 0) {
+        card.className = 'p-3 rounded-2xl border bg-blue-100 border-blue-300 text-center font-black text-xs text-blue-900';
+        card.innerHTML = `ℹ️ Extra Cash: +₹${diff.toLocaleString('en-IN')} Surplus in Counter`;
+      } else {
+        card.className = 'p-3 rounded-2xl border bg-amber-100 border-amber-300 text-center font-black text-xs text-amber-900';
+        card.innerHTML = `⚠️ Shortage: -₹${Math.abs(diff).toLocaleString('en-IN')} Missing from Counter`;
+      }
+    }
+
+    function lockSettlement() {
+      const cashSales = parseFloat(document.getElementById('sale-cash')?.value);
+      if (isNaN(cashSales) || cashSales < 0) {
+        return showToast('Please enter today\'s Cash Sales total in Step 1.', true);
+      }
+
+      appState = loadState();
+      const today = new Date().toISOString().split('T')[0];
+      const rec = getTodayCashRecord();
+      const morningFloat = rec.morningCash || 0;
+
+      const totalPetty = (appState.pettyCashExpenses || []).filter(e => e.date === today).reduce((sum, e) => sum + e.amount, 0);
+      const totalBank = (appState.bankTransfers || []).filter(t => t.date === today).reduce((sum, t) => sum + t.amount, 0);
+      const target = Math.round(((morningFloat + cashSales) - totalPetty - totalBank) * 100) / 100;
+      const diff = Math.round((actualCountedCash - target) * 100) / 100;
+
+      rec.nightPhysicalCash = actualCountedCash;
+      rec.nightVyaparCash = cashSales;
+      rec.nightDifference = diff;
+      rec.idfcSoundbox = parseFloat(document.getElementById('sale-soundbox')?.value) || 0;
+      rec.paytmEDC = parseFloat(document.getElementById('sale-edc')?.value) || 0;
+      rec.nightBy = currentAuthUser.name;
+      rec.nightTimestamp = new Date().toISOString();
+      saveState(appState);
+
+      document.getElementById('tag-settlement-lock').innerText = 'Locked ✓';
+      document.getElementById('tag-settlement-lock').className = 'text-[10px] bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-md font-bold';
+      document.getElementById('btn-lock-settlement').innerText = '✓ Daily Settlement Locked';
+      document.getElementById('btn-lock-settlement').className = 'w-full py-3.5 bg-emerald-800 text-white font-black rounded-2xl text-xs cursor-default';
+      document.getElementById('btn-unlock-edit').classList.remove('hidden');
+
+      showToast(`Settlement locked! Balance difference: ₹${diff}`);
+      checkClosingProgress();
+    }
+
+    function unlockSettlement() {
+      const rec = getTodayCashRecord();
+      rec.nightPhysicalCash = null;
+      rec.nightVyaparCash = null;
+      rec.nightDifference = null;
+      saveState(appState);
+
+      document.getElementById('tag-settlement-lock').innerText = 'Unsaved';
+      document.getElementById('tag-settlement-lock').className = 'text-[10px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md font-bold';
+      document.getElementById('btn-lock-settlement').innerText = 'Lock & Save Daily Settlement';
+      document.getElementById('btn-lock-settlement').className = 'w-full py-3.5 bg-[#05281b] hover:bg-[#073624] text-white font-black rounded-2xl text-xs transition cursor-pointer active:scale-98';
+      document.getElementById('btn-unlock-edit').classList.add('hidden');
+      showToast('Settlement unlocked for editing.');
+      checkClosingProgress();
+    }
+
+    function renderManagerCashDesk() {
+      appState = loadState();
+      const rec = getTodayCashRecord();
+      const morningFloat = rec.morningCash || 0;
+
+      document.getElementById('cash-locked-morning-float').innerText = `₹${morningFloat.toLocaleString('en-IN')}`;
+
+      renderPetty();
+      renderBankDrops();
+      calculateSettlement();
+
+      if (rec.nightPhysicalCash !== null) {
+        document.getElementById('tag-settlement-lock').innerText = 'Locked ✓';
+        document.getElementById('tag-settlement-lock').className = 'text-[10px] bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-md font-bold';
+        document.getElementById('btn-lock-settlement').innerText = '✓ Daily Settlement Locked';
+        document.getElementById('btn-lock-settlement').className = 'w-full py-3.5 bg-emerald-800 text-white font-black rounded-2xl text-xs cursor-default';
+        document.getElementById('btn-unlock-edit').classList.remove('hidden');
+      } else {
+        document.getElementById('tag-settlement-lock').innerText = 'Unsaved';
+        document.getElementById('tag-settlement-lock').className = 'text-[10px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md font-bold';
+        document.getElementById('btn-lock-settlement').innerText = 'Lock & Save Daily Settlement';
+        document.getElementById('btn-lock-settlement').className = 'w-full py-3.5 bg-[#05281b] hover:bg-[#073624] text-white font-black rounded-2xl text-xs transition cursor-pointer active:scale-98';
+        document.getElementById('btn-unlock-edit').classList.add('hidden');
+      }
+      checkClosingProgress();
+    }
+
+    function shareWhatsAppDigest() {
+      const rec = getTodayCashRecord();
+      const morningFloat = rec.morningCash || 0;
+      const cashSales = parseFloat(document.getElementById('sale-cash')?.value) || 0;
+      const edcSales = parseFloat(document.getElementById('sale-edc')?.value) || 0;
+      const soundboxSales = parseFloat(document.getElementById('sale-soundbox')?.value) || 0;
+      const totalDigital = Math.round((edcSales + soundboxSales) * 100) / 100;
+      const grandTotal = Math.round((cashSales + totalDigital) * 100) / 100;
+
+      const today = new Date().toISOString().split('T')[0];
+      const totalPetty = (appState.pettyCashExpenses || []).filter(e => e.date === today).reduce((sum, e) => sum + e.amount, 0);
+      const totalBank = (appState.bankTransfers || []).filter(t => t.date === today).reduce((sum, t) => sum + t.amount, 0);
+
+      let bankSummary = '';
+      const transfers = (appState.bankTransfers || []).filter(t => t.date === today);
+      if (transfers.length > 0) {
+        bankSummary = `\n🏦 *Cash Put to Bank / Safe:*\n`;
+        transfers.forEach(t => {
+          bankSummary += `• ₹${t.amount} -> ${t.destination} (${t.person})\n`;
+        });
+      }
+
+      let denomSummary = `\n💵 *Counter Notes Count:*\n`;
+      let hasNotes = false;
+      Object.entries(denomCounts).forEach(([v, q]) => {
+        if (q > 0) {
+          hasNotes = true;
+          denomSummary += `• ₹${v} x ${q} = ₹${v * q}\n`;
+        }
+      });
+      if (!hasNotes) denomSummary = '';
+
+      const target = Math.round(((morningFloat + cashSales) - totalPetty - totalBank) * 100) / 100;
+      const diff = Math.round((actualCountedCash - target) * 100) / 100;
+
+      const msg = `🌿 *Wellwith Mangaluru — Daily Cash Settlement*\n` +
+                  `📅 Date: ${today}\n\n` +
+                  `💰 *1. Sales Collection:*\n` +
+                  `• Cash Sales: ₹${cashSales}\n` +
+                  `• Digital Sales: ₹${totalDigital} (EDC: ₹${edcSales}, Soundbox: ₹${soundboxSales})\n` +
+                  `• *Grand Total Sales: ₹${grandTotal}*\n\n` +
+                  `🧾 *2. Day Petty Outflows:* ₹${totalPetty}\n` +
+                  `🏦 *3. Cash to Bank/Safe:* ₹${totalBank}\n` +
+                  bankSummary +
+                  `\n💵 *4. Counter Cash Left:*\n` +
+                  `• Morning Float: ₹${morningFloat} (Baseline)\n` +
+                  `• Target in Counter: ₹${target}\n` +
+                  `• Actual Counted in Counter: ₹${actualCountedCash}\n` +
+                  `• *Counter Difference: ₹${diff}* ${diff === 0 ? '(Balanced ✓)' : ''}\n` +
+                  denomSummary +
+                  `\nSubmitted by: ${currentAuthUser ? currentAuthUser.name : 'Store Staff'}`;
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // ================= RESILIENT GEOFENCE RADAR & DUAL TRIGGER ================= //
+    async function prepareGatekeeperUI() {
+      const isLead = isOwnerRole();
+      const cameraBox = document.getElementById('employee-camera-container');
+      const adminBox = document.getElementById('admin-bypass-container');
+      const instruction = document.getElementById('gate-instruction-text');
+
+      if (isLead) {
+        cameraBox.classList.add('hidden');
+        adminBox.classList.remove('hidden');
+        instruction.innerText = 'Executive Check-In: GPS verification enabled. Camera bypassed.';
+        stopCamera();
+      } else {
+        cameraBox.classList.remove('hidden');
+        adminBox.classList.add('hidden');
+        instruction.innerText = 'Staff Check-In: Verify GPS radius & take live selfie.';
+        startCamera();
+      }
+      updateGateRadarDistance();
+    }
+
+    async function updateGateRadarDistance(forceRefresh = false) {
+      const radarDist = document.getElementById('gate-radar-distance');
+      const radarRing = document.getElementById('radar-pulse-ring');
+      const centerDot = document.getElementById('radar-center-dot');
+      if (!radarDist) return;
+
+      if (forceRefresh) cachedLocation = null;
+
+      try {
+        const coords = await getInstantLocation();
+        const dist = calculateDistance(coords.lat, coords.lng, appState.storeConfig.lat, appState.storeConfig.lng);
+        const rounded = Math.round(dist);
+
+        if (rounded <= appState.storeConfig.radius) {
+          radarDist.innerText = `${rounded}m Away (Inside Range ✓)`;
+          radarDist.className = 'text-xl font-black tracking-tight text-emerald-300';
+          if (radarRing) radarRing.className = 'absolute inset-0 rounded-full bg-emerald-400/20 radar-pulse';
+          if (centerDot) centerDot.className = 'w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-md shadow-emerald-400';
+        } else {
+          radarDist.innerText = `${rounded}m Away (${rounded - appState.storeConfig.radius}m Outside)`;
+          radarDist.className = 'text-xl font-black tracking-tight text-amber-300';
+          if (radarRing) radarRing.className = 'absolute inset-0 rounded-full bg-amber-400/20 radar-pulse';
+          if (centerDot) centerDot.className = 'w-3.5 h-3.5 rounded-full bg-amber-400 shadow-md shadow-amber-400';
+        }
+      } catch(e) {
+        radarDist.innerText = 'GPS Signal Standby (Local Mode)';
+      }
+    }
+
+    async function executePunchIn() {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        appState = loadState();
+
+        if (hasClockedInAtAllToday()) {
+          showToast('Shift already registered for today.', true);
+          navigateTo(isPunchedInToday() ? 'page-shift' : 'page-dashboard');
+          return;
+        }
+
+        showToast('Verifying Store Geofence...');
+        let coords = { lat: appState.storeConfig.lat, lng: appState.storeConfig.lng };
+
+        try {
+          coords = await getInstantLocation();
+          const dist = calculateDistance(coords.lat, coords.lng, appState.storeConfig.lat, appState.storeConfig.lng);
+
+          if (dist > appState.storeConfig.radius && !isOwnerRole()) {
+            showToast(`❌ Geofence Failed! You are ${Math.round(dist)}m away from store. Allowed: ${appState.storeConfig.radius}m.`, true);
+            return;
+          }
+        } catch (gpsErr) {
+          if (!isOwnerRole()) {
+            showToast('Could not acquire GPS. Please ensure phone location is ON.', true);
+            return;
+          }
+        }
+
+        const isLead = isOwnerRole();
+        let selfie = null;
+        if (!isLead) {
+          selfie = captureSelfieSnapshot();
+          if (!selfie) {
+            selfie = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%2305281b"/><text x="50" y="55" fill="white" font-size="20" text-anchor="middle" font-family="sans-serif">Staff</text></svg>';
+          }
+        }
+
+        const now = new Date();
+        let isLate = false;
+        let lateMinutes = 0;
+
+        if (!isOwnerRole()) {
+          const [shHour, shMin] = appState.storeConfig.shiftStart.split(':').map(Number);
+          const cutoff = new Date(now);
+          cutoff.setHours(shHour, shMin + appState.storeConfig.graceMins, 0, 0);
+
+          if (now > cutoff) {
+            isLate = true;
+            const shiftStart = new Date(now);
+            shiftStart.setHours(shHour, shMin, 0, 0);
+            lateMinutes = Math.floor((now - shiftStart) / (1000 * 60));
+          }
+        }
+
+        const newLog = {
+          id: 'att_' + Date.now(),
+          employeeId: currentAuthUser.id,
+          date: today,
+          punchInTime: now.toISOString(),
+          punchInLat: coords.lat,
+          punchInLng: coords.lng,
+          punchInSelfie: selfie,
+          punchOutTime: null,
+          totalMinutes: 0,
+          overtimeMinutes: 0,
+          totalBreakMins: 0,
+          breaks: [],
+          isLate,
+          lateMinutes,
+          adminOverrideNote: isOwnerRole() ? 'Flexible Hours (Executive)' : null
+        };
+
+        if (!Array.isArray(appState.attendance)) appState.attendance = [];
+        appState.attendance.push(newLog);
+        saveState(appState);
+
+        const inStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        showToast(isLate ? `Checked in at ${inStr}! Late by ${lateMinutes}m.` : `Checked in at ${inStr}! Time logged.`);
+        updateLockPills();
+        navigateTo('page-dashboard');
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    async function executePunchOut() {
+      const today = new Date().toISOString().split('T')[0];
+      const isStoreDone = isStoreNightClosingDoneToday();
+
+      if (!isOwnerRole() && !isStoreDone) {
+        const rec = getTodayCashRecord();
+        if (rec.nightPhysicalCash === null) {
+          showToast('Cannot punch out! Complete Night Cash Settlement first.', true);
+          navigateTo('page-cash');
+          return;
+        }
+
+        if (!isPettyCashReconciledToday()) {
+          showToast('Cannot punch out! Petty Cash reconciliation is compulsory.', true);
+          navigateTo('page-cash');
+          return;
+        }
+
+        const c1 = document.getElementById('chk-lights')?.checked;
+        const c2 = document.getElementById('chk-ac')?.checked;
+        const c3 = document.getElementById('chk-board')?.checked;
+        const c4 = document.getElementById('chk-laptop')?.checked;
+        const c5 = document.getElementById('chk-shutter')?.checked;
+        if (!c1 || !c2 || !c3 || !c4 || !c5) {
+          showToast('Please verify all 5 physical safety switches before closing.', true);
+          navigateTo('page-cash');
+          return;
+        }
+      }
+
+      try {
+        let coords = { lat: appState.storeConfig.lat, lng: appState.storeConfig.lng };
+        try {
+          coords = await getInstantLocation();
+          const dist = calculateDistance(coords.lat, coords.lng, appState.storeConfig.lat, appState.storeConfig.lng);
+          if (dist > appState.storeConfig.radius && !isOwnerRole()) {
+            showToast(`❌ Cannot Punch Out! Must be at store premises (${Math.round(dist)}m away).`, true);
+            return;
+          }
+        } catch(e) {}
+
+        const log = getLatestTodayAttendance(currentAuthUser.id);
+        if (!log || log.punchOutTime) {
+          showToast('No active shift found to punch out.', true);
+          navigateTo('page-dashboard');
+          return;
+        }
+
+        const now = new Date();
+        const punchInDate = new Date(log.punchInTime);
+
+        if (log.breaks) {
+          const openBreak = log.breaks.find(b => !b.end);
+          if (openBreak) openBreak.end = now.toISOString();
+        }
+
+        let totalBreakMins = 0;
+        if (log.breaks) {
+          log.breaks.forEach(b => {
+            const end = b.end ? new Date(b.end) : now;
+            totalBreakMins += Math.floor((end - new Date(b.start)) / (1000 * 60));
+          });
+        }
+
+        const excessBreak = Math.max(0, totalBreakMins - 60);
+        const grossMinutes = Math.max(1, Math.floor((now - punchInDate) / (1000 * 60)));
+        const netMinutes = Math.max(1, grossMinutes - excessBreak);
+
+        let overtimeMins = 0;
+        if (!isOwnerRole()) {
+          const shiftEnd = new Date(now);
+          shiftEnd.setHours(21, 0, 0, 0);
+          if (now > shiftEnd) overtimeMins = Math.floor((now - shiftEnd) / (1000 * 60));
+        }
+
+        log.punchOutTime = now.toISOString();
+        log.totalMinutes = netMinutes;
+        log.overtimeMinutes = overtimeMins;
+        log.totalBreakMins = totalBreakMins;
+
+        if (!isStoreDone && !isOwnerRole()) {
+          appState.nightClosingChecklists.push({ date: today, by: currentAuthUser.name, timestamp: now.toISOString() });
+        }
+
+        saveState(appState);
+        showToast(`Punched out! Worked: ${Math.floor(netMinutes/60)}h ${netMinutes%60}m.`);
+        updateLockPills();
+        navigateTo('page-dashboard');
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    // ================= SLIDER ENGINE ================= //
+    function initSlideControls() {
+      setupSlider('punch-in-slider-box', 'punch-in-thumb', 'punch-in-track-bg', 'punch-in-label', executePunchIn);
+      setupSlider('punch-out-slider-box', 'punch-out-thumb', 'punch-out-track-bg', 'punch-out-label', executePunchOut);
+    }
+
+    function setupSlider(boxId, thumbId, trackBgId, labelId, onComplete) {
+      const box = document.getElementById(boxId);
+      const thumb = document.getElementById(thumbId);
+      const trackBg = document.getElementById(trackBgId);
+      const label = document.getElementById(labelId);
+      if (!box || !thumb) return;
+
+      let isDragging = false;
+      let startX = 0;
+      const maxDrag = () => box.clientWidth - thumb.clientWidth - 8;
+
+      const onStart = (e) => {
+        isDragging = true;
+        startX = (e.touches ? e.touches[0].clientX : e.clientX) - thumb.offsetLeft;
+      };
+
+      const onMove = (e) => {
+        if (!isDragging) return;
+        const currentX = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+        const clampedX = Math.max(0, Math.min(currentX, maxDrag()));
+        thumb.style.transform = `translateX(${clampedX}px)`;
+        trackBg.style.width = `${clampedX + thumb.clientWidth}px`;
+
+        if (clampedX >= maxDrag() - 4) {
+          isDragging = false;
+          haptic(25);
+          label.innerText = 'VERIFIED ✓';
+          label.className = 'absolute inset-0 flex items-center justify-center text-xs font-black text-white pointer-events-none';
+          trackBg.style.width = '100%';
+          thumb.style.transform = `translateX(${maxDrag()}px)`;
+          setTimeout(() => {
+            onComplete();
+            thumb.style.transform = 'translateX(0px)';
+            trackBg.style.width = '0px';
+            label.innerText = boxId === 'punch-in-slider-box' ? 'Slide to Confirm Clock In ➔' : 'Slide to Finalize & Close Store ➔';
+            label.className = 'absolute inset-0 flex items-center justify-center text-xs font-black text-slate-600 pointer-events-none tracking-wide';
+          }, 350);
+        }
+      };
+
+      const onEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        thumb.style.transition = 'transform 0.2s ease-out';
+        trackBg.style.transition = 'width 0.2s ease-out';
+        thumb.style.transform = 'translateX(0px)';
+        trackBg.style.width = '0px';
+        setTimeout(() => {
+          thumb.style.transition = '';
+          trackBg.style.transition = '';
+        }, 200);
+      };
+
+      thumb.addEventListener('mousedown', onStart);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onEnd);
+      thumb.addEventListener('touchstart', onStart);
+      window.addEventListener('touchmove', onMove);
+      window.addEventListener('touchend', onEnd);
+    }
+
+    // ================= NIGHT CLOSING PROTOCOL ================= //
+    function checkClosingProgress() {
+      const rec = getTodayCashRecord();
+      const isCashDone = (rec.nightPhysicalCash !== null);
+      const isPettyDone = isPettyCashReconciledToday();
+      const isStoreDone = isStoreNightClosingDoneToday();
+
+      const c1 = document.getElementById('chk-lights')?.checked;
+      const c2 = document.getElementById('chk-ac')?.checked;
+      const c3 = document.getElementById('chk-board')?.checked;
+      const c4 = document.getElementById('chk-laptop')?.checked;
+      const c5 = document.getElementById('chk-shutter')?.checked;
+
+      const physicalCount = [c1, c2, c3, c4, c5].filter(Boolean).length;
+      const totalCount = physicalCount + (isCashDone ? 1 : 0) + (isPettyDone ? 1 : 0);
+
+      const progressEl = document.getElementById('checklist-progress');
+      if (progressEl) {
+        progressEl.innerText = `${totalCount} of 7 Done`;
+        progressEl.className = totalCount === 7 ? 'text-[10px] font-black text-emerald-700 font-mono' : 'text-[10px] font-black text-amber-700 font-mono';
+      }
+
+      const slider = document.getElementById('punch-out-slider-box');
+      const thumb = document.getElementById('punch-out-thumb');
+      const label = document.getElementById('punch-out-label');
+
+      if (slider && thumb && label) {
+        if (isOwnerRole() || isStoreDone || totalCount === 7) {
+          slider.className = 'relative w-full h-14 bg-slate-200/80 rounded-2xl overflow-hidden border border-slate-300 p-1 flex items-center slider-track shadow-inner opacity-100 pointer-events-auto';
+          thumb.className = 'relative z-10 w-12 h-12 bg-[#05281b] rounded-xl text-white flex items-center justify-center font-black shadow-lg cursor-grab active:cursor-grabbing text-sm';
+          thumb.innerText = '📍';
+          label.innerText = isStoreDone ? 'Slide to Punch Out ➔' : 'Slide to Finalize & Close Store ➔';
+          label.className = 'absolute inset-0 flex items-center justify-center text-xs font-black text-slate-700 pointer-events-none tracking-wide';
+        } else {
+          slider.className = 'relative w-full h-14 bg-slate-200/80 rounded-2xl overflow-hidden border border-slate-300 p-1 flex items-center slider-track shadow-inner opacity-50 pointer-events-none';
+          thumb.className = 'relative z-10 w-12 h-12 bg-slate-400 rounded-xl text-white flex items-center justify-center font-black shadow-lg cursor-not-allowed text-sm';
+          thumb.innerText = '🔒';
+          let missing = [];
+          if (!isCashDone) missing.push('Cash');
+          if (!isPettyDone) missing.push('Petty');
+          if (physicalCount < 5) missing.push(`${5 - physicalCount} Safety`);
+          label.innerText = `Pending: ${missing.join(' + ')}`;
+          label.className = 'absolute inset-0 flex items-center justify-center text-xs font-black text-slate-500 pointer-events-none tracking-wide';
+        }
+      }
+    }
+
+    // ================= MODULE 5: TABBED ADMIN MANAGEMENT DESK ================= //
+    function switchAdminTab(tabId) {
+      ['roster', 'staff', 'leaves', 'reports', 'geofence'].forEach(id => {
+        document.getElementById(`view-admin-${id}`).classList.toggle('hidden', id !== tabId);
+        const tabBtn = document.getElementById(`tab-${id}`);
+        if (id === tabId) {
+          tabBtn.className = 'text-emerald-950 border-b-2 border-emerald-900 pb-1 font-black shrink-0 px-2';
+        } else {
+          tabBtn.className = 'text-slate-400 pb-1 font-bold shrink-0 px-2';
+        }
+      });
+
+      if (tabId === 'roster') renderAdminRoster();
+      if (tabId === 'staff') renderSettingsStaffList();
+      if (tabId === 'leaves') renderAdminLeavesList();
+      if (tabId === 'reports') renderReportsTabUI();
+      if (tabId === 'geofence') updateGeofenceSettingsUI();
+    }
+
+    function renderReportsTabUI() {
+      const resetCard = document.getElementById('card-superadmin-reset');
+      if (resetCard) resetCard.classList.toggle('hidden', !isSuperAdmin());
+    }
+
+    function updateGeofenceSettingsUI() {
+      appState = loadState();
+      document.getElementById('cfg-lat-val').innerText = appState.storeConfig.lat.toFixed(6);
+      document.getElementById('cfg-lng-val').innerText = appState.storeConfig.lng.toFixed(6);
+      
+      const manualLat = document.getElementById('input-manual-lat');
+      const manualLng = document.getElementById('input-manual-lng');
+      if (manualLat) manualLat.value = appState.storeConfig.lat;
+      if (manualLng) manualLng.value = appState.storeConfig.lng;
+
+      const btnCalibrate = document.getElementById('btn-calibrate-gps');
+      const boxManual = document.getElementById('box-manual-gps-override');
+      if (btnCalibrate) btnCalibrate.disabled = !isSuperAdmin();
+      if (boxManual) boxManual.classList.toggle('hidden', !isSuperAdmin());
+    }
+
+    async function fetchAndStoreCurrentGPS() {
+      if (!isSuperAdmin()) {
+        return showToast('Permission Denied: Root access required to alter store GPS.', true);
+      }
+
+      showToast('Fetching high accuracy phone GPS...');
+      const accuracyInfo = document.getElementById('gps-accuracy-info');
+      if (accuracyInfo) accuracyInfo.innerText = 'Connecting to GPS satellites...';
+
+      if (!navigator.geolocation) {
+        return showToast('Geolocation is not supported by your browser.', true);
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const accuracy = Math.round(pos.coords.accuracy);
+
+          appState = loadState();
+          appState.storeConfig.lat = lat;
+          appState.storeConfig.lng = lng;
+          saveState(appState);
+
+          updateGeofenceSettingsUI();
+          if (accuracyInfo) accuracyInfo.innerText = `Calibrated with ${accuracy}m GPS accuracy. Store anchor updated!`;
+
+          haptic(30);
+          showToast(`Store GPS Saved: ${lat.toFixed(6)}, ${lng.toFixed(6)} (±${accuracy}m)`);
+          updateGateRadarDistance(true);
+        },
+        (err) => {
+          showToast('Failed to fetch GPS. Ensure phone Location is ON.', true);
+          if (accuracyInfo) accuracyInfo.innerText = 'GPS error. Try using Manual Override below.';
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    function saveManualCoordinates() {
+      if (!isSuperAdmin()) {
+        return showToast('Permission Denied: Root access required to alter store GPS.', true);
+      }
+
+      const latInput = parseFloat(document.getElementById('input-manual-lat')?.value);
+      const lngInput = parseFloat(document.getElementById('input-manual-lng')?.value);
+
+      if (isNaN(latInput) || isNaN(lngInput)) {
+        return showToast('Please enter valid numeric latitude and longitude.', true);
+      }
+
+      appState = loadState();
+      appState.storeConfig.lat = latInput;
+      appState.storeConfig.lng = lngInput;
+      saveState(appState);
+
+      updateGeofenceSettingsUI();
+      haptic(20);
+      showToast(`Coordinates updated: ${latInput.toFixed(6)}, ${lngInput.toFixed(6)}`);
+      updateGateRadarDistance(true);
+    }
+
+    function renderAdminRoster() {
+      appState = loadState();
+      const list = document.getElementById('roster-card-list');
+      if (!list) return;
+      list.innerHTML = '';
+
+      (appState.employees || []).forEach(emp => {
+        const att = getLatestTodayAttendance(emp.id);
+        let badgeHtml = '<span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold">Absent / Off</span>';
+        let subtext = `Off: ${emp.weekOff || 'Sunday'}`;
+
+        if (att && att.punchInTime && !att.punchOutTime) {
+          badgeHtml = `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> On Duty</span>`;
+          subtext = `In: ${new Date(att.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        } else if (att && att.punchOutTime) {
+          badgeHtml = '<span class="text-[9px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-bold">Completed</span>';
+          subtext = `Shift: ${Math.floor(att.totalMinutes / 60)}h ${att.totalMinutes % 60}m`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-600 transition shadow-2xs';
+        card.onclick = () => openEmployeeModal(emp.id);
+        card.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-900 text-xs">${emp.name} <span class="text-[9px] text-slate-400">(${getDisplayRole(emp.role)})</span></div>
+            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • ${subtext}</div>
+          </div>
+          ${badgeHtml}
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // Super Admin Staff Enrollment Fix
+    function registerNewStaff() {
+      if (!isOwnerRole()) return showToast('Permission Denied: Management level only.', true);
+
+      const name = document.getElementById('new-emp-name').value.trim();
+      const phone = document.getElementById('new-emp-phone').value.trim();
+      const pin = document.getElementById('new-emp-pin').value.trim();
+      let role = document.getElementById('new-emp-role').value;
+      const weekOff = document.getElementById('new-emp-weekoff').value;
+
+      if (!isSuperAdmin() && (role === 'OWNER' || role === 'MANAGER')) {
+        role = 'STAFF';
+      }
+
+      if (!name || phone.length !== 10 || pin.length !== 4) {
+        return showToast('Provide name, 10-digit mobile, and 4-digit PIN', true);
+      }
+
+      appState = loadState();
+      if (appState.employees.some(e => e.phone === phone)) {
+        return showToast('Employee with this mobile already exists', true);
+      }
+
+      appState.employees.push({ id: 'usr_' + Date.now(), name, phone, pin, role, weekOff });
+      saveState(appState);
+
+      document.getElementById('new-emp-name').value = '';
+      document.getElementById('new-emp-phone').value = '';
+      document.getElementById('new-emp-pin').value = '';
+      showToast(`User "${name}" enrolled as ${getDisplayRole(role)}!`);
+      renderSettingsStaffList();
+    }
+
+    // Super Admin Staff Deletion Fix (Pure In-App Modal)
+    function openDeleteUserModal(empId, empName) {
+      if (!isSuperAdmin()) return showToast('Permission Denied: Only Super Admin can delete users.', true);
+
+      const emp = (appState.employees || []).find(e => e.id === empId);
+      if (emp && emp.phone === '8088504219') return showToast('Root Super Admin cannot be deleted.', true);
+
+      pendingDeleteEmployee = { id: empId, name: empName };
+      document.getElementById('delete-target-name').innerText = `${empName} (${emp ? emp.phone : ''})`;
+      document.getElementById('modal-confirm-delete')?.classList.remove('hidden');
+    }
+
+    function closeDeleteUserModal() {
+      document.getElementById('modal-confirm-delete')?.classList.add('hidden');
+      pendingDeleteEmployee = null;
+    }
+
+    function executeUserDeletion() {
+      if (!isSuperAdmin() || !pendingDeleteEmployee) {
+        closeDeleteUserModal();
+        return;
+      }
+
+      const { id, name } = pendingDeleteEmployee;
+      appState = loadState();
+
+      // Permanent filter from employees array
+      appState.employees = appState.employees.filter(e => e.id !== id);
+      
+      // Clean up orphaned shift logs
+      appState.attendance = (appState.attendance || []).filter(a => a.employeeId !== id);
+
+      saveState(appState);
+      closeDeleteUserModal();
+      closeEmployeeModal();
+      haptic(25);
+      showToast(`Account for "${name}" permanently deleted.`);
+      renderSettingsStaffList();
+      renderAdminRoster();
+    }
+
+    function deleteStaffMemberFromModal() {
+      if (!selectedModalEmployeeId) return;
+      const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
+      if (emp) openDeleteUserModal(emp.id, emp.name);
+    }
+
+    function renderSettingsStaffList() {
+      const container = document.getElementById('settings-staff-list');
+      const badge = document.getElementById('total-staff-count-badge');
+      if (!container) return;
+      container.innerHTML = '';
+
+      appState = loadState();
+      badge.innerText = `${appState.employees.length} Accounts`;
+
+      appState.employees.forEach(emp => {
+        const isRoot = (emp.phone === '8088504219');
+        let delBtn = '';
+
+        if (isSuperAdmin() && !isRoot) {
+          delBtn = `<button onclick="event.stopPropagation(); haptic(10); openDeleteUserModal('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg text-xs font-black cursor-pointer transition active:scale-90" title="Delete Account">✕</button>`;
+        } else if (isRoot) {
+          delBtn = `<span class="text-[9px] text-emerald-800 font-black">Anchor</span>`;
+        }
+
+        const displayRole = getDisplayRole(emp.role);
+        const roleColor = (emp.role === 'SUPER_ADMIN' || emp.role === 'OWNER') ? 'bg-emerald-100 text-emerald-800' : (emp.role === 'MANAGER' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700');
+
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center p-2.5 bg-slate-50 border rounded-2xl text-xs';
+        row.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-900">${emp.name} <span class="text-[9px] uppercase font-black px-1.5 py-0.2 rounded ${roleColor}">${displayRole}</span></div>
+            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • Off: ${emp.weekOff || 'Sunday'}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            ${isSuperAdmin() ? `<span class="font-mono text-slate-600 bg-white px-1.5 py-0.5 rounded border text-[10px]">${emp.pin}</span>` : ''}
+            ${delBtn}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function openEmployeeModal(employeeId) {
+      if (!isManagerRole()) return;
+      selectedModalEmployeeId = employeeId;
+      appState = loadState();
+      const emp = (appState.employees || []).find(e => e.id === employeeId);
+      if (!emp) return;
+
+      document.getElementById('modal-emp-name').innerText = emp.name;
+      document.getElementById('modal-emp-phone').innerText = emp.phone;
+      document.getElementById('modal-emp-role').innerText = getDisplayRole(emp.role);
+      document.getElementById('modal-emp-pin').innerText = emp.pin;
+
+      const rolePowerBox = document.getElementById('modal-role-power-box');
+      const roleSelect = document.getElementById('modal-emp-role-select');
+      if (rolePowerBox && roleSelect) {
+        if (isSuperAdmin() && emp.phone !== '8088504219') {
+          rolePowerBox.classList.remove('hidden');
+          roleSelect.value = emp.role === 'SUPER_ADMIN' ? 'OWNER' : (emp.role || 'STAFF');
+        } else {
+          rolePowerBox.classList.add('hidden');
+        }
+      }
+
+      const selectOff = document.getElementById('modal-emp-weekoff-select');
+      selectOff.value = emp.weekOff || 'Sunday';
+      selectOff.disabled = !isOwnerRole();
+
+      document.getElementById('modal-delete-emp-container').classList.toggle('hidden', !isSuperAdmin() || emp.phone === '8088504219');
+      document.getElementById('modal-pin-box').classList.toggle('hidden', !isSuperAdmin());
+
+      renderEmployeeAnalyticsChart(emp.id);
+      document.getElementById('modal-employee-detail').classList.remove('hidden');
+    }
+
+    function closeEmployeeModal() {
+      document.getElementById('modal-employee-detail').classList.add('hidden');
+      selectedModalEmployeeId = null;
+    }
+
+    function updateEmployeeRoleBySuperAdmin(newRole) {
+      if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
+      appState = loadState();
+      const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
+      if (emp && emp.phone !== '8088504219') {
+        emp.role = newRole;
+        saveState(appState);
+        document.getElementById('modal-emp-role').innerText = getDisplayRole(newRole);
+        showToast(`Role power for ${emp.name} updated to ${getDisplayRole(newRole)}.`);
+        renderSettingsStaffList();
+        renderAdminRoster();
+      }
+    }
+
+    function updateEmployeeWeekOff(val) {
+      if (!isOwnerRole()) return showToast('Permission Denied: Management level only.', true);
+      appState = loadState();
+      const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
+      if (emp) {
+        emp.weekOff = val;
+        saveState(appState);
+        showToast(`Weekly off for ${emp.name} updated to ${val}.`);
+        renderAdminRoster();
+        renderSettingsStaffList();
+      }
+    }
+
+    function renderEmployeeAnalyticsChart(empId) {
+      const logs = (appState.attendance || []).filter(a => a.employeeId === empId);
+      let totalMins = 0;
+      let onTimeCount = 0;
+      let otTotalMins = 0;
+
+      logs.forEach(l => {
+        totalMins += (l.totalMinutes || 0);
+        otTotalMins += (l.overtimeMinutes || 0);
+        if (!l.isLate) onTimeCount++;
+      });
+
+      const onTimePct = logs.length > 0 ? Math.round((onTimeCount / logs.length) * 100) : 100;
+      document.getElementById('modal-stat-shifts').innerText = logs.length;
+      document.getElementById('modal-stat-hours').innerText = `${(totalMins / 60).toFixed(1)}h`;
+      document.getElementById('modal-stat-ontime').innerText = `${onTimePct}%`;
+      document.getElementById('modal-stat-ot').innerText = `${otTotalMins}m`;
+
+      const chartBars = document.getElementById('modal-chart-bars');
+      const chartLabels = document.getElementById('modal-chart-labels');
+      chartBars.innerHTML = '';
+      chartLabels.innerHTML = '';
+
+      const last7Logs = logs.slice(-7);
+      if (last7Logs.length === 0) {
+        chartBars.innerHTML = `<div class="w-full text-center text-slate-400 py-6">No shift logs available</div>`;
+        return;
+      }
+
+      last7Logs.forEach(log => {
+        const hrs = ((log.totalMinutes || 0) / 60);
+        const heightPct = Math.min(100, Math.round((hrs / 14) * 100));
+        const barColor = hrs >= 12.5 ? 'bg-emerald-600' : 'bg-amber-500';
+
+        const barCol = document.createElement('div');
+        barCol.className = 'flex-1 flex flex-col items-center gap-1 h-full justify-end group relative';
+        barCol.innerHTML = `
+          <div class="text-[8px] font-mono text-slate-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">${hrs.toFixed(1)}h</div>
+          <div style="height: ${heightPct}%;" class="w-full rounded-t-md ${barColor} shadow-2xs transition-all duration-500"></div>
+        `;
+        chartBars.appendChild(barCol);
+
+        const lbl = document.createElement('span');
+        lbl.innerText = log.date.substring(8);
+        chartLabels.appendChild(lbl);
+      });
+    }
+
+    function renderAdminLeavesList() {
+      appState = loadState();
+      const container = document.getElementById('admin-leaves-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const allLeaves = appState.leaveRequests || [];
+      if (allLeaves.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 text-center py-4 bg-white rounded-3xl border">No leave requests found.</p>';
+        return;
+      }
+
+      allLeaves.slice().reverse().forEach(req => {
+        let actions = '';
+        if (req.status === 'PENDING') {
+          actions = `
+            <div class="flex gap-2 pt-1">
+              <button onclick="reviewLeaveRequest('${req.id}', 'APPROVED')" class="flex-1 py-1.5 bg-emerald-800 text-white rounded-lg font-bold text-xs cursor-pointer">✓ Approve</button>
+              <button onclick="reviewLeaveRequest('${req.id}', 'REJECTED')" class="flex-1 py-1.5 bg-red-600 text-white rounded-lg font-bold text-xs cursor-pointer">✕ Reject</button>
+            </div>`;
+        } else {
+          actions = `<span class="text-[10px] font-bold ${req.status === 'APPROVED' ? 'text-emerald-700' : 'text-red-600'}">Decision: ${req.status} by ${req.reviewedBy}</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'p-3.5 bg-white border border-slate-200 rounded-3xl space-y-1.5 shadow-sm text-xs';
+        card.innerHTML = `
+          <div class="flex justify-between items-center font-bold">
+            <span class="text-slate-900">${req.employeeName}</span>
+            <span class="text-[10px] bg-slate-100 font-mono px-2 py-0.5 rounded">${req.date}</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">Reason: "${req.reason}" (${req.type.replace(/_/g, ' ')})</p>
+          ${actions}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function reviewLeaveRequest(reqId, status) {
+      if (!isManagerRole()) return;
+      appState = loadState();
+      const req = (appState.leaveRequests || []).find(l => l.id === reqId);
+      if (!req) return;
+
+      req.status = status;
+      req.reviewedBy = currentAuthUser.name;
+      req.reviewDate = new Date().toISOString();
+      saveState(appState);
+
+      showToast(`Request ${status.toLowerCase()}!`);
+      renderAdminLeavesList();
+    }
+
+    // ================= MASTER RESET PROTOCOL (OPTION A) ================= //
+    function openMasterResetModal() {
+      if (!isSuperAdmin()) {
+        return showToast('Permission Denied: Root Super Admin only.', true);
+      }
+      const pinInput = document.getElementById('input-reset-pin');
+      if (pinInput) pinInput.value = '';
+      document.getElementById('modal-master-reset')?.classList.remove('hidden');
+      setTimeout(() => pinInput?.focus(), 150);
+    }
+
+    function closeMasterResetModal() {
+      document.getElementById('modal-master-reset')?.classList.add('hidden');
+    }
+
+    function executeMasterReset() {
+      if (!isSuperAdmin()) {
+        closeMasterResetModal();
+        return showToast('Permission Denied: Root Super Admin only.', true);
+      }
+
+      const enteredPin = document.getElementById('input-reset-pin')?.value.trim();
+      if (enteredPin !== '1614') {
+        haptic(30);
+        return showToast('Incorrect Super Admin PIN. Reset aborted.', true);
+      }
+
+      appState = loadState();
+
+      appState.attendance = [];
+      appState.cashDrawerLogs = [];
+      appState.pettyCashExpenses = [];
+      appState.pettyDeclarations = [];
+      appState.bankTransfers = [];
+      appState.leaveRequests = [];
+      appState.morningSOPLogs = [];
+      appState.stockAlerts = [];
+      appState.customerEnquiries = [];
+      appState.nightClosingChecklists = [];
+
+      saveState(appState);
+      closeMasterResetModal();
+      haptic(40);
+      showToast('Option A Reset Completed! Shifts & cash logs wiped across all devices.');
+
+      resetDenominations();
+      renderEmployeePersonalData();
+      renderManagerCashDesk();
+      renderCounterDeskView();
+    }
+
+    // ================= ENQUIRIES & STOCK ALERTS ================= //
+    function submitStockAlert() {
+      const p = document.getElementById('input-stock-product').value.trim();
+      const q = document.getElementById('input-stock-qty').value.trim();
+      const u = document.getElementById('input-stock-urgency').value;
+      if (!p || !q) return showToast('Provide product name and quantity.', true);
+
+      appState = loadState();
+      appState.stockAlerts.push({ id: 'stk_' + Date.now(), date: new Date().toISOString().split('T')[0], product: p, qty: parseInt(q)||0, urgency: u });
+      saveState(appState);
+
+      document.getElementById('input-stock-product').value = '';
+      document.getElementById('input-stock-qty').value = '';
+      showToast('Low stock alert saved.');
+      renderCounterDeskView();
+    }
+
+    function submitCustomerEnquiry() {
+      const n = document.getElementById('input-cust-name').value.trim();
+      const ph = document.getElementById('input-cust-phone').value.trim();
+      const prod = document.getElementById('input-cust-product').value.trim();
+      if (!n || ph.length !== 10 || !prod) return showToast('Enter customer name, 10-digit phone, and product.', true);
+
+      appState = loadState();
+      appState.customerEnquiries.push({ id: 'cust_' + Date.now(), date: new Date().toISOString().split('T')[0], name: n, phone: ph, product: prod, status: 'PENDING' });
+      saveState(appState);
+
+      document.getElementById('input-cust-name').value = '';
+      document.getElementById('input-cust-phone').value = '';
+      document.getElementById('input-cust-product').value = '';
+      showToast('Customer enquiry saved.');
+      renderCounterDeskView();
+    }
+
+    function renderCounterDeskView() {
+      appState = loadState();
+      const today = new Date().toISOString().split('T')[0];
+      const stockList = document.getElementById('stock-alerts-list');
+      const todayStock = (appState.stockAlerts || []).filter(s => s.date === today);
+
+      document.getElementById('stock-alerts-count').innerText = `${todayStock.length} Active`;
+      stockList.innerHTML = todayStock.length ? '' : '<p class="text-slate-400 text-center py-2">No shelf replenishment alerts today.</p>';
+      todayStock.forEach(s => {
+        stockList.innerHTML += `
+          <div class="p-2 bg-slate-50 border rounded-xl flex justify-between items-center text-[11px]">
+            <span>${s.product} (${s.qty} left)</span>
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${s.urgency === 'URGENT' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}">${s.urgency}</span>
+          </div>`;
+      });
+
+      const custList = document.getElementById('customer-enquiries-list');
+      const allCust = appState.customerEnquiries || [];
+      document.getElementById('customer-leads-count').innerText = `${allCust.length} Leads`;
+      custList.innerHTML = allCust.length ? '' : '<p class="text-slate-400 text-center py-2">No customer enquiries logged yet.</p>';
+      allCust.forEach(c => {
+        custList.innerHTML += `
+          <div class="p-2.5 bg-slate-50 border rounded-xl space-y-1 text-[11px]">
+            <div class="flex justify-between font-bold">
+              <span>${c.name} (${c.phone})</span>
+              <span class="text-[9px] px-1.5 rounded bg-blue-100 text-blue-900">${c.status}</span>
+            </div>
+            <p class="text-slate-600">Product: "${c.product}"</p>
+          </div>`;
+      });
+    }
+
+    // ================= SYSTEM UTILITIES & EXPORTS ================= //
+    function exportAttendanceCSV() {
+      appState = loadState();
+      let csv = 'Store,Employee,Date,Punch In,Punch Out,Minutes,Late,Overtime\n';
+      (appState.attendance || []).forEach(a => {
+        const emp = (appState.employees || []).find(e => e.id === a.employeeId) || { name: 'Staff' };
+        csv += `"Wellwith Mangaluru","${emp.name}","${a.date}","${a.punchInTime||''}","${a.punchOutTime||''}","${a.totalMinutes||0}","${a.isLate?'YES':'NO'}","${a.overtimeMinutes||0}"\n`;
+      });
+      downloadFile(csv, `wellwith_attendance_${Date.now()}.csv`, 'text/csv');
+      showToast('Attendance CSV exported!');
+    }
+
+    function exportCashCSV() {
+      appState = loadState();
+      let csv = 'Store,Date,Morning Float,Vyapar Cash,Physical Cash,Diff\n';
+      (appState.cashDrawerLogs || []).forEach(c => {
+        csv += `"Wellwith Mangaluru","${c.date}","${c.morningCash||0}","${c.nightVyaparCash||0}","${c.nightPhysicalCash||0}","${c.nightDifference||0}"\n`;
+      });
+      downloadFile(csv, `wellwith_cash_${Date.now()}.csv`, 'text/csv');
+      showToast('Cash CSV exported!');
+    }
+
+    function exportSystemJSON() {
+      downloadFile(JSON.stringify(appState, null, 2), `wellwith_backup_${Date.now()}.json`, 'application/json');
+      showToast('JSON backup exported.');
+    }
+
+    function clearPettyCashHistory() {
+      if (!isOwnerRole()) return;
+      appState = loadState();
+      appState.pettyCashExpenses = [];
+      appState.pettyDeclarations = [];
+      saveState(appState);
+      renderPetty();
+      showToast('Petty cash cleared.');
+    }
+
+    function cleanCorruptedDuplicatesToday() {
+      const today = new Date().toISOString().split('T')[0];
+      (appState.employees || []).forEach(emp => {
+        const logs = (appState.attendance || []).filter(a => a.employeeId === emp.id && a.date === today);
+        if (logs.length > 1) {
+          const keep = logs[logs.length - 1];
+          appState.attendance = appState.attendance.filter(a => !(a.employeeId === emp.id && a.date === today) || a.id === keep.id);
+        }
+      });
+      saveState(appState);
+      showToast('Cleaned duplicate shift entries.');
+      renderEmployeePersonalData();
+    }
+
+    function downloadFile(content, fileName, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // ================= HELPERS & REFRESH ================= //
+    function isPettyCashReconciledToday() {
+      const today = new Date().toISOString().split('T')[0];
+      const exps = (appState.pettyCashExpenses || []).filter(e => e.date === today);
+      return exps.length > 0 || (appState.pettyDeclarations || []).some(d => d.date === today);
+    }
+
+    function isStoreNightClosingDoneToday() {
+      const today = new Date().toISOString().split('T')[0];
+      const chk = (appState.nightClosingChecklists || []).some(c => c.date === today);
+      const rec = (appState.cashDrawerLogs || []).find(c => c.date === today);
+      return chk && rec && rec.nightPhysicalCash !== null && isPettyCashReconciledToday();
+    }
+
+    function getTodayCashRecord() {
+      const today = new Date().toISOString().split('T')[0];
+      let rec = (appState.cashDrawerLogs || []).find(c => c.date === today);
+      if (!rec) {
+        rec = {
+          date: today,
+          morningCash: null,
+          morningBy: null,
+          morningTimestamp: null,
+          nightPhysicalCash: null,
+          nightVyaparCash: null,
+          idfcSoundbox: 0,
+          paytmEDC: 0,
+          nightDifference: null,
+          nightNote: null,
+          nightBy: null,
+          nightTimestamp: null
+        };
+        appState.cashDrawerLogs.push(rec);
+        saveState(appState);
+      }
+      return rec;
+    }
+
+    function getLatestTodayAttendance(empId) {
+      const today = new Date().toISOString().split('T')[0];
+      const logs = (appState.attendance || []).filter(a => a.employeeId === empId && a.date === today);
+      return logs.length ? logs[logs.length - 1] : null;
+    }
+
+    function isPunchedInToday() {
+      if (!currentAuthUser) return false;
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      return !!(rec && rec.punchInTime && !rec.punchOutTime);
+    }
+
+    function isShiftFinishedToday() {
+      if (!currentAuthUser) return false;
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      return !!(rec && rec.punchInTime && rec.punchOutTime);
+    }
+
+    function hasClockedInAtAllToday() {
+      if (!currentAuthUser) return false;
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      return !!(rec && rec.punchInTime);
+    }
+
+    function autoCleanDuplicateSessions() {
+      const today = new Date().toISOString().split('T')[0];
+      (appState.employees || []).forEach(emp => {
+        const logs = (appState.attendance || []).filter(a => a.employeeId === emp.id && a.date === today);
+        if (logs.length > 1) {
+          const keep = logs[logs.length - 1];
+          appState.attendance = appState.attendance.filter(a => !(a.employeeId === emp.id && a.date === today) || a.id === keep.id);
+        }
+      });
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const toRad = Math.PI / 180;
+      const dLat = (lat2 - lat1) * toRad;
+      const dLon = (lon2 - lon1) * toRad;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function initPassiveGeolocation() {
+      if (!navigator.geolocation) return;
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      try {
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            cachedLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: Date.now() };
+            const dot = document.getElementById('gps-status-dot');
+            if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+            if (currentActivePage === 'page-gate') updateGateRadarDistance();
+          },
+          () => {
+            const dot = document.getElementById('gps-status-dot');
+            if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          },
+          { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 }
+        );
+      } catch (e) {}
+    }
+
+    function getInstantLocation() {
+      return new Promise((resolve) => {
+        if (cachedLocation && (Date.now() - cachedLocation.time < 60000)) {
+          return resolve(cachedLocation);
+        }
+
+        if (!navigator.geolocation) {
+          cachedLocation = { lat: appState.storeConfig.lat, lng: appState.storeConfig.lng, time: Date.now() };
+          return resolve(cachedLocation);
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            cachedLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: Date.now() };
+            resolve(cachedLocation);
+          },
+          () => {
+            navigator.geolocation.getCurrentPosition(
+              (posFallback) => {
+                cachedLocation = { lat: posFallback.coords.latitude, lng: posFallback.coords.longitude, time: Date.now() };
+                resolve(cachedLocation);
+              },
+              () => {
+                cachedLocation = { lat: appState.storeConfig.lat, lng: appState.storeConfig.lng, time: Date.now() };
+                resolve(cachedLocation);
+              },
+              { enableHighAccuracy: false, timeout: 3500, maximumAge: 60000 }
+            );
+          },
+          { enableHighAccuracy: true, timeout: 4000, maximumAge: 30000 }
+        );
+      });
+    }
+
+    function startCamera() {
+      if (cameraStream) return;
+      const video = document.getElementById('webcam-el');
+      if (!video) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        document.getElementById('camera-fallback')?.classList.remove('hidden');
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 } } })
+        .then(s => { 
+          cameraStream = s; 
+          video.srcObject = s; 
+          document.getElementById('camera-fallback')?.classList.add('hidden'); 
+        })
+        .catch(() => {
+          document.getElementById('camera-fallback')?.classList.remove('hidden');
+        });
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+    }
+
+    function captureSelfieSnapshot() {
+      const video = document.getElementById('webcam-el');
+      const canvas = document.getElementById('photo-canvas');
+      if (cameraStream && video && canvas && video.videoWidth > 0) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg', 0.6);
+      }
+      return null;
+    }
+
+    function renderShiftTabDetails() {
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      document.getElementById('shift-window-label').innerText = isOwnerRole() ? 'Flexible Schedule (Tracked)' : '8:00 AM – 9:00 PM';
+
+      let totalBreakMinutes = 0;
+      let isOnBreak = false;
+      if (rec && rec.breaks) {
+        rec.breaks.forEach(b => {
+          if (!b.end) isOnBreak = true;
+          const end = b.end ? new Date(b.end) : new Date();
+          totalBreakMinutes += Math.floor((end - new Date(b.start)) / (1000 * 60));
+        });
+      }
+      
+      const excess = Math.max(0, totalBreakMinutes - 60);
+      const breakDisplay = document.getElementById('total-break-mins');
+      if (breakDisplay) {
+        breakDisplay.innerText = excess > 0 
+          ? `${totalBreakMinutes} mins (${excess}m deducted)` 
+          : `${totalBreakMinutes} mins`;
+      }
+
+      const breakBadge = document.getElementById('break-status-badge');
+      const btnStart = document.getElementById('btn-start-break');
+      const btnEnd = document.getElementById('btn-end-break');
+
+      if (isOnBreak) {
+        breakBadge.innerText = 'On Lunch Break';
+        breakBadge.className = 'text-[9px] bg-amber-100 text-amber-800 font-black px-2.5 py-0.5 rounded-full animate-pulse';
+        btnStart.disabled = true;
+        btnStart.className = 'bg-slate-100 text-slate-400 font-bold py-2.5 rounded-2xl text-xs';
+        btnEnd.disabled = false;
+        btnEnd.className = 'bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-2xl text-xs transition cursor-pointer';
+      } else {
+        breakBadge.innerText = 'Shift Active';
+        breakBadge.className = 'text-[9px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full';
+        btnStart.disabled = false;
+        btnStart.className = 'bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-2xl text-xs transition cursor-pointer';
+        btnEnd.disabled = true;
+        btnEnd.className = 'bg-slate-100 text-slate-400 font-bold py-2.5 rounded-2xl text-xs';
+      }
+
+      if (rec && !rec.punchOutTime) {
+        document.getElementById('completed-shift-block').classList.add('hidden');
+        document.getElementById('shift-punchin-summary').innerText = `Clocked in at ${new Date(rec.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } else if (rec && rec.punchOutTime) {
+        document.getElementById('completed-shift-block').classList.remove('hidden');
+        document.getElementById('completed-summary-text').innerText = `Total Duration: ${Math.floor(rec.totalMinutes/60)}h ${rec.totalMinutes%60}m.`;
+      }
+    }
+
+    function toggleLunchBreak(start) {
+      appState = loadState();
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      if (!rec) return;
+
+      if (!rec.breaks) rec.breaks = [];
+      if (start) {
+        rec.breaks.push({ start: new Date().toISOString(), end: null });
+        showToast('Lunch break started.');
+      } else {
+        const last = rec.breaks.find(b => b.end === null);
+        if (last) {
+          last.end = new Date().toISOString();
+          showToast('Shift resumed.');
+        }
+      }
+      saveState(appState);
+      renderShiftTabDetails();
+    }
+
+    function submitLeaveRequest() {
+      const type = document.getElementById('input-leave-type').value;
+      const date = document.getElementById('input-leave-date').value;
+      const reason = document.getElementById('input-leave-reason').value.trim();
+      if (!date || !reason) return showToast('Please select date and provide reason.', true);
+
+      appState = loadState();
+      appState.leaveRequests.push({ id: 'req_' + Date.now(), employeeId: currentAuthUser.id, employeeName: currentAuthUser.name, type, date, reason, status: 'PENDING' });
+      saveState(appState);
+
+      document.getElementById('input-leave-reason').value = '';
+      showToast('Leave request submitted.');
+      renderPersonalLeaveHistory();
+    }
+
+    function renderPersonalLeaveHistory() {
+      appState = loadState();
+      const listEl = document.getElementById('my-leave-history-list');
+      const myLeaves = (appState.leaveRequests || []).filter(l => l.employeeId === currentAuthUser.id);
+
+      listEl.innerHTML = myLeaves.length ? '' : '<p class="text-slate-400 text-center py-3">No leave requests logged.</p>';
+      myLeaves.slice().reverse().forEach(req => {
+        listEl.innerHTML += `
+          <div class="p-3 bg-slate-50 border rounded-2xl space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span>${req.date} (${req.type.replace(/_/g, ' ')})</span>
+              <span class="text-[9px] px-2 py-0.5 rounded-full ${req.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">${req.status}</span>
+            </div>
+            <p class="text-[11px] text-slate-600">Reason: ${req.reason}</p>
+          </div>`;
+      });
+    }
+
+    function updateShiftProgressGauge() {
+      const bar = document.getElementById('shift-gauge-bar');
+      const text = document.getElementById('shift-gauge-percent');
+      if (!bar || !text || !currentAuthUser) return;
+
+      const rec = getLatestTodayAttendance(currentAuthUser.id);
+      if (!rec || !rec.punchInTime) {
+        bar.style.strokeDashoffset = 100;
+        text.innerText = '0%';
+        return;
+      }
+
+      const diffMins = Math.max(0, Math.floor(((rec.punchOutTime ? new Date(rec.punchOutTime) : new Date()) - new Date(rec.punchInTime)) / (1000 * 60)));
+      const percent = Math.min(100, Math.round((diffMins / 780) * 100));
+      bar.style.strokeDashoffset = 100 - percent;
+      text.innerText = `${percent}%`;
+    }
+
+    // ================= REALTIME FIREBASE SYNC ================= //
+    let cloudDb = null;
+    function initFirebaseSync() {
+      try {
+        if (typeof firebase !== 'undefined') {
+          const firebaseConfig = {
+            apiKey: "AIzaSyB6LPf8577gPsXBbpML39jkc4BFWaSMZow",
+            authDomain: "wellwith-mangalore.firebaseapp.com",
+            databaseURL: "https://wellwith-mangalore-default-rtdb.firebaseio.com",
+            projectId: "wellwith-mangalore",
+            storageBucket: "wellwith-mangalore.firebasestorage.app",
+            messagingSenderId: "633324318360",
+            appId: "1:633324318360:web:74a6570c0a0b2385936aed"
+          };
+
+          if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+          cloudDb = firebase.database();
+
+          const storeRef = cloudDb.ref('storeState');
+          storeRef.on('value', (snapshot) => {
+            const val = snapshot.val();
+            if (val) {
+              appState = ensureStateArrays(val);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } else {
+              storeRef.set(appState);
+            }
+            document.getElementById('cloud-sync-status').className = 'w-2 h-2 rounded-full bg-emerald-400';
+            refreshActiveScreen();
+          }, () => {
+            document.getElementById('cloud-sync-status').className = 'w-2 h-2 rounded-full bg-amber-400';
+          });
+        }
+      } catch (e) {
+        document.getElementById('cloud-sync-status').className = 'w-2 h-2 rounded-full bg-amber-400';
+      }
+    }
+
+    function syncToCloud(state) {
+      if (cloudDb) {
+        try { cloudDb.ref('storeState').set(state); } catch(e) {}
+      }
+    }
+
+    function refreshActiveScreen() {
+      if (!currentAuthUser) return;
+      if (currentActivePage === 'page-dashboard') renderEmployeePersonalData();
+      else if (currentActivePage === 'page-history') renderPersonalLedgerView();
+      else if (currentActivePage === 'page-leaves') renderPersonalLeaveHistory();
+      else if (currentActivePage === 'page-shift') renderShiftTabDetails();
+      else if (currentActivePage === 'page-cash') renderManagerCashDesk();
+      else if (currentActivePage === 'page-enquiries') renderCounterDeskView();
+      else if (currentActivePage === 'page-admin-desk') { renderAdminRoster(); renderSettingsStaffList(); renderAdminLeavesList(); updateGeofenceSettingsUI(); }
+      updateLockPills();
+    }
+  </script>
+</body>
+</html>
