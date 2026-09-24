@@ -82,6 +82,10 @@
 <span class="text-[9px] uppercase font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900" id="sidebar-duty-badge">Not Punched</span>
 </div>
 </div>
+<button id="sidebar-notification-button" onclick="openStaffNotifications()" class="mx-5 mb-1 w-[calc(100%-2.5rem)] flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10">
+  <span class="flex items-center gap-2 text-[10px] font-black">🔔 Notifications</span>
+  <span id="sidebar-notification-badge" class="hidden min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black items-center justify-center">0</span>
+</button>
 </div>
 <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 text-xs font-bold text-slate-600">
 <div class="text-[9px] uppercase font-black text-slate-400 px-3 pt-2 pb-1 tracking-widest">Self-Service</div>
@@ -192,6 +196,27 @@
 <span class="px-2.5 py-1 text-[10px] font-black rounded-lg bg-emerald-100 text-emerald-800" id="data-role-badge">STAFF</span>
 <div class="text-[10px] text-slate-500 mt-1 font-bold" id="data-user-weekoff">Week-Off: --</div>
 </div>
+</div>
+<!-- ================= STAFF NOTIFICATIONS ================= -->
+<div id="staff-notification-summary" class="hidden bg-white border border-slate-200 rounded-3xl p-4 shadow-sm space-y-3">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg">🔔</span>
+      <div><div id="staff-notification-summary-title" class="font-black text-xs text-slate-900">Notifications</div><div id="staff-notification-summary-text" class="text-[10px] text-slate-500">You have an unread notification.</div></div>
+    </div>
+    <span id="staff-notification-summary-badge" class="text-[9px] bg-red-100 text-red-800 px-2 py-1 rounded-full font-black">1 NEW</span>
+  </div>
+  <div id="staff-notification-summary-body" class="text-[11px] bg-slate-50 rounded-2xl p-3"></div>
+  <button onclick="openStaffNotifications()" class="w-full py-2.5 bg-[#05281b] text-white rounded-xl text-[10px] font-black">View Notifications</button>
+</div>
+<div id="staff-notifications-panel" class="hidden fixed inset-0 z-[80] bg-black/30 p-3 sm:p-6" onclick="closeStaffNotifications(event)">
+  <div class="max-w-md mx-auto mt-14 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden" onclick="event.stopPropagation()">
+    <div class="bg-[#05281b] text-white p-4 flex items-center justify-between">
+      <div><div class="font-black text-sm">🔔 Notifications</div><div class="text-[9px] text-emerald-200">Important store and account updates</div></div>
+      <button onclick="closeStaffNotifications()" class="text-white/70 hover:text-white text-lg">✕</button>
+    </div>
+    <div id="staff-notifications-list" class="max-h-[65vh] overflow-y-auto p-3 space-y-2"></div>
+  </div>
 </div>
 <div class="bg-gradient-to-br from-[#05281b] to-emerald-950 text-white p-5 rounded-3xl shadow-lg space-y-3" id="banner-checkin-needed">
 <div class="flex justify-between items-center text-xs">
@@ -318,11 +343,6 @@
 <div class="text-2xl font-black text-emerald-800" id="stat-net-hours">0h 0m</div>
 <p class="text-[10px] text-slate-400 font-medium">Floor duration</p>
 </div>
-<div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-1">
-<span class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Overtime Tally</span>
-<div class="text-2xl font-black text-blue-700" id="stat-ot-hours">0 mins</div>
-<p class="text-[10px] text-slate-400 font-medium">Past 9:00 PM</p>
-</div>
 </div>
 </section>
 <!-- ================= LOGS: ATTENDANCE LEDGER ================= -->
@@ -444,7 +464,6 @@
               📍
             </div>
 </div>
-
 </div>
 </section>
 <!-- ================= MODULE 3: SHIFT & LUNCH BREAK ================= -->
@@ -454,7 +473,7 @@
 <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Scheduled Shift</div>
 <div class="text-base font-black text-slate-900" id="shift-window-label">8:00 AM – 9:00 PM</div>
 <p class="text-xs text-emerald-800 font-bold" id="shift-punchin-summary">Clocked in at --</p>
-<div class="hidden text-[10px] font-black text-emerald-700 animate-pulse" id="overtime-indicator">⭐ Overtime Active</div>
+
 </div>
 <div class="relative w-20 h-20 shrink-0">
 <svg class="w-full h-full" viewbox="0 0 36 36">
@@ -489,9 +508,6 @@
 <div class="text-3xl">🏁</div>
 <div class="text-sm font-black text-slate-900">Shift Completed Today</div>
 <p class="text-xs text-slate-600 font-medium" id="completed-summary-text">--</p>
-<div class="hidden bg-emerald-100 text-emerald-900 text-xs font-bold p-2.5 rounded-2xl border border-emerald-200" id="ot-reward-banner">
-            🌟 Overtime Appreciated: <span id="ot-reward-mins">0</span> mins overtime logged!
-          </div>
 </div>
 </section>
 <!-- ================= MODULE 4: CASH SETTLEMENT DESK ================= -->
@@ -976,24 +992,6 @@
 </div>
 </div>
 <!-- OPTION A: SUPER ADMIN MASTER RESET CARD -->
-<div class="hidden bg-red-50/80 border border-red-200 p-4.5 rounded-3xl space-y-2.5" id="card-superadmin-reset">
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="text-lg">⚠️</span>
-<div>
-<h3 class="font-black text-red-950 uppercase text-[11px] tracking-wider">Clear Trial &amp; Testing Data</h3>
-<p class="text-[10px] text-red-700 font-medium">Wipe test punches, floats &amp; cash settlements</p>
-</div>
-</div>
-<span class="text-[9px] bg-red-200 text-red-950 font-black px-2 py-0.5 rounded">Super Admin</span>
-</div>
-<p class="text-[11px] text-red-800">
-              Option A: Cleans all shifts, cash sheets, petty expenses, and logs across devices. All staff accounts and store geofence settings are strictly preserved.
-            </p>
-<button class="w-full py-3 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black rounded-2xl text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-red-900/10 cursor-pointer" onclick="openMasterResetModal()">
-<span>🗑️</span> <span>Wipe Transactional Data (Option A)</span>
-</button>
-</div>
 </div>
 <!-- 5. Super Admin Late Exception Desk -->
 <div class="hidden space-y-3" id="view-admin-late">
@@ -1106,11 +1104,6 @@
 <h3 class="font-black uppercase tracking-wider text-[10px]">💰 Cash &amp; Reconciliation</h3>
 <div class="grid grid-cols-2 gap-2" id="sa-cash-summary"></div>
 <button class="w-full p-2.5 bg-slate-900 text-white rounded-xl font-bold" onclick="saExportOperationalReport()">📊 Export Full Operational Report</button>
-</div>
-<div class="bg-white p-4 rounded-3xl border border-slate-200 space-y-3 hidden" data-sa-category="settings">
-<h3 class="font-black uppercase tracking-wider text-[10px]">⚙️ Break, Overtime &amp; Attendance Rules</h3>
-<div class="grid grid-cols-2 gap-2"><label class="text-[9px] font-bold">Lunch max (min)<input class="w-full px-2 py-2 border rounded-xl" id="sa-lunch-max" min="1" type="number"/></label><label class="text-[9px] font-bold">Short break max<input class="w-full px-2 py-2 border rounded-xl" id="sa-short-max" min="1" type="number"/></label><label class="text-[9px] font-bold">Short breaks/day<input class="w-full px-2 py-2 border rounded-xl" id="sa-short-count" min="0" type="number"/></label><label class="text-[9px] font-bold">Overtime after<input class="w-full px-2 py-2 border rounded-xl" id="sa-ot-after" type="time"/></label></div>
-<button class="w-full p-2.5 bg-[#05281b] text-white rounded-xl font-black" onclick="saSaveRules()">Save Store Rules</button>
 </div>
 <div class="bg-white p-4 rounded-3xl border border-slate-200 space-y-3 hidden" data-sa-category="settings">
 <h3 class="font-black uppercase tracking-wider text-[10px]">🔐 Security &amp; System Health</h3>
@@ -1307,10 +1300,6 @@
 <span class="text-[8px] uppercase font-bold text-slate-400 block">Compliant</span>
 <div class="font-black text-sm text-blue-700 font-mono" id="modal-stat-ontime">100%</div>
 </div>
-<div class="bg-slate-50 p-2 rounded-2xl border">
-<span class="text-[8px] uppercase font-bold text-slate-400 block">Overtime</span>
-<div class="font-black text-sm text-amber-700 font-mono" id="modal-stat-ot">0m</div>
-</div>
 </div>
 <div class="bg-slate-50 p-3.5 rounded-2xl border space-y-2">
 <div class="flex justify-between items-center">
@@ -1397,7 +1386,8 @@
       emergencyLock: false,
       storeSessions: [],
       inventory: [],
-      securityEvents: []
+      securityEvents: [],
+      notifications: []
     };
 
     // Sole Invariant: Root Super Admin (8088504219) is retained to prevent lockout.
@@ -1425,10 +1415,12 @@
       
       if (!Array.isArray(parsed.attendance)) parsed.attendance = [];
       parsed.attendance.forEach(a => {
-        if (a.lateExceptionApproved === undefined) a.lateExceptionApproved = false;
+        if (a.lateExceptionStatus === undefined) a.lateExceptionStatus = a.lateExceptionApproved ? 'APPROVED' : null;
+        if (a.lateExceptionApproved === undefined) a.lateExceptionApproved = a.lateExceptionStatus === 'APPROVED';
         if (a.lateExceptionBy === undefined) a.lateExceptionBy = null;
         if (a.lateExceptionAt === undefined) a.lateExceptionAt = null;
         if (a.lateExceptionReason === undefined) a.lateExceptionReason = null;
+        if (a.lateExceptionOriginalMinutes === undefined) a.lateExceptionOriginalMinutes = a.lateMinutes || 0;
       });
       if (!Array.isArray(parsed.cashDrawerLogs)) parsed.cashDrawerLogs = [];
       if (!Array.isArray(parsed.pettyCashExpenses)) parsed.pettyCashExpenses = [];
@@ -1443,6 +1435,7 @@
       if (!Array.isArray(parsed.storeSessions)) parsed.storeSessions = [];
       if (!Array.isArray(parsed.inventory)) parsed.inventory = [];
       if (!Array.isArray(parsed.securityEvents)) parsed.securityEvents = [];
+      if (!Array.isArray(parsed.notifications)) parsed.notifications = [];
       if (parsed.emergencyLock === undefined) parsed.emergencyLock = false;
       if (!parsed.storeConfig) parsed.storeConfig = defaultState.storeConfig;
       return parsed;
@@ -1532,10 +1525,6 @@
       const str = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const wClock = document.getElementById('welcome-live-clock');
       if (wClock) wClock.innerText = str;
-      if (now.getHours() >= 21) {
-        const el = document.getElementById('overtime-indicator');
-        if (el) el.classList.remove('hidden');
-      }
       updateShiftProgressGauge();
     }
 
@@ -1761,7 +1750,6 @@
         sessions: 'sa-account-list',
         security: 'sa-security-health',
         breaks: 'sa-approval-list',
-        overtime: 'sa-lunch-max',
         calendar: 'sa-holiday-date',
         inventory: 'sa-stock-name',
         batches: 'sa-stock-batch',
@@ -1781,7 +1769,7 @@
       const el = targetId ? document.getElementById(targetId) : null;
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (['sa-shift-start','sa-lunch-max','sa-holiday-date','sa-stock-name','sa-stock-batch','sa-stock-qty'].includes(targetId)) { el.focus(); }
+        if (['sa-shift-start','sa-holiday-date','sa-stock-name','sa-stock-batch','sa-stock-qty'].includes(targetId)) { el.focus(); }
       }
     }
 
@@ -1884,6 +1872,93 @@
       navigateTo('page-welcome');
     }
 
+    // ================= STAFF NOTIFICATIONS ================= //
+    function getMyNotifications() {
+      if (!currentAuthUser) return [];
+      appState = loadState();
+      return (appState.notifications || []).filter(n => n.employeeId === currentAuthUser.id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    function createStaffNotification(employeeId, type, title, message, details = {}) {
+      appState = loadState();
+      appState.notifications = Array.isArray(appState.notifications) ? appState.notifications : [];
+      appState.notifications.push({
+        id: 'NTF-' + Date.now() + '-' + Math.random().toString(36).slice(2,8),
+        employeeId, type, title, message, details,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+      // Keep the notification history compact while preserving recent decisions.
+      if (appState.notifications.length > 300) appState.notifications = appState.notifications.slice(-300);
+      saveState(appState);
+      if (currentAuthUser && currentAuthUser.id === employeeId) renderStaffNotifications();
+    }
+
+    function notifyStaff(employeeId, type, title, message, details = {}) {
+      if (!employeeId) return;
+      createStaffNotification(employeeId, type, title, message, details);
+    }
+
+    function notifyAllStaff(type, title, message, details = {}) {
+      appState = loadState();
+      (appState.employees || []).filter(e => e.role === 'STAFF' && !e.disabled && !e.archived).forEach(e => {
+        createStaffNotification(e.id, type, title, message, details);
+      });
+    }
+
+    function renderStaffNotifications() {
+      if (!currentAuthUser) return;
+      const list = document.getElementById('staff-notifications-list');
+      const summary = document.getElementById('staff-notification-summary');
+      const badge = document.getElementById('sidebar-notification-badge');
+      const summaryBadge = document.getElementById('staff-notification-summary-badge');
+      const summaryText = document.getElementById('staff-notification-summary-text');
+      const summaryBody = document.getElementById('staff-notification-summary-body');
+      const summaryTitle = document.getElementById('staff-notification-summary-title');
+      const items = getMyNotifications();
+      const unread = items.filter(n => !n.read);
+      if (badge) { badge.innerText = unread.length; badge.classList.toggle('hidden', unread.length === 0); badge.classList.toggle('flex', unread.length > 0); }
+      if (summary) summary.classList.toggle('hidden', unread.length === 0);
+      if (summaryBadge) summaryBadge.innerText = unread.length + (unread.length === 1 ? ' NEW' : ' NEW');
+      if (summaryText) summaryText.innerText = unread.length === 1 ? 'You have 1 unread notification.' : `You have ${unread.length} unread notifications.`;
+      if (summaryTitle && unread.length) summaryTitle.innerText = unread.length === 1 ? (unread[0].title || 'Notification') : 'New Notifications';
+      if (summaryBody && unread.length) {
+        const n = unread[0];
+        summaryBody.innerHTML = `<div class="font-black ${n.type==='LATE_APPROVED'?'text-emerald-800':n.type==='LATE_REJECTED'?'text-red-800':'text-slate-900'}">${n.title}</div><div class="mt-1 text-slate-600">${n.message}</div>${n.details?.reason ? `<div class="mt-1 text-[10px] text-slate-500">Reason: <b>${n.details.reason}</b></div>` : ''}`;
+      }
+      if (!list) return;
+      if (!items.length) { list.innerHTML = '<div class="p-5 text-center text-slate-400 text-xs">No notifications yet.</div>'; return; }
+      list.innerHTML = items.map(n => {
+        const approved = n.type === 'LATE_APPROVED' || n.type === 'LEAVE_APPROVED';
+        const rejected = n.type === 'LATE_REJECTED' || n.type === 'LEAVE_REJECTED';
+        const tone = approved ? 'border-emerald-200 bg-emerald-50' : rejected ? 'border-red-200 bg-red-50' : n.type === 'ATTENDANCE_UPDATED' ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-white';
+        return `<div class="p-3 rounded-2xl border ${tone} ${n.read?'opacity-75':'shadow-sm'}">
+          <div class="flex items-start justify-between gap-2"><div><div class="font-black text-[11px] text-slate-900">${n.title}</div><div class="text-[9px] text-slate-400 mt-0.5">${new Date(n.createdAt).toLocaleString()}</div></div>${n.read?'':'<span class="text-[8px] bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full font-black">NEW</span>'}</div>
+          <div class="text-[10px] text-slate-700 mt-2">${n.message}</div>
+          ${n.details?.date ? `<div class="grid grid-cols-2 gap-2 mt-2 text-[9px]"><div class="bg-white/70 rounded-xl p-2"><span class="text-slate-400 block">Date</span><b>${n.details.date}</b></div><div class="bg-white/70 rounded-xl p-2"><span class="text-slate-400 block">Punch-in</span><b>${n.details.punchIn || '--'}</b></div><div class="bg-white/70 rounded-xl p-2"><span class="text-slate-400 block">Late</span><b>${n.details.lateMinutes || 0} min</b></div><div class="bg-white/70 rounded-xl p-2"><span class="text-slate-400 block">Decided by</span><b>${n.details.decidedBy || 'Super Admin'}</b></div></div>`:''}
+          ${n.details?.reason ? `<div class="mt-2 text-[9px] text-slate-600">Reason: <b>${n.details.reason}</b></div>`:''}
+          ${!n.read ? `<button onclick="markNotificationRead('${n.id}')" class="mt-2 w-full py-2 bg-[#05281b] text-white rounded-xl text-[9px] font-black">Mark as Read</button>` : '<div class="mt-2 text-[9px] text-slate-400 font-bold">Read</div>'}
+        </div>`;
+      }).join('');
+    }
+
+    function markNotificationRead(notificationId) {
+      appState = loadState();
+      const n = (appState.notifications || []).find(x => x.id === notificationId && x.employeeId === currentAuthUser?.id);
+      if (!n) return;
+      n.read = true; n.readAt = new Date().toISOString();
+      saveState(appState); renderStaffNotifications();
+    }
+
+    function markAllNotificationsRead() {
+      appState = loadState();
+      (appState.notifications || []).filter(n => n.employeeId === currentAuthUser?.id && !n.read).forEach(n => { n.read = true; n.readAt = new Date().toISOString(); });
+      saveState(appState); renderStaffNotifications();
+    }
+
+    function openStaffNotifications() { renderStaffNotifications(); const p=document.getElementById('staff-notifications-panel'); if(p)p.classList.remove('hidden'); }
+    function closeStaffNotifications(e) { if (e && e.target !== e.currentTarget) return; const p=document.getElementById('staff-notifications-panel'); if(p)p.classList.add('hidden'); }
+
     function setupSession() {
       if (!currentAuthUser) return;
       document.getElementById('sidebar-user-name').innerText = currentAuthUser.name;
@@ -1895,6 +1970,7 @@
       if (superCat) superCat.classList.toggle('hidden', !isSuperAdmin());
 
       updateLockPills();
+      renderStaffNotifications();
       navigateTo('page-dashboard');
     }
 
@@ -2119,6 +2195,7 @@
 
     function renderEmployeePersonalData() {
       appState = loadState();
+      renderStaffNotifications();
       document.getElementById('data-user-name').innerText = currentAuthUser.name;
       document.getElementById('data-user-phone').innerText = currentAuthUser.phone;
       document.getElementById('data-role-badge').innerText = getDisplayRole(currentAuthUser.role);
@@ -2150,7 +2227,6 @@
       let lateCount = 0;
       let lateMinsTotal = 0;
       let totalWorkMinutes = 0;
-      let totalOtMinutes = 0;
 
       userLogs.forEach(l => {
         if (l.isLate && !l.lateExceptionApproved && !isOwnerRole()) {
@@ -2158,14 +2234,12 @@
           lateMinsTotal += (l.lateMinutes || 0);
         }
         totalWorkMinutes += (l.totalMinutes || 0);
-        totalOtMinutes += (l.overtimeMinutes || 0);
       });
 
       document.getElementById('stat-days-present').innerText = daysPresent;
       document.getElementById('stat-late-marks').innerText = isOwnerRole() ? '--' : lateCount;
       document.getElementById('stat-late-mins').innerText = isOwnerRole() ? 'Flexible Hours' : `${lateMinsTotal} mins delay`;
       document.getElementById('stat-net-hours').innerText = `${Math.floor(totalWorkMinutes / 60)}h ${totalWorkMinutes % 60}m`;
-      document.getElementById('stat-ot-hours').innerText = `${totalOtMinutes} mins`;
 
       renderDashboardSteps();
     }
@@ -2196,7 +2270,6 @@
             ? `<span class="text-emerald-700 font-bold">Late +${log.lateMinutes}m • Exception Approved</span>`
             : `<span class="text-amber-700 font-bold">Late (+${log.lateMinutes}m)</span>`;
         }
-        if (log.overtimeMinutes > 0) badge += ` <span class="text-blue-700 font-bold">• OT +${log.overtimeMinutes}m</span>`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -2681,11 +2754,16 @@
           punchInSelfie: selfie,
           punchOutTime: null,
           totalMinutes: 0,
-          overtimeMinutes: 0,
           totalBreakMins: 0,
           breaks: [],
           isLate,
           lateMinutes,
+          lateExceptionStatus: isLate ? 'PENDING' : null,
+          lateExceptionApproved: false,
+          lateExceptionBy: null,
+          lateExceptionAt: null,
+          lateExceptionReason: null,
+          lateExceptionOriginalMinutes: lateMinutes,
           adminOverrideNote: null
         };
 
@@ -2770,16 +2848,8 @@
         const grossMinutes = Math.max(1, Math.floor((now - punchInDate) / (1000 * 60)));
         const netMinutes = Math.max(1, grossMinutes - excessBreak);
 
-        let overtimeMins = 0;
-        if (!isOwnerRole()) {
-          const shiftEnd = new Date(now);
-          shiftEnd.setHours(21, 0, 0, 0);
-          if (now > shiftEnd) overtimeMins = Math.floor((now - shiftEnd) / (1000 * 60));
-        }
-
         log.punchOutTime = now.toISOString();
         log.totalMinutes = netMinutes;
-        log.overtimeMinutes = overtimeMins;
         log.totalBreakMins = totalBreakMins;
 
         if (!isStoreDone && !isOwnerRole()) {
@@ -2957,7 +3027,7 @@
       const today = getLocalDateString();
       const todays = (appState.attendance || []).filter(a => a.date === today);
       const present = todays.filter(a => a.punchInTime).length;
-      const late = todays.filter(a => a.isLate && !a.lateExceptionApproved).length;
+      const late = todays.filter(a => a.isLate && (a.lateExceptionStatus || (a.lateExceptionApproved ? 'APPROVED' : 'PENDING')) !== 'APPROVED').length;
       const onBreak = todays.filter(a => (a.breaks || []).some(b => !b.end)).length;
       const cash = (appState.cashDrawerLogs || []).find(c => c.date === today);
       const kpis = [
@@ -2982,8 +3052,13 @@
       const lockBtn=document.getElementById('sa-emergency-lock-btn'); if(lockBtn) lockBtn.innerText=appState.emergencyLock?'🔓 Unlock Store':'🚨 Emergency Lock';
     }
 
-    function adminCloseBreak(attendanceId) { if(!superAdminOnly()) return; appState=loadState(); const a=appState.attendance.find(x=>x.id===attendanceId); if(!a) return; const b=(a.breaks||[]).find(x=>!x.end); if(!b) return; const reason=prompt('Reason for closing this break:','Employee forgot to resume'); if(reason===null)return; b.end=new Date().toISOString(); saveState(appState); addAuditLog('CLOSE_BREAK','BREAK',reason,attendanceId); renderSuperAdminControl(); showToast('Break closed by Super Admin.'); }
-    function adminCorrectAttendance(attendanceId) { if(!superAdminOnly()) return; appState=loadState(); const a=appState.attendance.find(x=>x.id===attendanceId); if(!a)return; const pin=prompt('Super Admin confirmation: enter your PIN'); if(pin!==currentAuthUser.pin){showToast('Incorrect Super Admin PIN.',true);return;} const newIn=prompt('Punch-in time (HH:MM), blank to keep current:', new Date(a.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})); const newOut=prompt('Punch-out time (HH:MM), blank to keep current:', a.punchOutTime?new Date(a.punchOutTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):''); const reason=prompt('Reason for attendance correction:'); if(reason===null)return; const parse=(v,old)=>{if(!v)return old; const [h,m]=v.split(':').map(Number); const d=new Date(old); d.setHours(h,m,0,0); return d.toISOString();}; const before={punchInTime:a.punchInTime,punchOutTime:a.punchOutTime}; a.punchInTime=parse(newIn,a.punchInTime); if(newOut)a.punchOutTime=parse(newOut,a.punchOutTime||a.punchInTime); if(a.punchOutTime)a.totalMinutes=Math.max(0,Math.floor((new Date(a.punchOutTime)-new Date(a.punchInTime))/60000)); saveState(appState); addAuditLog('CORRECT_ATTENDANCE','ATTENDANCE',JSON.stringify({reason,before,after:{punchInTime:a.punchInTime,punchOutTime:a.punchOutTime}}),attendanceId); renderSuperAdminControl(); showToast('Attendance corrected.'); }
+    function adminCloseBreak(attendanceId) { if(!superAdminOnly()) return; appState=loadState(); const a=appState.attendance.find(x=>x.id===attendanceId); if(!a) return; const b=(a.breaks||[]).find(x=>!x.end); if(!b) return; const reason=prompt('Reason for closing this break:','Employee forgot to resume'); if(reason===null)return; b.end=new Date().toISOString(); saveState(appState); addAuditLog('CLOSE_BREAK','BREAK',reason,attendanceId);
+      createStaffNotification(a.employeeId,'BREAK_UPDATED','🍱 Break Updated','Your active lunch break was closed by Super Admin.',{date:a.date,reason,decidedBy:currentAuthUser.name||'Super Admin'});
+      renderSuperAdminControl(); showToast('Break closed by Super Admin.'); }
+    function adminCorrectAttendance(attendanceId) { if(!superAdminOnly()) return; appState=loadState(); const a=appState.attendance.find(x=>x.id===attendanceId); if(!a)return; const pin=prompt('Super Admin confirmation: enter your PIN'); if(pin!==currentAuthUser.pin){showToast('Incorrect Super Admin PIN.',true);return;} const newIn=prompt('Punch-in time (HH:MM), blank to keep current:', new Date(a.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})); const newOut=prompt('Punch-out time (HH:MM), blank to keep current:', a.punchOutTime?new Date(a.punchOutTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):''); const reason=prompt('Reason for attendance correction:'); if(reason===null)return; const parse=(v,old)=>{if(!v)return old; const [h,m]=v.split(':').map(Number); const d=new Date(old); d.setHours(h,m,0,0); return d.toISOString();}; const before={punchInTime:a.punchInTime,punchOutTime:a.punchOutTime}; a.punchInTime=parse(newIn,a.punchInTime); if(newOut)a.punchOutTime=parse(newOut,a.punchOutTime||a.punchInTime); if(a.punchOutTime)a.totalMinutes=Math.max(0,Math.floor((new Date(a.punchOutTime)-new Date(a.punchInTime))/60000)); saveState(appState); addAuditLog('CORRECT_ATTENDANCE','ATTENDANCE',JSON.stringify({reason,before,after:{punchInTime:a.punchInTime,punchOutTime:a.punchOutTime}}),attendanceId);
+      const corrEmp=(appState.employees||[]).find(e=>e.id===a.employeeId);
+      createStaffNotification(a.employeeId,'ATTENDANCE_UPDATED','✏️ Attendance Updated',`Your attendance for ${a.date} was corrected by ${currentAuthUser.name||'Super Admin'}.`,{date:a.date,reason,punchIn:a.punchInTime?new Date(a.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--',punchOut:a.punchOutTime?new Date(a.punchOutTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--',decidedBy:currentAuthUser.name||'Super Admin'});
+      renderSuperAdminControl(); showToast('Attendance corrected.'); }
     function adminToggleUser(empId){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===empId);if(!e)return;e.disabled=!e.disabled;saveState(appState);addAuditLog(e.disabled?'DISABLE_USER':'ENABLE_USER','ACCOUNT',e.name,empId);renderSuperAdminControl();showToast(e.disabled?'User disabled.':'User enabled.');}
     function adminResetUserPin(empId){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===empId);if(!e)return;const pin=prompt('Enter new 4-digit PIN for '+e.name);if(!/^\\d{4}$/.test(pin||'')){showToast('PIN must be exactly 4 digits.',true);return;}e.pin=pin;saveState(appState);addAuditLog('RESET_PIN','ACCOUNT','PIN reset for '+e.name,empId);renderSuperAdminControl();showToast('PIN reset.');}
     function saveSuperAdminConfig(){if(!superAdminOnly())return;appState=loadState();const before={...appState.storeConfig};appState.storeConfig.shiftStart=document.getElementById('sa-shift-start').value;appState.storeConfig.shiftEnd=document.getElementById('sa-shift-end').value;appState.storeConfig.graceMins=Math.max(0,Number(document.getElementById('sa-grace').value));appState.storeConfig.radius=Math.max(10,Number(document.getElementById('sa-radius').value));saveState(appState);addAuditLog('UPDATE_STORE_CONFIG','CONFIG',JSON.stringify({before,after:appState.storeConfig}));renderSuperAdminControl();showToast('Operational settings saved.');}
@@ -2999,9 +3074,8 @@
       const employees=appState.employees||[];
       const sel=document.getElementById('sa-role-employee'); if(sel) sel.innerHTML=employees.filter(e=>!e.archived).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
       const rules=appState.systemConfig||{};
-      ['sa-lunch-max','sa-short-max','sa-short-count','sa-ot-after'].forEach((id,i)=>{const el=document.getElementById(id); if(el) el.value=[rules.lunchMaxMins??60,rules.shortBreakMaxMins??15,rules.maxShortBreaks??2,rules.overtimeAfter||'21:00'][i];});
       const alerts=[];
-      (appState.attendance||[]).filter(a=>a.date===today).forEach(a=>{const emp=employees.find(e=>e.id===a.employeeId); (a.breaks||[]).forEach(b=>{if(!b.end){const mins=Math.floor((Date.now()-new Date(b.start))/60000); if(mins>(rules.lunchMaxMins||60)) alerts.push(`🍱 ${emp?.name||'Staff'} break is ${mins}m — exceeds limit.`);}}); if(a.isLate&&!a.lateExceptionApproved) alerts.push(`⏰ ${emp?.name||'Staff'} has an unapproved late mark.`); if(a.punchInTime&&!a.punchOutTime&&new Date().getHours()>=22) alerts.push(`🔴 ${emp?.name||'Staff'} has no punch-out.`);});
+      (appState.attendance||[]).filter(a=>a.date===today).forEach(a=>{const emp=employees.find(e=>e.id===a.employeeId); (a.breaks||[]).forEach(b=>{if(!b.end){const mins=Math.floor((Date.now()-new Date(b.start))/60000); if(mins>(rules.lunchMaxMins||60)) alerts.push(`🍱 ${emp?.name||'Staff'} break is ${mins}m — exceeds limit.`);}}); if(a.isLate&&(a.lateExceptionStatus || (a.lateExceptionApproved?'APPROVED':'PENDING'))!=='APPROVED') alerts.push(`⏰ ${emp?.name||'Staff'} has a late mark requiring review.`); if(a.punchInTime&&!a.punchOutTime&&new Date().getHours()>=22) alerts.push(`🔴 ${emp?.name||'Staff'} has no punch-out.`);});
       (appState.inventory||[]).forEach(x=>{if((x.qty||0)<=(x.minStock||0)) alerts.push(`📦 Low stock: ${x.name} (${x.qty})`); if(x.expiry&&new Date(x.expiry)-new Date()<30*86400000&&new Date(x.expiry)>=new Date()) alerts.push(`⚠️ Expiry soon: ${x.name} (${x.expiry})`);});
       const al=document.getElementById('sa-alerts'); if(al) al.innerHTML=alerts.length?alerts.map(x=>`<div class="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[10px] font-bold">${x}</div>`).join(''):'<div class="p-3 bg-emerald-50 rounded-xl text-[10px] font-bold text-emerald-800">✅ No critical alerts.</div>';
       const ap=document.getElementById('sa-approval-list'); if(ap){const pending=(appState.approvalRequests||[]).filter(x=>x.status==='PENDING'); ap.innerHTML=pending.length?pending.map(x=>`<div class="p-2 bg-slate-50 border rounded-xl"><div class="font-bold text-[10px]">${x.type} · ${x.employeeName||''}</div><div class="text-[9px] text-slate-500">${x.reason||''}</div><div class="flex gap-1 mt-1"><button onclick="saResolveApproval('${x.id}',true)" class="px-2 py-1 bg-emerald-100 rounded-lg font-bold">Approve</button><button onclick="saResolveApproval('${x.id}',false)" class="px-2 py-1 bg-red-100 rounded-lg font-bold">Reject</button></div></div>`).join(''):'<div class="text-[10px] text-slate-400">No pending approvals.</div>';}
@@ -3015,7 +3089,7 @@
     function saAddHoliday(){if(!superAdminOnly())return;const date=document.getElementById('sa-holiday-date')?.value,name=document.getElementById('sa-holiday-name')?.value.trim();if(!date||!name)return showToast('Enter holiday date and name.',true);appState=loadState();appState.holidays.push({id:'HOL-'+Date.now(),date,name});saveState(appState);addAuditLog('ADD_HOLIDAY','CONFIG',`${date} ${name}`);renderExtendedSuperAdmin();}
     function saDeleteHoliday(id){if(!superAdminOnly())return;appState=loadState();appState.holidays=appState.holidays.filter(x=>x.id!==id);saveState(appState);addAuditLog('DELETE_HOLIDAY','CONFIG',id);renderExtendedSuperAdmin();}
     function saSaveStock(){if(!superAdminOnly())return;const name=document.getElementById('sa-stock-name')?.value.trim(),sku=document.getElementById('sa-stock-sku')?.value.trim(),batch=document.getElementById('sa-stock-batch')?.value.trim(),expiry=document.getElementById('sa-stock-expiry')?.value,qty=Number(document.getElementById('sa-stock-qty')?.value),minStock=Number(document.getElementById('sa-stock-min')?.value);if(!name||!sku)return showToast('Product name and SKU required.',true);appState=loadState();let x=appState.inventory.find(i=>i.sku===sku&&i.batch===batch);if(!x){x={id:'STK-'+Date.now(),name,sku,batch,expiry,qty,minStock};appState.inventory.push(x);}else{x.name=name;x.expiry=expiry;x.qty=qty;x.minStock=minStock;}appState.inventoryMovements.push({id:'MOV-'+Date.now(),at:new Date().toISOString(),type:'ADJUSTMENT',sku,qty,by:currentAuthUser?.id});saveState(appState);addAuditLog('STOCK_UPDATE','STOCK',`${name} ${qty}`,x.id);renderExtendedSuperAdmin();}
-    function saSaveRules(){if(!superAdminOnly())return;appState=loadState();appState.systemConfig={...appState.systemConfig,lunchMaxMins:Number(document.getElementById('sa-lunch-max').value),shortBreakMaxMins:Number(document.getElementById('sa-short-max').value),maxShortBreaks:Number(document.getElementById('sa-short-count').value),overtimeAfter:document.getElementById('sa-ot-after').value};saveState(appState);addAuditLog('UPDATE_ATTENDANCE_RULES','CONFIG',JSON.stringify(appState.systemConfig));showToast('Store rules saved.');}
+    function saSaveRules(){if(!superAdminOnly())return;appState=loadState();appState.systemConfig={...appState.systemConfig,lunchMaxMins:Number(appState.systemConfig?.lunchMaxMins||60),shortBreakMaxMins:Number(appState.systemConfig?.shortBreakMaxMins||15),maxShortBreaks:Number(appState.systemConfig?.maxShortBreaks||2)};saveState(appState);addAuditLog('UPDATE_ATTENDANCE_RULES','CONFIG',JSON.stringify(appState.systemConfig));showToast('Break rules saved.');}
     function saChangeRole(){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===document.getElementById('sa-role-employee').value);if(!e||e.phone==='8088504219')return showToast('Root Super Admin role is protected.',true);const role=document.getElementById('sa-role-value').value,old=e.role;e.role=role;saveState(appState);addAuditLog('CHANGE_ROLE','ACCOUNT',`${old} → ${role}`,e.id);renderExtendedSuperAdmin();renderSettingsStaffList();}
     function saArchiveSelected(){if(!superAdminOnly())return;const e=appState.employees.find(x=>x.id===document.getElementById('sa-role-employee').value);if(!e||e.phone==='8088504219')return;appState=loadState();const t=appState.employees.find(x=>x.id===e.id);t.disabled=true;t.archived=true;t.archivedAt=new Date().toISOString();appState.archivedEmployees.push(JSON.parse(JSON.stringify(t)));saveState(appState);addAuditLog('ARCHIVE_USER','ACCOUNT',t.name,t.id);renderExtendedSuperAdmin();renderSettingsStaffList();}
     function saForceLogoutAll(){if(!superAdminOnly())return;appState=loadState();appState.storeSessions=[];saveState(appState);addAuditLog('FORCE_LOGOUT_ALL','SECURITY','All remote sessions invalidated');showToast('All sessions invalidated.');}
@@ -3026,91 +3100,87 @@
     function saClearNotifications(){if(!superAdminOnly())return;appState=loadState();appState.notifications.forEach(n=>n.read=true);saveState(appState);renderExtendedSuperAdmin();}
     function saCreateVersionedBackup(){if(!superAdminOnly())return;appState=loadState();const payload=JSON.stringify(appState);appState.dataBackups.unshift({id:'BKP-'+Date.now(),at:new Date().toISOString(),records:(appState.attendance||[]).length+(appState.employees||[]).length+(appState.inventory||[]).length,bytes:payload.length});appState.dataBackups=appState.dataBackups.slice(0,50);saveState(appState);downloadFile(payload,'wellwith_recovery_'+Date.now()+'.json','application/json');addAuditLog('VERSIONED_BACKUP','DATA','Recovery backup created');renderExtendedSuperAdmin();}
     function saExportAuditAndState(){if(!superAdminOnly())return;appState=loadState();const pack={exportedAt:new Date().toISOString(),version:'WELLWITH_SUPER_ADMIN_V2',state:appState};downloadFile(JSON.stringify(pack,null,2),'wellwith_recovery_package_'+Date.now()+'.json','application/json');addAuditLog('EXPORT_RECOVERY','DATA','Recovery package exported');}
-    function saExportOperationalReport(){if(!superAdminOnly())return;appState=loadState();const today=getLocalDateString();let csv='Employee,Date,Punch In,Punch Out,Minutes,Late,Exception,Overtime\n';(appState.attendance||[]).filter(a=>a.date===today).forEach(a=>{const e=appState.employees.find(x=>x.id===a.employeeId);csv+=`"${e?.name||''}","${a.date}","${a.punchInTime||''}","${a.punchOutTime||''}","${a.totalMinutes||0}","${a.isLate?'YES':'NO'}","${a.lateExceptionApproved?'YES':'NO'}","${a.overtimeMinutes||0}"\n`});downloadFile(csv,'wellwith_operational_report_'+today+'.csv','text/csv');addAuditLog('EXPORT_REPORT','DATA','Daily operational report exported');}
+    function saExportOperationalReport(){if(!superAdminOnly())return;appState=loadState();const today=getLocalDateString();let csv='Employee,Date,Punch In,Punch Out,Minutes,Late,Exception\n';(appState.attendance||[]).filter(a=>a.date===today).forEach(a=>{const e=appState.employees.find(x=>x.id===a.employeeId);csv+=`"${e?.name||''}","${a.date}","${a.punchInTime||''}","${a.punchOutTime||''}","${a.totalMinutes||0}","${a.isLate?'YES':'NO'}","${a.lateExceptionApproved?'YES':'NO'}"\n`});downloadFile(csv,'wellwith_operational_report_'+today+'.csv','text/csv');addAuditLog('EXPORT_REPORT','DATA','Daily operational report exported');}
 
     function renderLateExceptions() {
       const container = document.getElementById('admin-late-exceptions-list');
       if (!container) return;
       container.innerHTML = '';
-      if (!isSuperAdmin()) {
-        container.innerHTML = '<div class="bg-white border rounded-3xl p-5 text-center text-red-600 font-bold">Super Admin access required.</div>';
-        return;
-      }
-
+      if (!isSuperAdmin()) { container.innerHTML = '<div class="bg-white border rounded-3xl p-5 text-center text-red-600 font-bold">Super Admin access required.</div>'; return; }
       appState = loadState();
       const employees = appState.employees || [];
-      const lateLogs = (appState.attendance || [])
-        .filter(a => a.isLate)
-        .slice()
-        .reverse();
-
-      if (!lateLogs.length) {
-        container.innerHTML = '<div class="bg-white border rounded-3xl p-5 text-center text-slate-400">No late login records found.</div>';
-        return;
-      }
-
+      const lateLogs = (appState.attendance || []).filter(a => a.isLate).slice().reverse();
+      if (!lateLogs.length) { container.innerHTML = '<div class="bg-white border rounded-3xl p-5 text-center text-slate-400">No late login records found.</div>'; return; }
       lateLogs.forEach(log => {
         const emp = employees.find(e => e.id === log.employeeId);
         const name = emp ? emp.name : 'Unknown Staff';
-        const inTime = log.punchInTime ? new Date(log.punchInTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--';
-        const approved = !!log.lateExceptionApproved;
-        const card = document.createElement('div');
-        card.className = `p-3.5 bg-white border rounded-3xl space-y-2 shadow-sm ${approved ? 'border-emerald-200' : 'border-amber-200'}`;
-        card.innerHTML = `
-          <div class="flex justify-between items-start gap-2">
-            <div>
-              <div class="font-black text-slate-900 text-xs">${name}</div>
-              <div class="text-[10px] text-slate-400 font-mono">${log.date} • Punch-in ${inTime}</div>
-            </div>
-            <span class="text-[9px] font-black px-2 py-1 rounded-full ${approved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">${approved ? 'EXCEPTION APPROVED' : 'LATE MARK PENDING'}</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[10px]">
-            <div class="bg-slate-50 rounded-xl p-2"><span class="text-slate-400 block">Late by</span><b class="text-amber-800">${log.lateMinutes || 0} minutes</b></div>
-            <div class="bg-slate-50 rounded-xl p-2"><span class="text-slate-400 block">Original status</span><b class="text-slate-800">Late — retained</b></div>
-          </div>
-          ${approved ? `<div class="text-[10px] bg-emerald-50 text-emerald-900 p-2 rounded-xl">✓ Waived by <b>${log.lateExceptionBy || 'Samrajya'}</b> at ${log.lateExceptionAt ? new Date(log.lateExceptionAt).toLocaleString() : '--'}${log.lateExceptionReason ? `<br>Reason: ${log.lateExceptionReason}` : ''}</div>` : `<button onclick="grantLateException('${log.id}')" class="w-full py-2.5 bg-[#05281b] hover:bg-[#073624] text-white rounded-xl font-black text-xs cursor-pointer">✓ Grant Late Exception</button>`}
-          ${approved ? `<button onclick="revokeLateException('${log.id}')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-[10px] cursor-pointer">Restore Late Mark</button>` : ''}
-        `;
+        const inTime = log.punchInTime ? new Date(log.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '--';
+        const status = log.lateExceptionStatus || (log.lateExceptionApproved ? 'APPROVED' : 'PENDING');
+        const map = {PENDING:['LATE MARK PENDING','bg-amber-100 text-amber-900','border-amber-200'],APPROVED:['EXCEPTION APPROVED','bg-emerald-100 text-emerald-800','border-emerald-200'],REJECTED:['EXCEPTION REJECTED','bg-red-100 text-red-800','border-red-200']};
+        const [label,badgeClass,borderClass] = map[status] || map.PENDING;
+        const card=document.createElement('div'); card.className=`p-3.5 bg-white border rounded-3xl space-y-2 shadow-sm ${borderClass}`;
+        const decisionText=status==='APPROVED'?`✓ Approved by <b>${log.lateExceptionBy||'Samrajya'}</b> at ${log.lateExceptionAt?new Date(log.lateExceptionAt).toLocaleString():'--'}`:status==='REJECTED'?`✕ Rejected by <b>${log.lateExceptionBy||'Samrajya'}</b> at ${log.lateExceptionAt?new Date(log.lateExceptionAt).toLocaleString():'--'}`:'Awaiting Super Admin decision.';
+        card.innerHTML=`<div class="flex justify-between items-start gap-2"><div><div class="font-black text-slate-900 text-xs">${name}</div><div class="text-[10px] text-slate-400 font-mono">${log.date} • Punch-in ${inTime}</div></div><span class="text-[9px] font-black px-2 py-1 rounded-full ${badgeClass}">${label}</span></div><div class="grid grid-cols-2 gap-2 text-[10px]"><div class="bg-slate-50 rounded-xl p-2"><span class="text-slate-400 block">Original late</span><b class="text-amber-800">${log.lateExceptionOriginalMinutes||log.lateMinutes||0} minutes</b></div><div class="bg-slate-50 rounded-xl p-2"><span class="text-slate-400 block">Punch-in</span><b class="text-slate-800">${inTime}</b></div></div><div class="text-[10px] ${status==='APPROVED'?'bg-emerald-50 text-emerald-900':status==='REJECTED'?'bg-red-50 text-red-900':'bg-amber-50 text-amber-900'} p-2 rounded-xl">${decisionText}${log.lateExceptionReason?`<br>Reason: <b>${log.lateExceptionReason}</b>`:''}</div>${status==='PENDING'?`<div class="grid grid-cols-2 gap-2"><button onclick="decideLateException('${log.id}','APPROVED')" class="py-3 bg-[#05281b] text-white rounded-xl font-black text-xs">✓ Approve Late Exception</button><button onclick="decideLateException('${log.id}','REJECTED')" class="py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-xs border-2 border-red-700">✕ Reject Late Coming</button></div><div class="text-[9px] text-slate-500 text-center font-semibold">Reject = late mark remains; actual punch-in time is never changed.</div>`:status==='APPROVED'?`<div class="grid grid-cols-2 gap-2"><button onclick="reopenLateException('${log.id}')" class="py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-[10px]">Reopen Decision</button><button onclick="rejectApprovedLateException('${log.id}')" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-[10px]">✕ Reject Approval</button></div>`:`<button onclick="reopenLateException('${log.id}')" class="w-full py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-[10px]">Reopen Decision</button>`}`;
         container.appendChild(card);
       });
     }
-
-    function grantLateException(attendanceId) {
-      if (!isSuperAdmin()) return showToast('Permission Denied: Samrajya / Super Admin only.', true);
-      appState = loadState();
-      const log = (appState.attendance || []).find(a => a.id === attendanceId);
-      if (!log || !log.isLate) return showToast('Late attendance record not found.', true);
-      if (log.lateExceptionApproved) return showToast('Exception is already approved.', true);
-
-      const reason = window.prompt('Reason for late exception (optional):', 'Approved by Samrajya') || 'Approved by Samrajya';
-      log.lateExceptionApproved = true;
-      log.lateExceptionBy = currentAuthUser.name || 'Samrajya';
-      log.lateExceptionAt = new Date().toISOString();
-      log.lateExceptionReason = reason.trim() || 'Approved by Samrajya';
+    function decideLateException(attendanceId, decision) {
+      if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
+      if (!['APPROVED','REJECTED'].includes(decision)) return;
+      appState=loadState(); const log=(appState.attendance||[]).find(a=>a.id===attendanceId);
+      if (!log||!log.isLate) return showToast('Late attendance record not found.',true);
+      const currentStatus=log.lateExceptionStatus||(log.lateExceptionApproved?'APPROVED':'PENDING');
+      if(currentStatus!=='PENDING') return showToast('This late exception already has a decision.',true);
+      const reason=window.prompt(decision==='APPROVED'?'Reason for approving this late exception (required):':'Reason for rejecting this late exception (required):');
+      if(reason===null)return; const cleanReason=reason.trim(); if(!cleanReason)return showToast('A reason is required for every late exception decision.',true);
+      const originalMinutes=log.lateExceptionOriginalMinutes||log.lateMinutes||0;
+      log.lateExceptionStatus=decision; log.lateExceptionApproved=decision==='APPROVED'; log.lateExceptionBy=currentAuthUser.name||'Samrajya'; log.lateExceptionAt=new Date().toISOString(); log.lateExceptionReason=cleanReason; log.lateExceptionOriginalMinutes=originalMinutes;
+      saveState(appState); addAuditLog(decision==='APPROVED'?'APPROVE_LATE_EXCEPTION':'REJECT_LATE_EXCEPTION','ATTENDANCE',JSON.stringify({attendanceId,originalLateMinutes:originalMinutes,decision,reason:cleanReason}),attendanceId);
+      const emp=(appState.employees||[]).find(e=>e.id===log.employeeId);
+      const punchIn=log.punchInTime?new Date(log.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--';
+      createStaffNotification(log.employeeId, decision==='APPROVED'?'LATE_APPROVED':'LATE_REJECTED', decision==='APPROVED'?'✅ Late Coming Approved':'❌ Late Coming Rejected', decision==='APPROVED'?`Your late-coming exception for ${log.date} has been approved. The ${originalMinutes}-minute late penalty is waived.`:`Your late-coming exception for ${log.date} has been rejected. The ${originalMinutes}-minute late mark remains on your attendance record.`, {date:log.date,punchIn,lateMinutes:originalMinutes,decidedBy:currentAuthUser.name||'Samrajya',reason:cleanReason});
+      showToast(decision==='APPROVED'?`Late exception approved. ${originalMinutes}m penalty waived.`:`Late exception rejected. ${originalMinutes}m late mark remains.`); renderLateExceptions();
+      if(currentActivePage==='page-dashboard')renderEmployeePersonalData(); if(currentActivePage==='page-history')renderPersonalLedgerView();
+    }
+    function rejectApprovedLateException(attendanceId) {
+      if(!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
+      appState=loadState();
+      const log=(appState.attendance||[]).find(a=>a.id===attendanceId);
+      if(!log||!log.isLate) return showToast('Attendance record not found.',true);
+      const status=log.lateExceptionStatus||(log.lateExceptionApproved?'APPROVED':'PENDING');
+      if(status!=='APPROVED') return showToast('Only an approved late exception can be rejected.',true);
+      const reason=window.prompt('Reason for rejecting the approved late exception (required):');
+      if(reason===null)return;
+      const cleanReason=reason.trim();
+      if(!cleanReason)return showToast('A reason is required for every late exception decision.',true);
+      const originalMinutes=log.lateExceptionOriginalMinutes||log.lateMinutes||0;
+      log.lateExceptionStatus='REJECTED';
+      log.lateExceptionApproved=false;
+      log.lateExceptionBy=currentAuthUser.name||'Samrajya';
+      log.lateExceptionAt=new Date().toISOString();
+      log.lateExceptionReason=cleanReason;
+      log.lateExceptionOriginalMinutes=originalMinutes;
       saveState(appState);
-      showToast(`Late exception approved for ${log.lateMinutes || 0} minutes.`);
+      addAuditLog('REJECT_APPROVED_LATE_EXCEPTION','ATTENDANCE',JSON.stringify({attendanceId,originalLateMinutes:originalMinutes,decision:'REJECTED',reason:cleanReason}),attendanceId);
+      const emp=(appState.employees||[]).find(e=>e.id===log.employeeId);
+      const punchIn=log.punchInTime?new Date(log.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--';
+      createStaffNotification(log.employeeId, 'LATE_REJECTED', '❌ Late Coming Approval Rejected', `Your previously approved late-coming exception for ${log.date} has been rejected. The ${originalMinutes}-minute late mark now remains on your attendance record.`, {date:log.date,punchIn,lateMinutes:originalMinutes,decidedBy:currentAuthUser.name||'Samrajya',reason:cleanReason});
+      showToast(`Late approval rejected. ${originalMinutes}m late mark remains.`);
       renderLateExceptions();
-      if (currentActivePage === 'page-dashboard') renderEmployeePersonalData();
-      if (currentActivePage === 'page-history') renderPersonalLedgerView();
+      if(currentActivePage==='page-dashboard')renderEmployeePersonalData();
+      if(currentActivePage==='page-history')renderPersonalLedgerView();
     }
 
-    function revokeLateException(attendanceId) {
-      if (!isSuperAdmin()) return showToast('Permission Denied: Samrajya / Super Admin only.', true);
-      appState = loadState();
-      const log = (appState.attendance || []).find(a => a.id === attendanceId);
-      if (!log) return showToast('Attendance record not found.', true);
-      log.lateExceptionApproved = false;
-      log.lateExceptionBy = null;
-      log.lateExceptionAt = null;
-      log.lateExceptionReason = null;
-      saveState(appState);
-      showToast('Late mark restored. Original late minutes remain unchanged.');
-      renderLateExceptions();
+    function reopenLateException(attendanceId) {
+      if(!isSuperAdmin())return showToast('Permission Denied: Super Admin only.',true); appState=loadState(); const log=(appState.attendance||[]).find(a=>a.id===attendanceId); if(!log||!log.isLate)return showToast('Attendance record not found.',true);
+      const reason=window.prompt('Reason for reopening this late exception (required):'); if(reason===null)return; if(!reason.trim())return showToast('A reason is required.',true);
+      const previous=log.lateExceptionStatus||(log.lateExceptionApproved?'APPROVED':'PENDING'); log.lateExceptionStatus='PENDING'; log.lateExceptionApproved=false; log.lateExceptionBy=null; log.lateExceptionAt=null; log.lateExceptionReason=null; saveState(appState);
+      addAuditLog('REOPEN_LATE_EXCEPTION','ATTENDANCE',JSON.stringify({attendanceId,previousStatus:previous,reason:reason.trim()}),attendanceId); renderLateExceptions(); showToast('Late exception reopened for review.');
     }
+    function grantLateException(attendanceId){decideLateException(attendanceId,'APPROVED');}
+    function revokeLateException(attendanceId){reopenLateException(attendanceId);}
 
     function renderReportsTabUI() {
-      const resetCard = document.getElementById('card-superadmin-reset');
-      if (resetCard) resetCard.classList.toggle('hidden', !isSuperAdmin());
     }
 
     function updateGeofenceSettingsUI() {
@@ -3414,11 +3484,9 @@
       const logs = (appState.attendance || []).filter(a => a.employeeId === empId);
       let totalMins = 0;
       let onTimeCount = 0;
-      let otTotalMins = 0;
 
       logs.forEach(l => {
         totalMins += (l.totalMinutes || 0);
-        otTotalMins += (l.overtimeMinutes || 0);
         if (!l.isLate || l.lateExceptionApproved) onTimeCount++;
       });
 
@@ -3426,7 +3494,6 @@
       document.getElementById('modal-stat-shifts').innerText = logs.length;
       document.getElementById('modal-stat-hours').innerText = `${(totalMins / 60).toFixed(1)}h`;
       document.getElementById('modal-stat-ontime').innerText = `${onTimePct}%`;
-      document.getElementById('modal-stat-ot').innerText = `${otTotalMins}m`;
 
       const chartBars = document.getElementById('modal-chart-bars');
       const chartLabels = document.getElementById('modal-chart-labels');
@@ -3501,12 +3568,28 @@
       appState = loadState();
       const req = (appState.leaveRequests || []).find(l => l.id === reqId);
       if (!req) return;
+      const reason = window.prompt(status === 'APPROVED' ? 'Reason for approving this leave request (required):' : 'Reason for rejecting this leave request (required):');
+      if (reason === null) return;
+      const cleanReason = reason.trim();
+      if (!cleanReason) return showToast('A reason is required for every leave decision.', true);
 
       req.status = status;
       req.reviewedBy = currentAuthUser.name;
       req.reviewDate = new Date().toISOString();
+      req.reviewReason = cleanReason;
       saveState(appState);
 
+      createStaffNotification(
+        req.employeeId,
+        status === 'APPROVED' ? 'LEAVE_APPROVED' : 'LEAVE_REJECTED',
+        status === 'APPROVED' ? '✅ Leave Request Approved' : '❌ Leave Request Rejected',
+        status === 'APPROVED'
+          ? `Your ${req.type.replace(/_/g, ' ').toLowerCase()} leave request for ${req.date} has been approved.`
+          : `Your ${req.type.replace(/_/g, ' ').toLowerCase()} leave request for ${req.date} has been rejected.`,
+        { date: req.date, leaveType: req.type.replace(/_/g, ' '), reason: cleanReason, decidedBy: currentAuthUser.name || 'Manager' }
+      );
+
+      addAuditLog(status === 'APPROVED' ? 'APPROVE_LEAVE' : 'REJECT_LEAVE', 'LEAVE', JSON.stringify({requestId:reqId, date:req.date, reason:cleanReason}), reqId);
       showToast(`Request ${status.toLowerCase()}!`);
       renderAdminLeavesList();
     }
@@ -3631,10 +3714,10 @@
     // ================= SYSTEM UTILITIES & EXPORTS ================= //
     function exportAttendanceCSV() {
       appState = loadState();
-      let csv = 'Store,Employee,Date,Punch In,Punch Out,Minutes,Late,Late Exception,Exception By,Exception Reason,Overtime\n';
+      let csv = 'Store,Employee,Date,Punch In,Punch Out,Minutes,Late,Late Exception,Exception By,Exception Reason\n';
       (appState.attendance || []).forEach(a => {
         const emp = (appState.employees || []).find(e => e.id === a.employeeId) || { name: 'Staff' };
-        csv += `"Wellwith Mangaluru","${emp.name}","${a.date}","${a.punchInTime||''}","${a.punchOutTime||''}","${a.totalMinutes||0}","${a.isLate?'YES':'NO'}","${a.lateExceptionApproved?'APPROVED':'NO'}","${a.lateExceptionBy||''}","${a.lateExceptionReason||''}","${a.overtimeMinutes||0}"\n`;
+        csv += `"Wellwith Mangaluru","${emp.name}","${a.date}","${a.punchInTime||''}","${a.punchOutTime||''}","${a.totalMinutes||0}","${a.isLate?'YES':'NO'}","${a.lateExceptionApproved?'APPROVED':'NO'}","${a.lateExceptionBy||''}","${a.lateExceptionReason||''}"\n`;
       });
       downloadFile(csv, `wellwith_attendance_${Date.now()}.csv`, 'text/csv');
       showToast('Attendance CSV exported!');
