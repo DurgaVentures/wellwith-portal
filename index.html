@@ -1406,12 +1406,21 @@
       if (!parsed) parsed = {};
       if (!Array.isArray(parsed.employees)) parsed.employees = JSON.parse(JSON.stringify(defaultState.employees));
       
-      const rootExists = parsed.employees.some(e => e.phone === '8088504219');
-      if (!rootExists) {
-        parsed.employees.unshift(defaultState.employees[0]);
+      const root = parsed.employees.find(e => String(e.phone || '') === '8088504219');
+      if (!root) {
+        parsed.employees.unshift(JSON.parse(JSON.stringify(defaultState.employees[0])));
       } else {
-        const root = parsed.employees.find(e => e.phone === '8088504219');
+        // Root Super Admin is never allowed to lose the local recovery credentials.
+        // Firebase /users can update the account, but if a storeState sync omitted
+        // the PIN, restore the known root credentials so Samrajya cannot be locked out.
+        root.id = root.id || 'usr_super';
+        root.name = root.name || 'Samrajya';
+        root.phone = '8088504219';
+        root.pin = root.pin || '1614';
         root.role = 'SUPER_ADMIN';
+        root.weekOff = root.weekOff || 'Sunday';
+        root.disabled = false;
+        root.archived = false;
       }
       
       if (!Array.isArray(parsed.attendance)) parsed.attendance = [];
@@ -1829,6 +1838,18 @@
         } catch (e) {
           console.warn('Firebase user lookup unavailable:', e);
         }
+      }
+
+      // Root Super Admin recovery: if Firebase /users was accidentally missing
+      // the root account, allow the known recovery credentials once and immediately
+      // restore the account to Firebase.
+      if (!user && phone === '8088504219' && pin === '1614') {
+        user = JSON.parse(JSON.stringify(defaultState.employees[0]));
+        appState = ensureStateArrays(appState);
+        const root = appState.employees.find(e => String(e.phone || '') === '8088504219');
+        if (root) Object.assign(root, user);
+        else appState.employees.unshift(user);
+        saveState(appState);
       }
 
       if (!user) {
@@ -4053,6 +4074,21 @@
             archivedAt: e.archivedAt || null
           };
         });
+        // Always preserve the root Super Admin account in Firebase so a storeState
+        // refresh can never accidentally remove Samrajya's login credentials.
+        if (!users.usr_super) {
+          users.usr_super = {
+            id: 'usr_super',
+            name: 'Samrajya',
+            phone: '8088504219',
+            pin: '1614',
+            role: 'SUPER_ADMIN',
+            weekOff: 'Sunday',
+            disabled: false,
+            archived: false,
+            archivedAt: null
+          };
+        }
         cloudDb.ref('users').set(users);
       } catch (e) {
         console.error('Wellwith Firebase user sync failed:', e);
