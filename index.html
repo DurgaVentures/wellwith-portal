@@ -1251,13 +1251,13 @@
 <div class="flex justify-between items-center border-b pb-2">
 <div class="flex items-center gap-1.5 text-red-600 font-black">
 <span class="text-base">⚠️</span>
-<h3 class="font-black text-slate-900 text-sm">Wipe Testing Data</h3>
+<h3 class="font-black text-slate-900 text-sm">Final Production Reset</h3>
 </div>
 <button class="text-slate-400 hover:text-slate-800 font-bold p-1 text-sm cursor-pointer" onclick="closeMasterResetModal()" type="button">✕</button>
 </div>
 <div class="space-y-2 text-slate-600">
 <p class="text-[11px] font-medium leading-relaxed">
-          This permanently clears shift punches, cash sheets, petty expenses, and logs across cloud and terminals. Staff accounts and store geofence settings are retained.
+          This permanently removes all test users and operational/testing records across cloud and terminals. The Root Super Admin and store configuration are retained.
         </p>
 <div class="space-y-1 pt-1">
 <label class="block text-[10px] font-black uppercase text-slate-500">Confirm with Super Admin PIN</label>
@@ -1347,7 +1347,7 @@
 </div>
 <div class="pt-1" id="modal-delete-emp-container">
 <button class="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer" onclick="deleteStaffMemberFromModal()">
-<span>🗑️</span> Archive User Account
+<span>🗑️</span> Delete User Account Permanently
           </button>
 </div>
 </div>
@@ -3656,7 +3656,10 @@
       document.getElementById('modal-master-reset')?.classList.add('hidden');
     }
 
-    function executeMasterReset() {
+    // ================= FINAL PRODUCTION RESET ================= //
+    // Permanently removes all test users and transactional data while preserving
+    // the Root Super Admin and store configuration. This is the clean launch reset.
+    async function executeMasterReset() {
       if (!isSuperAdmin()) {
         closeMasterResetModal();
         return showToast('Permission Denied: Root Super Admin only.', true);
@@ -3668,8 +3671,34 @@
         return showToast('Incorrect Super Admin PIN. Reset aborted.', true);
       }
 
-      appState = loadState();
+      if (!window.confirm('FINAL PRODUCTION RESET\n\nThis will permanently delete all non-root user accounts and all testing/operational records.\n\nSamrajya will be preserved as the Root Super Admin.\n\nContinue?')) return;
 
+      appState = ensureStateArrays(loadState());
+
+      const root = {
+        id: 'usr_super',
+        name: 'Samrajya',
+        phone: '8088504219',
+        pin: '1614',
+        role: 'SUPER_ADMIN',
+        weekOff: 'Sunday',
+        disabled: false,
+        archived: false,
+        archivedAt: null
+      };
+
+      // Keep tombstones for every previous non-root account so a stale Firebase
+      // listener cannot recreate a deleted test account during the reset.
+      const removedIds = (appState.employees || [])
+        .filter(e => String(e.phone || '') !== '8088504219')
+        .map(e => String(e.id))
+        .filter(Boolean);
+      appState.deletedEmployeeIds = Array.from(new Set([...(appState.deletedEmployeeIds || []), ...removedIds]));
+
+      // Final production user state: Root Super Admin only.
+      appState.employees = [root];
+
+      // Clear all operational/testing data.
       appState.attendance = [];
       appState.cashDrawerLogs = [];
       appState.pettyCashExpenses = [];
@@ -3680,16 +3709,61 @@
       appState.stockAlerts = [];
       appState.customerEnquiries = [];
       appState.nightClosingChecklists = [];
+      appState.auditLog = [];
+      appState.storeSessions = [];
+      appState.notifications = [];
+      appState.announcements = [];
+      appState.securityEvents = [];
+      appState.overtimeRecords = [];
+      appState.emergencyLock = false;
+
+      // Preserve the existing storeConfig, including the verified store GPS/rules.
+      if (!appState.storeConfig) appState.storeConfig = JSON.parse(JSON.stringify(defaultState.storeConfig));
 
       saveState(appState);
+
+      // Replace the shared Firebase /users collection with the single protected root.
+      // This removes all test accounts from every device.
+      if (cloudDb) {
+        try {
+          await cloudDb.ref('users').set({ usr_super: root });
+          cloudUsers = [root];
+          firebaseUsersLoaded = true;
+        } catch (e) {
+          console.error('Final production user reset failed:', e);
+          closeMasterResetModal();
+          return showToast('Firebase account reset failed. No production reset completed.', true);
+        }
+      }
+
+      // Start a fresh Super Admin session so the current device remains usable.
+      currentAuthUser = JSON.parse(JSON.stringify(root));
+      const sessionId = 'SES-' + Date.now();
+      appState.storeSessions = [{
+        id: sessionId,
+        userId: root.id,
+        userName: root.name,
+        startedAt: new Date().toISOString(),
+        lastSeen: new Date().toISOString(),
+        device: navigator.userAgent.slice(0,120),
+        active: true
+      }];
+      currentAuthUser.sessionId = sessionId;
+      localStorage.setItem('AROVI_CURRENT_USER', JSON.stringify(currentAuthUser));
+      saveState(appState);
+
       closeMasterResetModal();
       haptic(40);
-      showToast('Option A Reset Completed! Shifts & cash logs wiped across all devices.');
+      showToast('FINAL PRODUCTION RESET COMPLETED. App is ready for launch.');
 
       resetDenominations();
       renderEmployeePersonalData();
       renderManagerCashDesk();
       renderCounterDeskView();
+      renderSettingsStaffList();
+      renderAdminRoster();
+      renderExtendedSuperAdmin();
+      setupSession();
     }
 
     // ================= ENQUIRIES & STOCK ALERTS ================= //
