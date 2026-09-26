@@ -115,6 +115,8 @@
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-dashboard')">
 <span>🏠</span> <span>Dashboard Overview</span>
 </button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-profile')"><span>👤</span> <span>My Profile</span></button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-salary-slips')"><span>💳</span> <span>My Salary Slips</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-history')">
 <span>📜</span> <span>Shift &amp; Attendance Logs</span>
 </button>
@@ -124,6 +126,7 @@
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-schedule')"><span>📅</span> <span>My Schedule</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-notifications')"><span>🔔</span> <span>Notification Center</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-milestones')"><span>🏆</span> <span>My Milestones</span></button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-knowledge')"><span>📚</span> <span>Product Knowledge</span></button>
 <div class="text-[9px] uppercase font-black text-slate-400 px-3 pt-3 pb-1 tracking-widest">Store Operations</div>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" id="nav-item-gate" onclick="haptic(8); navigateTo('page-gate')">
 <span>📍</span> <span>Attendance Gate</span>
@@ -240,6 +243,19 @@
     </div>
   </div>
 
+  <!-- My Profile shortcut -->
+  <button type="button" onclick="haptic(8); navigateTo('page-profile')" class="w-full text-left bg-white rounded-3xl border border-slate-200/80 shadow-sm p-3.5 hover:border-emerald-200 active:scale-[0.99] transition cursor-pointer">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center text-lg">👤</div>
+      <div class="min-w-0 flex-1">
+        <div class="text-[9px] uppercase tracking-widest font-black text-emerald-700">My Profile</div>
+        <div class="text-xs font-black text-slate-900 truncate">View your employee details</div>
+        <div class="text-[9px] text-slate-400 font-medium">Employee ID · Role · Weekly Off</div>
+      </div>
+      <span class="text-slate-400 text-sm">›</span>
+    </div>
+  </button>
+
   <!-- Notifications / announcements -->
   <div id="staff-announcements-panel" class="hidden bg-blue-50 border border-blue-200 rounded-3xl p-4 shadow-sm space-y-2">
     <div class="flex items-center gap-2"><span class="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center text-lg">📢</span><div><div class="font-black text-xs text-blue-950">Admin Announcements</div><div class="text-[10px] text-blue-700">Important messages from management</div></div></div>
@@ -305,6 +321,58 @@
     <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm"><div class="text-[8px] uppercase font-black text-slate-400 tracking-wider">Work</div><div class="text-xl font-black text-emerald-800 mt-1" id="stat-net-hours">0h 0m</div><div class="text-[9px] text-slate-400">net</div></div>
   </div>
 </section>
+<!-- ================= PROFILE PAGE ================= -->
+<section class="hidden space-y-4" id="page-profile">
+  <div class="bg-[#05281b] text-white rounded-3xl p-5 shadow-sm">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-lg font-black" id="profile-avatar">WW</div>
+      <div class="min-w-0 flex-1">
+        <div class="text-[9px] uppercase font-black tracking-widest text-emerald-300">Employee Profile</div>
+        <div class="text-lg font-black truncate" id="profile-name">--</div>
+        <div class="text-[10px] text-emerald-100/80 font-mono" id="profile-code">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-100">
+      <div class="text-xs font-black text-slate-900">Account Details</div>
+      <div class="text-[10px] text-slate-400">Your registered store information</div>
+    </div>
+    <div class="divide-y divide-slate-100">
+      <div class="px-4 py-3 flex items-center justify-between gap-4"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Employee ID</span><span class="text-sm font-black font-mono text-emerald-800" id="profile-employee-id">--</span></div>
+      <div class="px-4 py-3 flex items-center justify-between gap-4"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</span><span class="text-xs font-black text-slate-900 text-right" id="profile-full-name">--</span></div>
+      <div class="px-4 py-3 flex items-center justify-between gap-4"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile</span><span class="text-xs font-mono font-bold text-slate-800" id="profile-phone">--</span></div>
+      <div class="px-4 py-3 flex items-center justify-between gap-4"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role</span><span class="text-[9px] font-black uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800" id="profile-role">STAFF</span></div>
+      <div class="px-4 py-3 flex items-center justify-between gap-4"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Weekly Off</span><span class="text-xs font-bold text-slate-800" id="profile-weekoff">--</span></div>
+      <div class="px-4 py-3 flex items-center justify-between gap-4"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date of Joining</span><span class="text-xs font-bold text-slate-800" id="profile-date-of-joining">--</span></div>
+      <div class="px-4 py-3 flex items-center justify-between gap-4"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Status</span><span class="text-[9px] font-black px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800" id="profile-status">ACTIVE</span></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-2.5">
+    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm"><div class="text-[8px] uppercase font-black text-slate-400 tracking-wider">Present</div><div class="text-xl font-black text-slate-800 mt-1" id="profile-present">0</div><div class="text-[9px] text-slate-400">shifts</div></div>
+    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm"><div class="text-[8px] uppercase font-black text-slate-400 tracking-wider">Late</div><div class="text-xl font-black text-amber-700 mt-1" id="profile-late">0</div><div class="text-[9px] text-slate-400">marks</div></div>
+    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm"><div class="text-[8px] uppercase font-black text-slate-400 tracking-wider">Hours</div><div class="text-xl font-black text-emerald-800 mt-1" id="profile-hours">0h</div><div class="text-[9px] text-slate-400">worked</div></div>
+  </div>
+
+  <div class="bg-slate-50 border border-slate-200 rounded-3xl p-4 text-[10px] text-slate-500 font-medium">
+    <div class="font-black text-slate-800 text-xs mb-1">🔐 Profile Security</div>
+    Your Employee ID is permanent and is used internally for attendance and store records. Your login PIN is not displayed here.
+  </div>
+</section>
+
+<!-- ================= SALARY SLIPS ================= -->
+<section class="hidden space-y-4" id="page-salary-slips">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div><p class="text-[9px] uppercase tracking-widest font-black text-emerald-700">Self-Service</p><h2 class="text-xl font-black text-slate-900 mt-1">My Salary Slips</h2><p class="text-[10px] text-slate-500 mt-1">View salary slips issued to your employee account.</p></div>
+      <span class="text-2xl">💳</span>
+    </div>
+  </div>
+  <div id="my-salary-slip-list" class="space-y-2"></div>
+</section>
+
 <!-- ================= MODULE 7: PERSONAL ATTENDANCE HISTORY ================= -->
 <section class="hidden space-y-4" id="page-history">
   <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
@@ -812,6 +880,22 @@
 <section class="hidden space-y-4" id="page-notifications"><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3"><div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Updates</div><h2 class="text-xl font-black text-slate-900 mt-1">Notification Center</h2><p class="text-[10px] text-slate-500 mt-1">Important store and account updates.</p></div><button onclick="markAllNotificationsRead(); renderNotificationCenterPage()" class="text-[9px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-2 rounded-xl">Mark all read</button></div><div id="notification-center-summary" class="mt-3 text-[10px] text-slate-500"></div><div id="notification-center-list" class="space-y-2 mt-3"></div></div></section>
 <!-- ================= MODULE 10C: MY MILESTONES ================= -->
 <section class="hidden space-y-4" id="page-milestones"><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">My Progress</div><h2 class="text-xl font-black text-slate-900 mt-1">Milestones</h2><p class="text-[10px] text-slate-500 mt-1">Simple personal milestones based on your recorded store work.</p><div id="my-milestones-summary" class="mt-4"></div><div id="my-milestones-list" class="space-y-2 mt-3"></div></div></section>
+<!-- ================= MODULE 10C: PRODUCT KNOWLEDGE ================= -->
+<section class="hidden space-y-4" id="page-knowledge">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Store Learning</div><h2 class="text-xl font-black text-slate-900 mt-1">Product Knowledge</h2><p class="text-[10px] text-slate-500 mt-1">Quick product information for customer conversations.</p></div>
+      <button id="knowledge-add-btn" onclick="openKnowledgeEditor()" class="hidden px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-[9px] font-black">＋ Add</button>
+    </div>
+    <div class="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+      <input id="knowledge-search" oninput="renderProductKnowledge()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold outline-none" placeholder="Search products or topics...">
+      <select id="knowledge-category" onchange="renderProductKnowledge()" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold outline-none"><option value="ALL">All topics</option><option value="PRODUCT">Products</option><option value="SEA BUCKTHORN">Sea Buckthorn</option><option value="FAQ">Customer FAQ</option></select>
+    </div>
+    <div class="mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-[9px] text-amber-900">Use only current, approved Wellwith product information when speaking with customers. Do not promise cures or medical outcomes.</div>
+    <div id="product-knowledge-list" class="space-y-2 mt-3"></div>
+  </div>
+</section>
+
 <!-- ================= MODULE 10D: STAFF SUGGESTIONS ================= -->
 <section class="hidden space-y-4" id="page-suggestions"><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Team Voice</div><h2 class="text-xl font-black text-slate-900 mt-1">Staff Suggestions</h2><p class="text-[10px] text-slate-500 mt-1">Share a practical idea that can improve the store.</p><div class="mt-4 space-y-3"><select id="suggestion-category" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold"><option>Customer Experience</option><option>Store Operations</option><option>Products</option><option>Team</option><option>Other</option></select><textarea id="suggestion-text" rows="4" maxlength="500" placeholder="Write your suggestion..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium resize-none"></textarea><button onclick="submitStaffSuggestion()" class="w-full py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">💡 Submit Suggestion</button></div></div><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="flex justify-between items-center"><div><h3 class="text-xs font-black text-slate-900">My Suggestions</h3><p class="text-[9px] text-slate-400">Your submitted ideas</p></div><span id="my-suggestions-count" class="text-[9px] font-black text-slate-400"></span></div><div id="my-suggestions-list" class="space-y-2 mt-3"></div></div></section>
 <!-- ================= MODULE 10E: MANAGEMENT DAILY SNAPSHOT ================= -->
@@ -847,18 +931,50 @@
           <button onclick="saCreateEmployee()" class="px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-[10px] font-black">＋ Add</button>
         </div>
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-          <select id="sa-role-employee" class="w-full px-3 py-2 border rounded-xl text-[10px] font-bold bg-white"></select>
+          <select id="sa-role-employee" onchange="syncSelectedEmployeeRoleUI()" class="w-full px-3 py-2 border rounded-xl text-[10px] font-bold bg-white"></select>
           <div class="grid grid-cols-2 gap-2">
             <select id="sa-role-value" class="px-2 py-2 border rounded-xl text-[10px] font-bold bg-white"><option>STAFF</option><option>MANAGER</option><option>OWNER</option><option>SUPER_ADMIN</option></select>
-            <button onclick="saChangeRole()" class="px-2 py-2 bg-white border rounded-xl text-[10px] font-black">Change Role</button>
+            <button id="sa-role-change-btn" onclick="saChangeRole()" class="px-2 py-2 bg-white border rounded-xl text-[10px] font-black">Change Role</button>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <button onclick="saEditEmployee()" class="px-2 py-2 bg-white border rounded-xl text-[10px] font-bold">Edit</button>
-            <button onclick="saArchiveSelected()" class="px-2 py-2 bg-amber-50 border border-amber-200 rounded-xl text-[10px] font-bold text-amber-900">Disable</button>
+            <button onclick="saArchiveSelected()" class="px-2 py-2 bg-amber-50 border border-amber-200 rounded-xl text-[10px] font-bold text-amber-900">Archive</button>
             <button onclick="saForceLogoutSelected()" class="px-2 py-2 bg-red-50 border border-red-200 rounded-xl text-[10px] font-bold text-red-800">Logout</button>
           </div>
         </div>
         <div id="sa-account-list" class="space-y-2"></div>
+        <div class="pt-3 border-t border-slate-200 space-y-3">
+          <div><h4 class="text-[10px] font-black text-slate-900">💳 Salary Slips</h4><p class="text-[9px] text-slate-400">Enter the salary figures you have already calculated and issue the final slip to the employee.</p></div>
+          <div class="grid grid-cols-2 gap-2">
+            <select id="sa-salary-employee" class="px-3 py-2 border rounded-xl text-[10px] font-bold bg-white"></select>
+            <input id="sa-salary-month" type="month" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input id="sa-salary-payment-date" type="date" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <select id="sa-salary-payment-mode" class="px-3 py-2 border rounded-xl text-[10px] font-bold bg-white"><option>Bank Transfer</option><option>Cash</option><option>UPI</option><option>Other</option></select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input id="sa-salary-basic" type="number" min="0" step="0.01" placeholder="Basic Salary ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-hra" type="number" min="0" step="0.01" placeholder="HRA ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-other" type="number" min="0" step="0.01" placeholder="Other Allowances ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-gross" type="number" min="0" step="0.01" placeholder="Total Earnings ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-deductions" type="number" min="0" step="0.01" placeholder="Total Deductions ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-net" type="number" min="0" step="0.01" placeholder="NET SALARY PAID ₹ *" class="px-3 py-2 border rounded-xl text-[10px] font-black border-emerald-300 bg-emerald-50"/>
+          </div>
+          <input id="sa-salary-notes" maxlength="300" placeholder="Optional remarks" class="w-full px-3 py-2 border rounded-xl text-[10px]"/>
+          <button class="w-full p-2.5 bg-[#05281b] text-white rounded-xl font-black text-[10px]" onclick="createSalarySlip()">Generate & Issue Salary Slip</button>
+          <div id="sa-salary-slip-list" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar"></div>
+        </div>
+        <div class="pt-2 border-t border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-[10px] font-black text-slate-900">Archived Employees</h4>
+              <p class="text-[9px] text-slate-400">Former employees remain here with their history and employee code.</p>
+            </div>
+            <span id="sa-archived-count" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full font-black">0</span>
+          </div>
+          <div id="sa-archived-list" class="space-y-2"></div>
+        </div>
       </div>
 
       <!-- ATTENDANCE -->
@@ -970,7 +1086,7 @@
   </div>
 
   <!-- Hidden compatibility containers used by existing admin functions. -->
-  <div class="hidden" id="view-admin-roster"></div><div class="hidden" id="view-admin-staff"></div><div class="hidden" id="view-admin-attendance"></div><div class="hidden" id="view-admin-leaves"></div><div class="hidden" id="view-admin-reports"></div><div class="hidden" id="view-admin-late"></div><div class="hidden" id="view-admin-geofence"></div>
+  
 </section>
 </main>
 <!-- Native App Bottom Navigation Bar -->
@@ -1221,6 +1337,22 @@
   </div>
 </div>
 
+
+<!-- Product Knowledge Editor -->
+<div id="knowledge-editor-modal" class="hidden fixed inset-0 z-[95] bg-black/40 p-4 flex items-center justify-center">
+  <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between"><div><div class="text-[9px] uppercase tracking-widest font-black text-emerald-700">Management</div><h3 class="text-base font-black text-slate-900">Product Knowledge</h3></div><button onclick="closeKnowledgeEditor()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 font-black">×</button></div>
+    <div class="p-4 space-y-3">
+      <input id="knowledge-edit-id" type="hidden">
+      <input id="knowledge-edit-title" class="w-full px-3 py-3 border border-slate-200 rounded-2xl text-xs font-bold outline-none" placeholder="Product / topic title">
+      <select id="knowledge-edit-category" class="w-full px-3 py-3 border border-slate-200 rounded-2xl text-xs font-bold bg-white outline-none"><option value="PRODUCT">Product</option><option value="SEA BUCKTHORN">Sea Buckthorn</option><option value="FAQ">Customer FAQ</option></select>
+      <textarea id="knowledge-edit-summary" rows="3" class="w-full px-3 py-3 border border-slate-200 rounded-2xl text-xs font-medium resize-none outline-none" placeholder="What staff should know"></textarea>
+      <textarea id="knowledge-edit-questions" rows="3" class="w-full px-3 py-3 border border-slate-200 rounded-2xl text-xs font-medium resize-none outline-none" placeholder="Common customer questions / approved answers"></textarea>
+      <textarea id="knowledge-edit-notes" rows="2" class="w-full px-3 py-3 border border-slate-200 rounded-2xl text-xs font-medium resize-none outline-none" placeholder="Internal staff notes"></textarea>
+      <div class="flex gap-2 pt-1"><button onclick="closeKnowledgeEditor()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-2xl text-xs font-black">Cancel</button><button onclick="saveKnowledgeEntry()" class="flex-1 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">Save Knowledge</button></div>
+    </div>
+  </div>
+</div>
 <script>
     // ================= STATE & HIERARCHY ARCHITECTURE ================= //
 
@@ -1236,9 +1368,9 @@
         graceMins: 15
       },
       employees: [
-        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'Sunday' },
-        { id: 'usr_owner2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'OWNER', weekOff: 'Sunday' },
-        { id: 'usr_staff1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday' }
+        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'Sunday', employeeCode: 'DV001' },
+        { id: 'usr_owner2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'OWNER', weekOff: 'Sunday', employeeCode: 'DV002' },
+        { id: 'usr_staff1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday', employeeCode: 'DV003' }
       ],
       attendance: [],
       cashDrawerLogs: [],
@@ -1256,6 +1388,11 @@
       notifications: [],
       announcements: [],
       staffSuggestions: [],
+      productKnowledge: [
+        { id: 'KNOW-JUICE', title: 'Wellwith Sea Buckthorn Juice — 300 ml', category: 'PRODUCT', summary: 'Use the current approved product label and company guidance when explaining this product.', customerQuestions: '', staffNotes: '' },
+        { id: 'KNOW-CAPSULES', title: 'Wellwith Sea Buckthorn Oil Capsules', category: 'PRODUCT', summary: 'Use the current approved product label and company guidance when explaining this product.', customerQuestions: '', staffNotes: '' },
+        { id: 'KNOW-OIL', title: 'Wellwith Sea Buckthorn Nourishing Oil', category: 'PRODUCT', summary: 'Use the current approved product label and company guidance when explaining this product.', customerQuestions: '', staffNotes: '' }
+      ],
       securityEvents: [],
       overtimeRecords: [],
       approvalRequests: [],
@@ -1265,11 +1402,55 @@
       inventory: [],
       inventoryMovements: [],
       systemConfig: { lunchMaxMins: 60, shortBreakMaxMins: 15, maxShortBreaks: 2 },
-      deletedEmployeeIds: []
+      deletedEmployeeIds: [],
+      deletedEmployeeCodes: [],
+      salarySlips: []
     };
 
     // Sole Invariant: Root Super Admin (8088504219) is retained to prevent lockout.
     // Other accounts are strictly preserved as deleted once removed.
+    function ensureEmployeeCodes(parsed) {
+      if (!parsed) parsed = {};
+      if (!Array.isArray(parsed.employees)) parsed.employees = [];
+      if (!Array.isArray(parsed.deletedEmployeeCodes)) parsed.deletedEmployeeCodes = [];
+
+      // Permanent initial codes. Samrajya is always DV001.
+      const fixedCodes = {
+        '8088504219': 'DV001',
+        '7676573670': 'DV002',
+        '8618486377': 'DV003'
+      };
+      Object.entries(fixedCodes).forEach(([phone, code]) => {
+        const emp = parsed.employees.find(e => String(e.phone || '') === phone);
+        if (emp) emp.employeeCode = code;
+      });
+
+      const used = new Set();
+      parsed.employees.forEach(e => {
+        if (e && /^DV\d{3,}$/.test(String(e.employeeCode || ''))) used.add(String(e.employeeCode));
+      });
+      (parsed.deletedEmployeeCodes || []).forEach(code => used.add(String(code)));
+
+      let next = 1;
+      parsed.employees.forEach(e => {
+        if (!e || e.employeeCode) return;
+        while (used.has(`DV${String(next).padStart(3, '0')}`)) next++;
+        e.employeeCode = `DV${String(next).padStart(3, '0')}`;
+        used.add(e.employeeCode);
+        next++;
+      });
+      return parsed;
+    }
+
+    function getNextEmployeeCode(state) {
+      const used = new Set();
+      (state?.employees || []).forEach(e => { if (e?.employeeCode) used.add(String(e.employeeCode)); });
+      (state?.deletedEmployeeCodes || []).forEach(c => used.add(String(c)));
+      let n = 1;
+      while (used.has(`DV${String(n).padStart(3, '0')}`)) n++;
+      return `DV${String(n).padStart(3, '0')}`;
+    }
+
     function ensureStateArrays(parsed) {
       if (!parsed) parsed = {};
       if (!Array.isArray(parsed.employees)) parsed.employees = JSON.parse(JSON.stringify(defaultState.employees));
@@ -1287,6 +1468,7 @@
         root.pin = root.pin || '1614';
         root.role = 'SUPER_ADMIN';
         root.weekOff = root.weekOff || 'Sunday';
+        root.employeeCode = 'DV001';
         root.disabled = false;
         root.archived = false;
       }
@@ -1314,6 +1496,8 @@
       if (!Array.isArray(parsed.notifications)) parsed.notifications = [];
       if (!Array.isArray(parsed.announcements)) parsed.announcements = [];
       if (!Array.isArray(parsed.staffSuggestions)) parsed.staffSuggestions = [];
+      if (!Array.isArray(parsed.productKnowledge)) parsed.productKnowledge = JSON.parse(JSON.stringify(defaultState.productKnowledge));
+      if (!parsed.productKnowledge.length) parsed.productKnowledge = JSON.parse(JSON.stringify(defaultState.productKnowledge));
       if (!Array.isArray(parsed.overtimeRecords)) parsed.overtimeRecords = [];
       if (!Array.isArray(parsed.approvalRequests)) parsed.approvalRequests = [];
       if (!Array.isArray(parsed.holidays)) parsed.holidays = [];
@@ -1323,6 +1507,8 @@
       if (!Array.isArray(parsed.inventoryMovements)) parsed.inventoryMovements = [];
       if (!parsed.systemConfig || typeof parsed.systemConfig !== 'object') parsed.systemConfig = JSON.parse(JSON.stringify(defaultState.systemConfig));
       if (!Array.isArray(parsed.deletedEmployeeIds)) parsed.deletedEmployeeIds = [];
+      if (!Array.isArray(parsed.salarySlips)) parsed.salarySlips = [];
+      ensureEmployeeCodes(parsed);
       if (!Array.isArray(parsed.securityEvents)) parsed.securityEvents = [];
       if (parsed.emergencyLock === undefined) parsed.emergencyLock = false;
       if (!parsed.storeConfig || typeof parsed.storeConfig !== 'object') parsed.storeConfig = JSON.parse(JSON.stringify(defaultState.storeConfig));
@@ -1515,7 +1701,7 @@
       }
 
       const allPages = [
-        'page-welcome', 'page-login', 'page-dashboard', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones',
+        'page-welcome', 'page-login', 'page-dashboard', 'page-profile', 'page-salary-slips', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones', 'page-knowledge',
         'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-admin-desk'
       ];
       allPages.forEach(id => {
@@ -1554,11 +1740,14 @@
         if (bottomNav) bottomNav.classList.remove('hidden');
 
         if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
+        else if (pageId === 'page-profile') { titleEl.innerText = 'My Profile'; subtitleEl.innerText = 'Employee Details'; }
+        else if (pageId === 'page-salary-slips') { titleEl.innerText = 'My Salary Slips'; subtitleEl.innerText = 'Salary Records'; }
         else if (pageId === 'page-history') { titleEl.innerText = 'Attendance Logs'; subtitleEl.innerText = 'Transparency Ledger'; }
         else if (pageId === 'page-leaves') { titleEl.innerText = 'Holidays & Offs'; subtitleEl.innerText = 'Requests & Status'; }
         else if (pageId === 'page-schedule') { titleEl.innerText = 'My Schedule'; subtitleEl.innerText = 'Work Week'; }
         else if (pageId === 'page-notifications') { titleEl.innerText = 'Notification Center'; subtitleEl.innerText = 'Updates & Alerts'; }
         else if (pageId === 'page-milestones') { titleEl.innerText = 'My Milestones'; subtitleEl.innerText = 'Personal Progress'; }
+        else if (pageId === 'page-knowledge') { titleEl.innerText = 'Product Knowledge'; subtitleEl.innerText = 'Store Learning'; }
         else if (pageId === 'page-gate') { titleEl.innerText = 'Attendance Gate'; subtitleEl.innerText = 'Geofence Radar'; }
         else if (pageId === 'page-shift') { titleEl.innerText = 'Shift & Lunch Break'; subtitleEl.innerText = 'Floor Duty Tracker'; }
         else if (pageId === 'page-cash') { titleEl.innerText = 'Cash & Closing Desk'; subtitleEl.innerText = 'Daily Reconciliation'; }
@@ -1581,11 +1770,14 @@
       });
 
       if (pageId === 'page-dashboard') renderEmployeePersonalData();
+      else if (pageId === 'page-profile') renderProfilePage();
+      else if (pageId === 'page-salary-slips') renderMySalarySlips();
       else if (pageId === 'page-history') renderPersonalLedgerView();
       else if (pageId === 'page-leaves') renderPersonalLeaveHistory();
       else if (pageId === 'page-schedule') renderMySchedule();
       else if (pageId === 'page-notifications') renderNotificationCenterPage();
       else if (pageId === 'page-milestones') renderMyMilestones();
+      else if (pageId === 'page-knowledge') renderProductKnowledge();
       else if (pageId === 'page-gate') prepareGatekeeperUI();
       else if (pageId === 'page-shift') renderShiftTabDetails();
       else if (pageId === 'page-cash') renderManagerCashDesk();
@@ -1662,6 +1854,7 @@
       }
       renderSuperAdminControl();
       renderExtendedSuperAdmin();
+      if (category === 'people') renderAdminSalarySlips();
       window.scrollTo({top:0, behavior:'smooth'});
     }
 
@@ -1736,7 +1929,47 @@
         return;
       }
       appState = loadState();
-      let user = cloudUsers.find(e => String(e.phone) === phone && String(e.pin || '') === pin);
+      // Always re-read the matching account directly from Firebase immediately
+      // before authentication. The realtime /users listener is intentionally only
+      // a cache; an archive/disable action made on another device must take effect
+      // immediately and must never be defeated by a stale cloudUsers snapshot.
+      let user = null;
+      if (cloudDb && firebaseUsersLoaded) {
+        try {
+          // Read the raw /users collection immediately before login. Do not trust
+          // the realtime cache and do not allow a duplicate/stale account record
+          // with the same phone + PIN to bypass an archived account.
+          const usersSnap = await cloudDb.ref('users').once('value');
+          const rawUsers = usersSnap.val() && typeof usersSnap.val() === 'object' ? usersSnap.val() : {};
+          const matchingAccounts = Object.entries(rawUsers).map(([id, u]) => ({
+            id: u?.id || id,
+            name: u?.name || '',
+            phone: String(u?.phone || ''),
+            pin: String(u?.pin || ''),
+            role: u?.role || 'STAFF',
+            weekOff: u?.weekOff || 'Sunday',
+            employeeCode: u?.employeeCode || null,
+            disabled: !!u?.disabled,
+            archived: !!u?.archived,
+            archivedAt: u?.archivedAt || null
+          })).filter(u => u.phone === phone && u.pin === pin);
+
+          // If the credentials match an archived/disabled account, that account
+          // is permanently denied even if another stale/duplicate record exists.
+          const blockedMatch = matchingAccounts.find(u => u.disabled || u.archived);
+          if (blockedMatch) {
+            showToast('This user account is disabled or archived.', true);
+            return;
+          }
+
+          user = matchingAccounts[0] || null;
+          cloudUsers = normalizeFirebaseUsers(rawUsers);
+          firebaseUsersLoaded = true;
+        } catch (e) {
+          showToast('Could not verify your online account. Please try again.', true);
+          return;
+        }
+      }
 
       // Root Super Admin recovery: if Firebase /users was accidentally missing
       // the root account, allow the known recovery credentials once and immediately
@@ -1833,7 +2066,9 @@
         if (!state) return true;
         const sessions = Array.isArray(state.storeSessions) ? state.storeSessions : [];
         const session = sessions.find(s => s.id === currentAuthUser.sessionId && s.userId === currentAuthUser.id);
-        const cloudUser = (cloudUsers || []).find(u => u.id === currentAuthUser.id);
+        const usersSnap = await cloudDb.ref('users').once('value');
+        const freshUsers = normalizeFirebaseUsers(usersSnap.val());
+        const cloudUser = freshUsers.find(u => u.id === currentAuthUser.id || String(u.phone) === String(currentAuthUser.phone));
         if (!session || !cloudUser || cloudUser.disabled || cloudUser.archived) {
           const expiredUser = currentAuthUser;
           stopSessionHeartbeat();
@@ -1878,38 +2113,57 @@
     }
 
     // ================= STAFF NOTIFICATIONS ================= //
+    // Notifications are stored in Firebase storeState and use transactions so
+    // simultaneous devices cannot overwrite one another's notifications.
     function getMyNotifications() {
       if (!currentAuthUser) return [];
       appState = loadState();
-      return (appState.notifications || []).filter(n => n.employeeId === currentAuthUser.id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      return (appState.notifications || [])
+        .filter(n => n.employeeId === currentAuthUser.id)
+        .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
-    function createStaffNotification(employeeId, type, title, message, details = {}) {
-      appState = loadState();
-      appState.notifications = Array.isArray(appState.notifications) ? appState.notifications : [];
-      appState.notifications.push({
+    async function atomicNotificationWrite(mutator) {
+      if (!cloudDb || !cloudStateLoaded) {
+        showToast('Store data is still connecting to Firebase. Please wait.', true);
+        return false;
+      }
+      try {
+        const result = await cloudDb.ref('storeState').transaction(state => {
+          const latest = ensureStateArrays(state || {});
+          if (!Array.isArray(latest.notifications)) latest.notifications = [];
+          const changed = mutator(latest.notifications, latest);
+          if (changed === false) return;
+          latest.notifications = latest.notifications.slice(-300);
+          return latest;
+        });
+        if (!result.committed || !result.snapshot.exists()) throw new Error('Notification transaction was not committed.');
+        appState = ensureStateArrays(result.snapshot.val());
+        cloudBaselineState = cloneCloudSafe(appState);
+        renderStaffNotifications();
+        return true;
+      } catch (e) {
+        console.error('Wellwith notification transaction failed:', e);
+        showToast('Notification could not be saved. Check your internet connection.', true);
+        return false;
+      }
+    }
+
+    async function createStaffNotification(employeeId, type, title, message, details = {}) {
+      if (!employeeId) return false;
+      const notification = {
         id: 'NTF-' + Date.now() + '-' + Math.random().toString(36).slice(2,8),
         employeeId, type, title, message, details,
         read: false,
         createdAt: new Date().toISOString()
-      });
-      // Keep the notification history compact while preserving recent decisions.
-      if (appState.notifications.length > 300) appState.notifications = appState.notifications.slice(-300);
-      saveState(appState);
-      if (currentAuthUser && currentAuthUser.id === employeeId) renderStaffNotifications();
-    }
-
-    function notifyStaff(employeeId, type, title, message, details = {}) {
-      if (!employeeId) return;
-      createStaffNotification(employeeId, type, title, message, details);
-    }
-
-    function notifyAllStaff(type, title, message, details = {}) {
-      appState = loadState();
-      (appState.employees || []).filter(e => e.role === 'STAFF' && !e.disabled && !e.archived).forEach(e => {
-        createStaffNotification(e.id, type, title, message, details);
+      };
+      return await atomicNotificationWrite(notifications => {
+        notifications.push(notification);
       });
     }
+
+
+
 
     function renderStaffNotifications() {
       if (!currentAuthUser) return;
@@ -1947,18 +2201,27 @@
       }).join('');
     }
 
-    function markNotificationRead(notificationId) {
-      appState = loadState();
-      const n = (appState.notifications || []).find(x => x.id === notificationId && x.employeeId === currentAuthUser?.id);
-      if (!n) return;
-      n.read = true; n.readAt = new Date().toISOString();
-      saveState(appState); renderStaffNotifications();
+    async function markNotificationRead(notificationId) {
+      if (!currentAuthUser) return;
+      const ok = await atomicNotificationWrite(notifications => {
+        const n = notifications.find(x => x.id === notificationId && x.employeeId === currentAuthUser.id);
+        if (!n || n.read) return false;
+        n.read = true;
+        n.readAt = new Date().toISOString();
+      });
+      if (ok) renderNotificationCenterPage();
     }
 
-    function markAllNotificationsRead() {
-      appState = loadState();
-      (appState.notifications || []).filter(n => n.employeeId === currentAuthUser?.id && !n.read).forEach(n => { n.read = true; n.readAt = new Date().toISOString(); });
-      saveState(appState); renderStaffNotifications();
+    async function markAllNotificationsRead() {
+      if (!currentAuthUser) return;
+      const employeeId = currentAuthUser.id;
+      const now = new Date().toISOString();
+      const ok = await atomicNotificationWrite(notifications => {
+        notifications.forEach(n => {
+          if (n.employeeId === employeeId && !n.read) { n.read = true; n.readAt = now; }
+        });
+      });
+      if (ok) renderNotificationCenterPage();
     }
 
     function openStaffNotifications() { renderStaffNotifications(); const p=document.getElementById('staff-notifications-panel'); if(p)p.classList.remove('hidden'); }
@@ -2208,6 +2471,32 @@
       renderManagerCashDesk();
     }
 
+    function renderProfilePage() {
+      if (!currentAuthUser) return;
+      appState = loadState();
+      const emp = (appState.employees || []).find(e => e.id === currentAuthUser.id) || currentAuthUser;
+      const logs = (appState.attendance || []).filter(a => a.employeeId === emp.id && a.punchInTime);
+      const lateCount = logs.filter(a => a.isLate).length;
+      const totalMinutes = logs.reduce((sum, a) => sum + Number(a.totalMinutes || 0), 0);
+      const set = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value; };
+      const initials = (emp.name || 'WW').trim().split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase() || 'WW';
+      set('profile-avatar', initials);
+      set('profile-name', emp.name || '--');
+      set('profile-code', emp.employeeCode || '--');
+      set('profile-employee-id', emp.employeeCode || '--');
+      set('profile-full-name', emp.name || '--');
+      set('profile-phone', emp.phone || '--');
+      set('profile-role', getDisplayRole(emp.role));
+      set('profile-weekoff', emp.weekOff || 'Sunday');
+      set('profile-date-of-joining', emp.dateOfJoining || '--');
+      set('profile-status', emp.disabled || emp.archived ? 'INACTIVE' : 'ACTIVE');
+      set('profile-present', logs.length);
+      set('profile-late', lateCount);
+      set('profile-hours', `${Math.floor(totalMinutes / 60)}h`);
+      const status = document.getElementById('profile-status');
+      if (status) status.className = `text-[9px] font-black px-2.5 py-1 rounded-full ${emp.disabled || emp.archived ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`;
+    }
+
     function renderEmployeePersonalData() {
       appState = loadState();
       renderStaffNotifications();
@@ -2446,12 +2735,7 @@
     }
 
     // ================= MODULE 4: CASH SETTLEMENT DESK ================= //
-    function changeNote(denom, delta) {
-      denomCounts[denom] = Math.max(0, denomCounts[denom] + delta);
-      document.getElementById(`qty-${denom}`).innerText = denomCounts[denom];
-      document.getElementById(`sub-${denom}`).innerText = `₹${(denomCounts[denom] * denom).toLocaleString('en-IN')}`;
-      recalcDenominations();
-    }
+
 
     function resetDenominations() {
       [500, 200, 100, 50, 20, 10].forEach(v => {
@@ -2502,19 +2786,6 @@
       showToast('Petty expense removed.');
     }
 
-    function declareZeroPetty() {
-      appState = loadState();
-      const today = getLocalDateString();
-      const existing = appState.pettyDeclarations.find(d => d.date === today);
-      if (!existing) {
-        appState.pettyDeclarations.push({ date: today, declaredBy: currentAuthUser.name, timestamp: new Date().toISOString(), amount: 0 });
-      }
-      saveState(appState);
-      syncNightClosingProgress(today);
-      renderPetty();
-      calculateSettlement();
-      showToast('Declared ₹0 petty cash spent.');
-    }
 
     function renderPetty() {
       const today = getLocalDateString();
@@ -2943,60 +3214,6 @@
       checkClosingProgress();
     }
 
-    function shareWhatsAppDigest() {
-      const rec = getTodayCashRecord();
-      const morningFloat = rec.morningCash || 0;
-      const cashSales = parseFloat(document.getElementById('sale-cash')?.value) || 0;
-      const edcSales = parseFloat(document.getElementById('sale-edc')?.value) || 0;
-      const soundboxSales = parseFloat(document.getElementById('sale-soundbox')?.value) || 0;
-      const totalDigital = Math.round((edcSales + soundboxSales) * 100) / 100;
-      const grandTotal = Math.round((cashSales + totalDigital) * 100) / 100;
-
-      const today = getLocalDateString();
-      const totalPetty = (appState.pettyCashExpenses || []).filter(e => e.date === today).reduce((sum, e) => sum + e.amount, 0);
-      const totalBank = (appState.bankTransfers || []).filter(t => t.date === today).reduce((sum, t) => sum + t.amount, 0);
-
-      let bankSummary = '';
-      const transfers = (appState.bankTransfers || []).filter(t => t.date === today);
-      if (transfers.length > 0) {
-        bankSummary = `\n🏦 *Cash Put to Bank / Safe:*\n`;
-        transfers.forEach(t => {
-          bankSummary += `• ₹${t.amount} -> ${t.destination} (${t.person})\n`;
-        });
-      }
-
-      let denomSummary = `\n💵 *Counter Notes Count:*\n`;
-      let hasNotes = false;
-      Object.entries(denomCounts).forEach(([v, q]) => {
-        if (q > 0) {
-          hasNotes = true;
-          denomSummary += `• ₹${v} x ${q} = ₹${v * q}\n`;
-        }
-      });
-      if (!hasNotes) denomSummary = '';
-
-      const target = Math.round(((morningFloat + cashSales) - totalPetty - totalBank) * 100) / 100;
-      const diff = Math.round((actualCountedCash - target) * 100) / 100;
-
-      const msg = `🌿 *Wellwith Mangaluru — Daily Cash Settlement*\n` +
-                  `📅 Date: ${today}\n\n` +
-                  `💰 *1. Sales Collection:*\n` +
-                  `• Cash Sales: ₹${cashSales}\n` +
-                  `• Digital Sales: ₹${totalDigital} (EDC: ₹${edcSales}, Soundbox: ₹${soundboxSales})\n` +
-                  `• *Grand Total Sales: ₹${grandTotal}*\n\n` +
-                  `🧾 *2. Day Petty Outflows:* ₹${totalPetty}\n` +
-                  `🏦 *3. Cash to Bank/Safe:* ₹${totalBank}\n` +
-                  bankSummary +
-                  `\n💵 *4. Counter Cash Left:*\n` +
-                  `• Morning Float: ₹${morningFloat} (Baseline)\n` +
-                  `• Target in Counter: ₹${target}\n` +
-                  `• Actual Counted in Counter: ₹${actualCountedCash}\n` +
-                  `• *Counter Difference: ₹${diff}* ${diff === 0 ? '(Balanced ✓)' : ''}\n` +
-                  denomSummary +
-                  `\nSubmitted by: ${currentAuthUser ? currentAuthUser.name : 'Store Staff'}`;
-
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    }
 
     // ================= RESILIENT GEOFENCE RADAR & DUAL TRIGGER ================= //
     async function prepareGatekeeperUI() {
@@ -3439,40 +3656,6 @@
       }
     }
 
-    function claimNightClosing(date, user) {
-      return new Promise((resolve) => {
-        if (!cloudDb) {
-          resolve({ committed: false, value: null });
-          return;
-        }
-        const ref = cloudDb.ref('nightClosing/' + date);
-        ref.transaction(current => {
-          if (current) return;
-          const cash = getTodayCashRecord();
-          const cashAmount = cash && cash.nightPhysicalCash !== null && cash.nightPhysicalCash !== undefined
-            ? Number(cash.nightPhysicalCash)
-            : null;
-          return {
-            date,
-            by: user?.name || 'Staff',
-            employeeId: user?.id || null,
-            timestamp: new Date().toISOString(),
-            cashLocked: cashAmount !== null && cash.cashClosingConfirmed === true,
-            cashConfirmed: cashAmount !== null && cash.cashClosingConfirmed === true,
-            cashAmount,
-            cashBy: cash?.nightBy || user?.name || 'Staff',
-            cashTimestamp: cash?.nightTimestamp || new Date().toISOString()
-          };
-        }, (error, committed, snapshot) => {
-          if (error) {
-            console.error('Night closing claim failed:', error);
-            resolve({ committed: false, value: null });
-            return;
-          }
-          resolve({ committed: !!committed, value: snapshot?.val() || null });
-        });
-      });
-    }
 
     function checkClosingProgress() {
       const today = getLocalDateString();
@@ -3755,7 +3938,13 @@
         }).join('');
       }
       const acct=document.getElementById('sa-account-list');
-      if(acct) acct.innerHTML=(appState.employees||[]).map(e=>`<div class="p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between"><div><b>${e.name}</b><div class="text-[9px] text-slate-500">${getDisplayRole(e.role)} · ${e.phone}</div></div><div class="flex gap-1">${e.phone!=='8088504219'?`<button onclick="adminToggleUser('${e.id}')" class="px-2 py-1 bg-white border rounded-lg font-bold">${e.disabled?'Enable':'Disable'}</button>`:''}<button onclick="adminResetUserPin('${e.id}')" class="px-2 py-1 bg-white border rounded-lg font-bold">Reset PIN</button></div></div>`).join('');
+      const activeEmployees=(appState.employees||[]).filter(e=>!e.archived);
+      const archivedEmployees=(appState.employees||[]).filter(e=>e.archived);
+      if(acct) acct.innerHTML=activeEmployees.map(e=>`<div class="p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between"><div><b>${e.name}</b><div class="text-[9px] text-slate-500">${e.employeeCode||'—'} · ${getDisplayRole(e.role)} · ${e.phone}</div></div><div class="flex gap-1">${e.phone!=='8088504219'?`<button onclick="saArchiveSelectedFromList('${e.id}')" class="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg font-bold">Archive</button>`:''}<button onclick="adminResetUserPin('${e.id}')" class="px-2 py-1 bg-white border rounded-lg font-bold">Reset PIN</button></div></div>`).join('')||'<div class="text-[10px] text-slate-400">No active employee accounts.</div>';
+      const archivedList=document.getElementById('sa-archived-list');
+      const archivedCount=document.getElementById('sa-archived-count');
+      if(archivedCount) archivedCount.innerText=String(archivedEmployees.length);
+      if(archivedList) archivedList.innerHTML=archivedEmployees.length?archivedEmployees.slice().reverse().map(e=>`<div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl"><div class="flex items-center justify-between gap-2"><div><b class="text-slate-700">${e.name}</b><div class="text-[9px] text-slate-500">${e.employeeCode||'—'} · ${getDisplayRole(e.role)} · ${e.phone}</div></div><button onclick="saRestoreArchivedEmployee('${e.id}')" class="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg font-bold">Restore</button></div><div class="text-[9px] text-slate-400 mt-1">Archived ${e.archivedAt?new Date(e.archivedAt).toLocaleDateString('en-IN'):''}${e.archivedReason?` · ${e.archivedReason}`:''}</div></div>`).join(''):'<div class="text-[10px] text-slate-400">No archived employees.</div>';
       document.getElementById('sa-shift-start').value=appState.storeConfig?.shiftStart||'08:00'; document.getElementById('sa-shift-end').value=appState.storeConfig?.shiftEnd||'21:00'; document.getElementById('sa-grace').value=appState.storeConfig?.graceMins??15; document.getElementById('sa-radius').value=appState.storeConfig?.radius??100;
       renderSuperAdminAudit();
       const lockBtn=document.getElementById('sa-emergency-lock-btn'); if(lockBtn) lockBtn.innerText=appState.emergencyLock?'🔓 Unlock Store':'🚨 Emergency Lock';
@@ -3942,21 +4131,76 @@
       renderSuperAdminControl();
       showToast('Attendance corrected.');
     }
-    function adminToggleUser(empId){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===empId);if(!e)return;if(e.phone==='8088504219')return showToast('Root Super Admin account is protected.',true);e.disabled=!e.disabled;saveState(appState);addAuditLog(e.disabled?'DISABLE_USER':'ENABLE_USER','ACCOUNT',e.name,empId);renderSuperAdminControl();showToast(e.disabled?'User disabled.':'User enabled.');}
-    async function adminResetUserPin(empId){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===empId);if(!e)return;if(e.phone==='8088504219')return showToast('Root Super Admin PIN is protected.',true);const pin=await adminAsk('Enter a new 4-digit PIN for '+e.name+'.',{title:'Reset PIN',fieldLabel:'New 4-digit PIN',placeholder:'0000'});if(!/^\\d{4}$/.test(pin||'')){showToast('PIN must be exactly 4 digits.',true);return;}e.pin=pin;saveState(appState);addAuditLog('RESET_PIN','ACCOUNT','PIN reset for '+e.name,empId);renderSuperAdminControl();showToast('PIN reset.');}
+
+    async function adminResetUserPin(empId){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===empId);if(!e)return;if(e.phone==='8088504219')return showToast('Root Super Admin PIN is protected.',true);const pin=await adminAsk('Enter a new 4-digit PIN for '+e.name+'.',{title:'Reset PIN',fieldLabel:'New 4-digit PIN',placeholder:'0000'});if(!/^\d{4}$/.test(pin||'')){showToast('PIN must be exactly 4 digits.',true);return;}const old=e.pin;e.pin=pin;try{if(!await syncEmployeeAccountToFirebase(e))throw new Error('Firebase PIN update failed');saveState(appState);addAuditLog('RESET_PIN','ACCOUNT','PIN reset for '+e.name,empId);renderSuperAdminControl();showToast('PIN reset online.');}catch(err){e.pin=old;console.error('Firebase PIN update failed:',err);showToast('Could not reset the PIN online.',true);}}
     function saveSuperAdminConfig(){if(!superAdminOnly())return;appState=loadState();const before={...appState.storeConfig};appState.storeConfig.shiftStart=document.getElementById('sa-shift-start').value;appState.storeConfig.shiftEnd=document.getElementById('sa-shift-end').value;appState.storeConfig.graceMins=Math.max(0,Number(document.getElementById('sa-grace').value));appState.storeConfig.radius=Math.max(10,Number(document.getElementById('sa-radius').value));saveState(appState);addAuditLog('UPDATE_STORE_CONFIG','CONFIG',JSON.stringify({before,after:appState.storeConfig}));renderSuperAdminControl();showToast('Operational settings saved.');}
     function renderSuperAdminAudit(){if(!superAdminOnly())return;appState=loadState();const f=document.getElementById('sa-audit-filter')?.value||'ALL';const list=document.getElementById('sa-audit-list');if(!list)return;const logs=(appState.auditLog||[]).filter(x=>f==='ALL'||x.category===f).slice(0,200);list.innerHTML=logs.length?logs.map(x=>`<div class="p-2 bg-slate-50 border rounded-xl"><div class="flex justify-between gap-2"><b class="text-[10px]">${x.action}</b><span class="text-[9px] text-slate-400">${new Date(x.at).toLocaleString()}</span></div><div class="text-[9px] text-slate-600">${x.byName} · ${x.details||''}</div></div>`).join(''):'<p class="text-center text-slate-400 py-3">No audit events.</p>';}
     function exportSuperAdminAuditCSV(){if(!superAdminOnly())return;appState=loadState();let csv='Date,Action,Category,By,Details,Target\n';(appState.auditLog||[]).forEach(x=>csv+=`"${x.at}","${x.action}","${x.category}","${x.byName}","${String(x.details||'').replaceAll('"','""')}","${x.targetId||''}"\n`);downloadFile(csv,'wellwith_super_admin_audit_'+Date.now()+'.csv','text/csv');}
-    function createSuperAdminBackup(){if(!superAdminOnly())return;appState=loadState();addAuditLog('CREATE_BACKUP','DATA','Full store backup exported');downloadFile(JSON.stringify(appState,null,2),'wellwith_super_admin_backup_'+Date.now()+'.json','application/json');showToast('Full backup exported.');}
+
     function toggleEmergencyLock(){if(!superAdminOnly())return;appState=loadState();appState.emergencyLock=!appState.emergencyLock;saveState(appState);addAuditLog(appState.emergencyLock?'EMERGENCY_LOCK':'EMERGENCY_UNLOCK','SECURITY',appState.emergencyLock?'Store locked by Super Admin':'Store unlocked by Super Admin');renderSuperAdminControl();showToast(appState.emergencyLock?'Store locked.':'Store unlocked.');}
 
 
-    async function saCreateEmployee(){if(!superAdminOnly())return;appState=loadState();const name=await adminAsk('Create a new employee account.',{title:'Add Employee',fieldLabel:'Employee name'});if(!name)return;const phone=await adminAsk('Enter the employee mobile number.',{title:'Add Employee',fieldLabel:'Mobile number'});if(!/^\d{10}$/.test(phone||''))return showToast('Enter a valid 10-digit mobile number.',true);if(appState.employees.some(e=>e.phone===phone))return showToast('An account already uses this mobile number.',true);const pin=await adminAsk('Set the initial 4-digit PIN.',{title:'Add Employee',fieldLabel:'Initial 4-digit PIN',placeholder:'0000'});if(!/^\d{4}$/.test(pin||''))return showToast('PIN must be exactly 4 digits.',true);const role=(await adminAsk('Choose the authority role.',{title:'Add Employee',fieldLabel:'Role',value:'STAFF'}))||'STAFF';const weekOff=(await adminAsk('Set the weekly off day.',{title:'Add Employee',fieldLabel:'Week-off day',value:'Sunday'}))||'Sunday';const e={id:'usr_'+Date.now(),name:name.trim(),phone,pin,role:role.toUpperCase(),weekOff,disabled:false,archived:false,createdAt:new Date().toISOString()};appState.employees.push(e);saveState(appState);addAuditLog('CREATE_ACCOUNT','ACCOUNT',`Created ${e.name} (${e.role})`,e.id);renderExtendedSuperAdmin();renderSuperAdminControl();showToast('Employee account created.');}
-    async function saEditEmployee(){if(!superAdminOnly())return;appState=loadState();const id=document.getElementById('sa-role-employee')?.value;const e=appState.employees.find(x=>x.id===id);if(!e)return;if(e.phone==='8088504219')return showToast('Root Super Admin account is protected.',true);const name=await adminAsk('Update the employee name.',{title:'Edit Employee',fieldLabel:'Employee name',value:e.name});if(name===null)return;const phone=await adminAsk('Update the mobile number.',{title:'Edit Employee',fieldLabel:'Mobile number',value:e.phone});if(phone===null)return;const weekOff=await adminAsk('Update the weekly off day.',{title:'Edit Employee',fieldLabel:'Week-off day',value:e.weekOff||'Sunday'});if(weekOff===null)return;const reason=await adminAsk('Why are you changing this account?',{title:'Edit Employee',fieldLabel:'Reason'});if(!reason)return;const before={name:e.name,phone:e.phone,weekOff:e.weekOff};e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.weekOff=weekOff.trim()||'Sunday';saveState(appState);addAuditLog('EDIT_ACCOUNT','ACCOUNT',JSON.stringify({reason,before,after:{name:e.name,phone:e.phone,weekOff:e.weekOff}}),e.id);renderExtendedSuperAdmin();renderSuperAdminControl();showToast('Account updated.');}
+    function getNextEmployeeCodeFromCloudUsers(users, reservedCodes = []) {
+      const used = new Set((reservedCodes || []).map(String)); Object.values(users || {}).forEach(u => { if (u?.employeeCode) used.add(String(u.employeeCode)); });
+      let n=1; while(used.has(`DV${String(n).padStart(3,'0')}`)) n++; return `DV${String(n).padStart(3,'0')}`;
+    }
+    async function syncEmployeeAccountToFirebase(employee, previousPhone = '') {
+      if(!cloudDb || !firebaseUsersLoaded) return false; const targetId=String(employee.id), oldPhone=String(previousPhone||employee.phone||'');
+      const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; let key=Object.keys(latest).find(k=>String(latest[k]?.id||k)===targetId); if(!key&&oldPhone) key=Object.keys(latest).find(k=>String(latest[k]?.phone||'')===oldPhone); if(!key) key=targetId; const existing=latest[key]||{}; latest[key]={...existing,id:targetId,name:employee.name||'',phone:String(employee.phone||''),pin:String(employee.pin||''),role:employee.role||'STAFF',weekOff:employee.weekOff||'Sunday',dateOfJoining:employee.dateOfJoining||null,employeeCode:employee.employeeCode||null,disabled:!!employee.disabled,archived:!!employee.archived,archivedAt:employee.archivedAt||null,archivedReason:employee.archivedReason||null,archivedBy:employee.archivedBy||null}; return latest; });
+      if(!result.committed) return false; cloudUsers=normalizeFirebaseUsers(result.snapshot.val()); firebaseUsersLoaded=true; return true;
+    }
+
+    async function saCreateEmployee(){
+      if(!superAdminOnly())return; appState=loadState();
+      const name=await adminAsk('Create a new employee account.',{title:'Add Employee',fieldLabel:'Employee name'}); if(!name)return;
+      const phone=await adminAsk('Enter the employee mobile number.',{title:'Add Employee',fieldLabel:'Mobile number'}); if(!/^\d{10}$/.test(phone||''))return showToast('Enter a valid 10-digit mobile number.',true);
+      if(appState.employees.some(e=>e.phone===phone))return showToast('An account already uses this mobile number.',true);
+      const pin=await adminAsk('Set the initial 4-digit PIN.',{title:'Add Employee',fieldLabel:'Initial 4-digit PIN',placeholder:'0000'}); if(!/^\d{4}$/.test(pin||''))return showToast('PIN must be exactly 4 digits.',true);
+      const role=(await adminAsk('Choose the authority role.',{title:'Add Employee',fieldLabel:'Role',value:'STAFF'}))||'STAFF'; const weekOff=(await adminAsk('Set the weekly off day.',{title:'Add Employee',fieldLabel:'Week-off day',value:'Sunday'}))||'Sunday';
+      const dateOfJoining=await adminAsk('Enter the employee date of joining.',{title:'Add Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',placeholder:'2026-09-07'}); if(dateOfJoining===null)return; if(!/^\d{4}-\d{2}-\d{2}$/.test((dateOfJoining||'').trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
+      if(!cloudDb||!firebaseUsersLoaded)return showToast('Firebase account service is still connecting. Please try again.',true);
+      const e={id:'usr_'+Date.now(),name:name.trim(),phone,pin,role:role.toUpperCase(),weekOff,dateOfJoining:dateOfJoining.trim(),employeeCode:null,disabled:false,archived:false,createdAt:new Date().toISOString()};
+      try{ const reserved=(appState.deletedEmployeeCodes||[]).map(String); const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; if(Object.values(latest).some(u=>String(u?.phone||'')===String(phone))) return; const code=getNextEmployeeCodeFromCloudUsers(latest,reserved); latest[e.id]={id:e.id,name:e.name,phone:e.phone,pin:e.pin,role:e.role,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null,employeeCode:code,disabled:false,archived:false,archivedAt:null}; return latest; }); if(!result.committed)return showToast('Could not create the employee account online. Please try again.',true);
+        const cloudAccount=result.snapshot.val()?.[e.id]; if(!cloudAccount)return showToast('Employee account was not returned by Firebase. Please try again.',true); e.employeeCode=cloudAccount.employeeCode||getNextEmployeeCode(appState); cloudUsers=normalizeFirebaseUsers(result.snapshot.val()); firebaseUsersLoaded=true; appState.employees.push(e); saveState(appState); addAuditLog('CREATE_ACCOUNT','ACCOUNT',`Created ${e.name} (${e.role})`,e.id); renderExtendedSuperAdmin();renderSuperAdminControl(); showToast(`Employee account created and synced online as ${e.employeeCode}.`);
+      }catch(err){console.error('Firebase employee creation failed:',err);showToast('Could not create the employee account online.',true);}
+    }
+    function syncSelectedEmployeeRoleUI(){
+      const employeeSelect=document.getElementById('sa-role-employee');
+      const roleSelect=document.getElementById('sa-role-value');
+      const roleButton=document.getElementById('sa-role-change-btn');
+      if(!employeeSelect||!roleSelect)return;
+      appState=loadState();
+      const e=(appState.employees||[]).find(x=>x.id===employeeSelect.value);
+      if(!e)return;
+      const isRoot=String(e.phone||'')==='8088504219'||String(e.id||'')==='usr_super';
+      roleSelect.value=e.role||'STAFF';
+      roleSelect.disabled=isRoot;
+      if(roleButton){ roleButton.disabled=isRoot; roleButton.classList.toggle('opacity-50',isRoot); roleButton.classList.toggle('cursor-not-allowed',isRoot); }
+    }
+
+    async function saEditEmployee(){
+      if(!superAdminOnly())return; appState=loadState(); const id=document.getElementById('sa-role-employee')?.value; const e=appState.employees.find(x=>x.id===id); if(!e)return;
+      const isRoot=String(e.phone||'')==='8088504219'||String(e.id||'')==='usr_super';
+      const name=await adminAsk('Update the employee name.',{title:'Edit Employee',fieldLabel:'Employee name',value:e.name}); if(name===null)return;
+      let phone=e.phone;
+      if(!isRoot){ phone=await adminAsk('Update the mobile number.',{title:'Edit Employee',fieldLabel:'Mobile number',value:e.phone}); if(phone===null)return; if(!/^\d{10}$/.test(phone.trim()))return showToast('Enter a valid 10-digit mobile number.',true); if(appState.employees.some(x=>x.id!==e.id&&x.phone===phone.trim()))return showToast('Another account already uses this mobile number.',true); }
+      const weekOff=await adminAsk('Update the weekly off day.',{title:'Edit Employee',fieldLabel:'Weekly off day',value:e.weekOff||'Sunday'}); if(weekOff===null)return;
+      const dateOfJoining=await adminAsk('Update the employee date of joining.',{title:'Edit Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',value:e.dateOfJoining||''}); if(dateOfJoining===null)return; if(dateOfJoining.trim()&&!/^\d{4}-\d{2}-\d{2}$/.test(dateOfJoining.trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
+      const reason=await adminAsk('Why are you changing this account?',{title:'Edit Employee',fieldLabel:'Reason'}); if(!reason)return;
+      const before={name:e.name,phone:e.phone,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}, oldPhone=e.phone; e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.weekOff=weekOff.trim()||'Sunday';e.dateOfJoining=dateOfJoining.trim()||null;
+      if(isRoot){e.role='SUPER_ADMIN';e.phone='8088504219';e.employeeCode='DV001';e.disabled=false;e.archived=false;}
+      try{if(!await syncEmployeeAccountToFirebase(e,oldPhone))throw new Error('Firebase account update failed');saveState(appState);addAuditLog('EDIT_ACCOUNT','ACCOUNT',JSON.stringify({reason,before,after:{name:e.name,phone:e.phone,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}}),e.id);renderExtendedSuperAdmin();renderSuperAdminControl();showToast(isRoot?'Root Super Admin profile updated online.':'Account updated online.');}catch(err){Object.assign(e,before);console.error('Firebase employee edit failed:',err);showToast('Could not update the employee account online.',true);}
+    }
+    function saArchiveSelectedFromList(empId){
+      const sel=document.getElementById('sa-role-employee');
+      if(sel){ sel.value=empId; }
+      return saArchiveSelected();
+    }
+
     function saForceLogoutSelected(){if(!superAdminOnly())return;appState=loadState();const id=document.getElementById('sa-role-employee')?.value;const e=appState.employees.find(x=>x.id===id);if(!e)return;appState.storeSessions=(appState.storeSessions||[]).filter(s=>s.userId!==e.id);saveState(appState);addAuditLog('FORCE_LOGOUT_USER','SECURITY',e.name,e.id);renderExtendedSuperAdmin();showToast(`${e.name} session(s) invalidated.`);}
     async function saSetAttendanceStatus(status){if(!superAdminOnly())return;const date=document.getElementById('sa-att-date')?.value||getLocalDateString();const empId=document.getElementById('sa-att-employee')?.value;const emp=loadState().employees.find(e=>e.id===empId);if(!emp)return;appState=loadState();let a=appState.attendance.find(x=>x.employeeId===empId&&x.date===date);const reason=await adminAsk(`Why are you marking this employee ${status.toLowerCase()}?`,{title:status==='ABSENT'?'Mark Absent':'Mark Present',fieldLabel:'Reason'});if(!reason)return;if(status==='ABSENT'){if(a){a.status='ABSENT';a.punchInTime=null;a.punchOutTime=null;a.totalMinutes=0;}else{a={id:'ATT-'+Date.now(),employeeId:empId,date,punchInTime:null,punchOutTime:null,totalMinutes:0,breaks:[],status:'ABSENT',manual:true};appState.attendance.push(a);}}else{if(!a){a={id:'ATT-'+Date.now(),employeeId:empId,date,punchInTime:new Date(date+'T08:00:00').toISOString(),punchOutTime:null,totalMinutes:0,breaks:[],status:'PRESENT',manual:true};appState.attendance.push(a);}a.status='PRESENT';}saveState(appState);addAuditLog('ATTENDANCE_STATUS_CHANGE','ATTENDANCE',JSON.stringify({employee:emp.name,date,status,reason}),a.id);createStaffNotification(empId,'ATTENDANCE_UPDATED','📅 Attendance Updated',`Your attendance for ${date} was marked ${status} by Super Admin.`,{reason,date,status});renderExtendedSuperAdmin();}
-    async function saAddAttendanceNote(){if(!superAdminOnly())return;appState=loadState();const id=document.getElementById('sa-att-control-list')?.dataset.attendanceId;if(!id)return showToast('Select an attendance record first.',true);const a=appState.attendance.find(x=>x.id===id);if(!a)return;const note=await adminAsk('Add a note to this attendance record.',{title:'Attendance Note',fieldLabel:'Note'});if(!note)return;a.adminOverrideNote=note;saveState(appState);addAuditLog('ATTENDANCE_NOTE','ATTENDANCE',note,id);renderExtendedSuperAdmin();}
-    async function saCorrectBreak(attendanceId,breakIndex){if(!superAdminOnly())return;appState=loadState();const a=appState.attendance.find(x=>x.id===attendanceId);const b=a?.breaks?.[breakIndex];if(!b)return;const reason=await adminAsk('Why are you correcting this break?',{title:'Correct Break',fieldLabel:'Reason'});if(!reason)return;const start=await adminAsk('Set the break start time.',{title:'Correct Break',fieldLabel:'Break start (HH:MM)',value:new Date(b.start).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});if(start===null)return;const end=await adminAsk('Set the break end time, or leave blank if still active.',{title:'Correct Break',fieldLabel:'Break end (HH:MM)',value:b.end?new Date(b.end).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):''});if(end===null)return;const base=new Date(a.punchInTime);const parse=(v,old)=>{if(!v)return old;const [h,m]=v.split(':').map(Number);const d=new Date(old);d.setHours(h,m,0,0);return d.toISOString();};b.start=parse(start,b.start);b.end=end?parse(end,b.end||b.start):null;a.totalBreakMins=(a.breaks||[]).reduce((t,x)=>t+(x.end?Math.max(0,Math.floor((new Date(x.end)-new Date(x.start))/60000)):0),0);saveState(appState);addAuditLog('CORRECT_BREAK','BREAK',JSON.stringify({reason,breakIndex,start:b.start,end:b.end}),attendanceId);createStaffNotification(a.employeeId,'BREAK_UPDATED','🍱 Break Corrected',`Your break on ${a.date} was corrected by Super Admin.`,{reason});renderExtendedSuperAdmin();}
+
+
     function saPublishAnnouncement(){if(!superAdminOnly())return;appState=loadState();const title=document.getElementById('sa-ann-title')?.value.trim(),message=document.getElementById('sa-ann-message')?.value.trim(),target=document.getElementById('sa-ann-target')?.value||'ALL',priority=document.getElementById('sa-ann-priority')?.value||'NORMAL';if(!title||!message)return showToast('Title and message are required.',true);const a={id:'ANN-'+Date.now(),title,message,target,priority,createdAt:new Date().toISOString(),createdBy:currentAuthUser.id,active:true};appState.announcements.unshift(a);saveState(appState);const targets=target==='ALL'?appState.employees.filter(e=>e.id!==currentAuthUser.id&&!e.disabled):appState.employees.filter(e=>e.id===target);targets.forEach(e=>createStaffNotification(e.id,'ADMIN_ANNOUNCEMENT','📢 '+title,message,{priority,announcementId:a.id}));saveState(appState);addAuditLog('PUBLISH_ANNOUNCEMENT','ANNOUNCEMENT',JSON.stringify({title,target,priority}));document.getElementById('sa-ann-title').value='';document.getElementById('sa-ann-message').value='';renderExtendedSuperAdmin();showToast('Announcement published.');}
     function saToggleAnnouncement(id){if(!superAdminOnly())return;appState=loadState();const a=appState.announcements.find(x=>x.id===id);if(!a)return;a.active=!a.active;saveState(appState);addAuditLog(a.active?'ACTIVATE_ANNOUNCEMENT':'DEACTIVATE_ANNOUNCEMENT','ANNOUNCEMENT',a.title,id);renderExtendedSuperAdmin();}
     function saSaveFinanceControl(){if(!superAdminOnly())return;appState=loadState();const date=document.getElementById('sa-fin-date')?.value||getLocalDateString();const float=Number(document.getElementById('sa-fin-float')?.value||0),cashSales=Number(document.getElementById('sa-fin-cash')?.value||0),digital=Number(document.getElementById('sa-fin-digital')?.value||0),actual=Number(document.getElementById('sa-fin-actual')?.value||0),expected=float+cashSales,reason=document.getElementById('sa-fin-reason')?.value.trim()||'';const diff=actual-expected;if(diff!==0&&!reason)return showToast('Explanation is required for a cash difference.',true);let r=appState.cashDrawerLogs.find(x=>x.date===date);if(!r){r={date};appState.cashDrawerLogs.push(r);}Object.assign(r,{morningCash:float,adminCashSales:cashSales,adminDigitalSales:digital,adminExpectedCash:expected,adminActualCash:actual,adminDifference:diff,adminReconciliationReason:reason,adminReconciledBy:currentAuthUser.id,adminReconciledAt:new Date().toISOString()});saveState(appState);addAuditLog('FINANCE_RECONCILIATION','FINANCE',JSON.stringify({date,float,cashSales,digital,actual,expected,diff,reason}));renderExtendedSuperAdmin();showToast('Finance control saved.');}
@@ -3965,7 +4209,8 @@
       if(!superAdminOnly())return; appState=loadState();
       const today=getLocalDateString();
       const employees=appState.employees||[];
-      const sel=document.getElementById('sa-role-employee'); if(sel) sel.innerHTML=employees.filter(e=>!e.archived).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+      const sel=document.getElementById('sa-role-employee'); if(sel){ const previous=sel.value; sel.innerHTML=employees.filter(e=>!e.archived).map(e=>`<option value="${e.id}">${e.name}</option>`).join(''); if(previous&&employees.some(e=>e.id===previous)) sel.value=previous; }
+      syncSelectedEmployeeRoleUI();
       const rules=appState.systemConfig||{};
       const alerts=[];
       (appState.attendance||[]).filter(a=>a.date===today).forEach(a=>{const emp=employees.find(e=>e.id===a.employeeId); (a.breaks||[]).forEach(b=>{if(!b.end){const mins=Math.floor((Date.now()-new Date(b.start))/60000); if(mins>(rules.lunchMaxMins||60)) alerts.push(`🍱 ${emp?.name||'Staff'} break is ${mins}m — exceeds limit.`);}}); if(a.isLate&&(a.lateExceptionStatus || (a.lateExceptionApproved?'APPROVED':'PENDING'))!=='APPROVED') alerts.push(`⏰ ${emp?.name||'Staff'} has a late mark requiring review.`); if(a.punchInTime&&!a.punchOutTime&&new Date().getHours()>=22) alerts.push(`🔴 ${emp?.name||'Staff'} has no punch-out.`);});
@@ -4018,12 +4263,91 @@
       const sessions=document.getElementById('sa-session-list'); if(sessions) sessions.innerHTML=(appState.storeSessions||[]).map(x=>`<div class="p-2 bg-slate-50 border rounded-xl"><div class="flex justify-between"><b class="text-[10px]">${x.userName||x.userId}</b><span class="text-[8px]">${x.active?'ACTIVE':'ENDED'}</span></div><div class="text-[8px] text-slate-500">Started ${new Date(x.startedAt).toLocaleString()} · Last seen ${new Date(x.lastSeen||x.startedAt).toLocaleString()}</div><button onclick="saForceLogoutSession('${x.id}')" class="mt-1 px-2 py-1 bg-red-50 text-red-800 rounded-lg text-[9px] font-bold">Force Logout</button></div>`).join('')||'<div class="text-[10px] text-slate-400">No active sessions.</div>';
       const ot=document.getElementById('sa-overtime-list'); if(ot) ot.innerHTML=(appState.overtimeRecords||[]).slice().reverse().slice(0,50).map(x=>`<div class="p-2 bg-slate-50 border rounded-xl text-[9px]"><b>${x.employeeName}</b> · ${x.date} · <b>${x.minutes}m</b><div>${x.reason}</div></div>`).join('')||'<div class="text-[10px] text-slate-400">No recorded overtime.</div>';
     }
-    function saAddHoliday(){if(!superAdminOnly())return;const date=document.getElementById('sa-holiday-date')?.value,name=document.getElementById('sa-holiday-name')?.value.trim();if(!date||!name)return showToast('Enter holiday date and name.',true);appState=loadState();appState.holidays.push({id:'HOL-'+Date.now(),date,name});saveState(appState);addAuditLog('ADD_HOLIDAY','CONFIG',`${date} ${name}`);renderExtendedSuperAdmin();}
+
     function saDeleteHoliday(id){if(!superAdminOnly())return;appState=loadState();appState.holidays=appState.holidays.filter(x=>x.id!==id);saveState(appState);addAuditLog('DELETE_HOLIDAY','CONFIG',id);renderExtendedSuperAdmin();}
-    function saSaveStock(){if(!superAdminOnly())return;const name=document.getElementById('sa-stock-name')?.value.trim(),sku=document.getElementById('sa-stock-sku')?.value.trim(),batch=document.getElementById('sa-stock-batch')?.value.trim(),expiry=document.getElementById('sa-stock-expiry')?.value,qty=Number(document.getElementById('sa-stock-qty')?.value),minStock=Number(document.getElementById('sa-stock-min')?.value);if(!name||!sku)return showToast('Product name and SKU required.',true);appState=loadState();let x=appState.inventory.find(i=>i.sku===sku&&i.batch===batch);if(!x){x={id:'STK-'+Date.now(),name,sku,batch,expiry,qty,minStock};appState.inventory.push(x);}else{x.name=name;x.expiry=expiry;x.qty=qty;x.minStock=minStock;}appState.inventoryMovements.push({id:'MOV-'+Date.now(),at:new Date().toISOString(),type:'ADJUSTMENT',sku,qty,by:currentAuthUser?.id});saveState(appState);addAuditLog('STOCK_UPDATE','STOCK',`${name} ${qty}`,x.id);renderExtendedSuperAdmin();}
-    function saSaveRules(){if(!superAdminOnly())return;appState=loadState();appState.systemConfig={...appState.systemConfig,lunchMaxMins:Number(appState.systemConfig?.lunchMaxMins||60),shortBreakMaxMins:Number(appState.systemConfig?.shortBreakMaxMins||15),maxShortBreaks:Number(appState.systemConfig?.maxShortBreaks||2)};saveState(appState);addAuditLog('UPDATE_ATTENDANCE_RULES','CONFIG',JSON.stringify(appState.systemConfig));showToast('Break rules saved.');}
-    function saChangeRole(){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===document.getElementById('sa-role-employee').value);if(!e||e.phone==='8088504219')return showToast('Root Super Admin role is protected.',true);const role=document.getElementById('sa-role-value').value,old=e.role;e.role=role;saveState(appState);addAuditLog('CHANGE_ROLE','ACCOUNT',`${old} → ${role}`,e.id);renderExtendedSuperAdmin();renderSettingsStaffList();}
-    function saArchiveSelected(){if(!superAdminOnly())return;const e=appState.employees.find(x=>x.id===document.getElementById('sa-role-employee').value);if(!e||e.phone==='8088504219')return;appState=loadState();const t=appState.employees.find(x=>x.id===e.id);t.disabled=true;t.archived=true;t.archivedAt=new Date().toISOString();appState.archivedEmployees.push(JSON.parse(JSON.stringify(t)));saveState(appState);addAuditLog('ARCHIVE_USER','ACCOUNT',t.name,t.id);renderExtendedSuperAdmin();renderSettingsStaffList();}
+
+
+    async function saChangeRole(){if(!superAdminOnly())return;appState=loadState();const e=appState.employees.find(x=>x.id===document.getElementById('sa-role-employee').value);if(!e||e.phone==='8088504219')return showToast('Root Super Admin role is protected.',true);const role=document.getElementById('sa-role-value').value,old=e.role;e.role=role;try{if(!await syncEmployeeAccountToFirebase(e))throw new Error('Firebase role update failed');saveState(appState);addAuditLog('CHANGE_ROLE','ACCOUNT',`${old} → ${role}`,e.id);renderExtendedSuperAdmin();renderSettingsStaffList();showToast('Role updated online.');}catch(err){e.role=old;console.error('Firebase role update failed:',err);showToast('Could not update the role online.',true);}}
+    async function saArchiveSelected(){
+      if(!superAdminOnly())return;
+      appState=loadState();
+      const id=document.getElementById('sa-role-employee')?.value;
+      const e=(appState.employees||[]).find(x=>x.id===id);
+      if(!e||e.phone==='8088504219')return;
+      if(e.archived)return showToast('This employee is already archived.',true);
+      const reason=await adminAsk(`Archive ${e.name} because they are leaving the job.`,{title:'Archive Employee',fieldLabel:'Reason for leaving / archive'});
+      if(reason===null)return;
+      const cleanReason=reason.trim();
+      if(!cleanReason)return showToast('A reason is required before archiving an employee.',true);
+      appState=loadState();
+      const t=(appState.employees||[]).find(x=>x.id===id);
+      if(!t||t.phone==='8088504219')return;
+      const nowIso=new Date().toISOString();
+      t.disabled=true;
+      t.archived=true;
+      t.archivedAt=nowIso;
+      t.archivedReason=cleanReason;
+      t.archivedBy=currentAuthUser?.name||'Super Admin';
+      appState.archivedEmployees=Array.isArray(appState.archivedEmployees)?appState.archivedEmployees:[];
+      appState.archivedEmployees=appState.archivedEmployees.filter(x=>x&&x.id!==t.id);
+      appState.archivedEmployees.push(JSON.parse(JSON.stringify(t)));
+      appState.storeSessions=(appState.storeSessions||[]).filter(s=>s.userId!==t.id);
+
+      // Account access is revoked in the dedicated Firebase /users source as part
+      // of the archive operation. Do not rely only on storeState sync because login
+      // credentials are read from /users. This transaction also wins over a stale
+      // device and makes the disabled/archived state authoritative across terminals.
+      if (!cloudDb || !cloudStateLoaded) {
+        showToast('Store database is still connecting. Please try again.', true);
+        return;
+      }
+      try {
+        const userResult = await cloudDb.ref('users').transaction(users => {
+          if (!users || typeof users !== 'object') return users;
+          let matched = false;
+          Object.entries(users).forEach(([key, value]) => {
+            if (!value || typeof value !== 'object') return;
+            // Match by stable employee ID first, with phone as a safety fallback
+            // for older account records whose Firebase key/id may differ.
+            if (String(value.id || key) === String(t.id) || String(value.phone || '') === String(t.phone || '')) {
+              users[key] = {
+                ...value,
+                disabled: true,
+                archived: true,
+                archivedAt: nowIso,
+                archivedReason: cleanReason,
+                archivedBy: currentAuthUser?.name || 'Super Admin'
+              };
+              matched = true;
+            }
+          });
+          return matched ? users : users;
+        });
+        if (!userResult.committed) {
+          showToast('Could not update the employee account in Firebase. Nothing was archived.', true);
+          return;
+        }
+        cloudUsers = normalizeFirebaseUsers(userResult.snapshot.val());
+        firebaseUsersLoaded = true;
+      } catch (e) {
+        console.error('Firebase employee archive failed:', e);
+        showToast('Could not archive the employee online. Please try again.', true);
+        return;
+      }
+
+      saveState(appState);
+      addAuditLog('ARCHIVE_USER','ACCOUNT',JSON.stringify({employeeCode:t.employeeCode||null,name:t.name,reason:cleanReason,archivedAt:nowIso}),t.id);
+      renderExtendedSuperAdmin();
+      renderSettingsStaffList();
+      showToast(`${t.name} archived. Employee code ${t.employeeCode||'—'} is retained and will not be reassigned.`);
+    }
+
+    async function saRestoreArchivedEmployee(empId){
+      if(!superAdminOnly())return; appState=loadState(); const t=(appState.employees||[]).find(x=>x.id===empId); if(!t)return showToast('Archived employee record not found.',true); if(t.phone==='8088504219')return showToast('Root Super Admin account is protected.',true); if(!t.archived)return showToast('This employee is already active.',true);
+      const reason=await adminAsk(`Restore ${t.name} and reactivate their account?`,{title:'Restore Employee',fieldLabel:'Reason for restoration'}); if(reason===null)return; const cleanReason=reason.trim(); if(!cleanReason)return showToast('A reason is required before restoring an employee.',true);
+      const previous={disabled:t.disabled,archived:t.archived,restoredAt:t.restoredAt,restoredBy:t.restoredBy,restoreReason:t.restoreReason}; t.disabled=false;t.archived=false;t.restoredAt=new Date().toISOString();t.restoredBy=currentAuthUser?.name||'Super Admin';t.restoreReason=cleanReason;
+      try{if(!await syncEmployeeAccountToFirebase(t))throw new Error('Firebase restore failed');appState.archivedEmployees=(appState.archivedEmployees||[]).filter(x=>x&&x.id!==t.id);saveState(appState);addAuditLog('RESTORE_USER','ACCOUNT',JSON.stringify({employeeCode:t.employeeCode||null,name:t.name,reason:cleanReason}),t.id);renderExtendedSuperAdmin();renderSettingsStaffList();showToast(`${t.name} restored with employee code ${t.employeeCode||'—'}.`);}catch(err){Object.assign(t,previous);console.error('Firebase employee restore failed:',err);showToast('Could not restore the employee online.',true);}
+    }
     function saForceLogoutSession(id){if(!superAdminOnly())return;appState=loadState();const s=appState.storeSessions.find(x=>x.id===id);if(!s)return;appState.storeSessions=appState.storeSessions.filter(x=>x.id!==id);saveState(appState);addAuditLog('FORCE_LOGOUT_SESSION','SECURITY',s.userName||s.userId,id);renderExtendedSuperAdmin();showToast('Session invalidated.');}
     function saForceLogoutAll(){if(!superAdminOnly())return;appState=loadState();appState.storeSessions=[];saveState(appState);addAuditLog('FORCE_LOGOUT_ALL','SECURITY','All remote sessions invalidated');showToast('All sessions invalidated.');}
     function saResolveApproval(id,approved){if(!superAdminOnly())return;appState=loadState();const x=appState.approvalRequests.find(a=>a.id===id);if(!x)return;x.status=approved?'APPROVED':'REJECTED';x.resolvedAt=new Date().toISOString();x.resolvedBy=currentAuthUser?.id;saveState(appState);addAuditLog(approved?'APPROVE_REQUEST':'REJECT_REQUEST','SECURITY',x.type,x.id);renderExtendedSuperAdmin();}
@@ -4046,13 +4370,12 @@
       appState.attendance.push(rec); saveState(appState); addAuditLog('MANUAL_ATTENDANCE','ATTENDANCE',`Created for ${emp?.name||empId}`,rec.id); createStaffNotification(empId,'ATTENDANCE_UPDATED','📅 Attendance Added',`Your attendance for ${date} was added by Super Admin.`,{date,punchIn:inIso,punchOut:outIso}); renderExtendedSuperAdmin(); showToast('Attendance added.');
     }
 
-    async function adminAddManualAttendance(){if(!superAdminOnly())return;appState=loadState();const empId=await adminAsk('Enter the employee ID to add a manual attendance record.',{title:'Add Attendance',fieldLabel:'Employee ID'});const emp=appState.employees.find(e=>e.id===empId);if(!emp)return;const inT=await adminAsk('Set the punch-in time.',{title:'Add Attendance',fieldLabel:'Punch In (HH:MM)',value:'08:00'});if(!inT)return;const outT=await adminAsk('Leave blank if still working.',{title:'Add Attendance',fieldLabel:'Punch Out (HH:MM)',value:''});const selectedDate=document.getElementById('sa-att-date')?.value||getLocalDateString();const now=new Date(selectedDate+'T12:00:00');const mk=(v)=>{const [h,m]=v.split(':').map(Number);const d=new Date(now);d.setHours(h,m,0,0);return d.toISOString()};const rec={id:'ATT-'+Date.now(),employeeId:emp.id,date:selectedDate,punchInTime:mk(inT),punchOutTime:outT?mk(outT):null,totalMinutes:outT?Math.max(0,Math.floor((new Date(mk(outT))-new Date(mk(inT)))/60000)):0,manual:true,breaks:[]};appState.attendance.push(rec);saveState(appState);addAuditLog('MANUAL_ATTENDANCE','ATTENDANCE',`Created for ${emp.name}`,rec.id);renderSuperAdminControl();}
     function adminForceCloseAllBreaks(){if(!superAdminOnly())return;appState=loadState();let count=0;const now=new Date().toISOString();appState.attendance.forEach(a=>(a.breaks||[]).forEach(b=>{if(!b.end){b.end=now;count++;}}));saveState(appState);addAuditLog('FORCE_CLOSE_BREAKS','BREAK',`${count} breaks closed`);renderExtendedSuperAdmin();showToast(`${count} open break(s) closed.`);}
     function saRecordSecurityCheck(){if(!superAdminOnly())return;appState=loadState();appState.securityEvents.unshift({id:'SEC-'+Date.now(),at:new Date().toISOString(),type:'MANUAL_SECURITY_CHECK',by:currentAuthUser?.id,status:'RECORDED'});saveState(appState);addAuditLog('SECURITY_CHECK','SECURITY','Manual security check recorded');renderExtendedSuperAdmin();}
-    function saClearNotifications(){if(!superAdminOnly())return;appState=loadState();appState.notifications.forEach(n=>n.read=true);saveState(appState);renderExtendedSuperAdmin();}
-    function saCreateVersionedBackup(){if(!superAdminOnly())return;appState=loadState();const payload=JSON.stringify(appState);appState.dataBackups.unshift({id:'BKP-'+Date.now(),at:new Date().toISOString(),records:(appState.attendance||[]).length+(appState.employees||[]).length+(appState.inventory||[]).length,bytes:payload.length});appState.dataBackups=appState.dataBackups.slice(0,50);saveState(appState);downloadFile(payload,'wellwith_recovery_'+Date.now()+'.json','application/json');addAuditLog('VERSIONED_BACKUP','DATA','Recovery backup created');renderExtendedSuperAdmin();}
-    function saExportAuditAndState(){if(!superAdminOnly())return;appState=loadState();const pack={exportedAt:new Date().toISOString(),version:'WELLWITH_SUPER_ADMIN_V2',state:appState};downloadFile(JSON.stringify(pack,null,2),'wellwith_recovery_package_'+Date.now()+'.json','application/json');addAuditLog('EXPORT_RECOVERY','DATA','Recovery package exported');}
-    function saExportOperationalReport(){if(!superAdminOnly())return;appState=loadState();const today=getLocalDateString();let csv='Employee,Date,Punch In,Punch Out,Minutes,Late,Exception\n';(appState.attendance||[]).filter(a=>a.date===today).forEach(a=>{const e=appState.employees.find(x=>x.id===a.employeeId);csv+=`"${e?.name||''}","${a.date}","${a.punchInTime||''}","${a.punchOutTime||''}","${a.totalMinutes||0}","${a.isLate?'YES':'NO'}","${a.lateExceptionApproved?'YES':'NO'}"\n`});downloadFile(csv,'wellwith_operational_report_'+today+'.csv','text/csv');addAuditLog('EXPORT_REPORT','DATA','Daily operational report exported');}
+
+
+
+
 
     function renderLateExceptions() {
       const container = document.getElementById('admin-late-exceptions-list');
@@ -4147,34 +4470,7 @@
       showToast(decision==='APPROVED'?`Late exception approved. ${originalMinutes}m penalty waived.`:`Late exception rejected. ${originalMinutes}m late mark remains.`); renderLateExceptions();
       if(currentActivePage==='page-dashboard')renderEmployeePersonalData(); if(currentActivePage==='page-history')renderPersonalLedgerView();
     }
-    async function rejectApprovedLateException(attendanceId) {
-      if(!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
-      appState=loadState();
-      const log=(appState.attendance||[]).find(a=>a.id===attendanceId);
-      if(!log||!log.isLate) return showToast('Attendance record not found.',true);
-      const status=log.lateExceptionStatus||(log.lateExceptionApproved?'APPROVED':'PENDING');
-      if(status!=='APPROVED') return showToast('Only an approved late exception can be rejected.',true);
-      const reason=await adminAsk('Why are you rejecting the approved late exception?',{title:'Reject Late Exception',fieldLabel:'Reason'});
-      if(reason===null)return;
-      const cleanReason=reason.trim();
-      if(!cleanReason)return showToast('A reason is required for every late exception decision.',true);
-      const originalMinutes=log.lateExceptionOriginalMinutes||log.lateMinutes||0;
-      log.lateExceptionStatus='REJECTED';
-      log.lateExceptionApproved=false;
-      log.lateExceptionBy=currentAuthUser.name||'Samrajya';
-      log.lateExceptionAt=new Date().toISOString();
-      log.lateExceptionReason=cleanReason;
-      log.lateExceptionOriginalMinutes=originalMinutes;
-      saveState(appState);
-      addAuditLog('REJECT_APPROVED_LATE_EXCEPTION','ATTENDANCE',JSON.stringify({attendanceId,originalLateMinutes:originalMinutes,decision:'REJECTED',reason:cleanReason}),attendanceId);
-      const emp=(appState.employees||[]).find(e=>e.id===log.employeeId);
-      const punchIn=log.punchInTime?new Date(log.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--';
-      createStaffNotification(log.employeeId, 'LATE_REJECTED', '❌ Late Coming Approval Rejected', `Your previously approved late-coming exception for ${log.date} has been rejected. The ${originalMinutes}-minute late mark now remains on your attendance record.`, {date:log.date,punchIn,lateMinutes:originalMinutes,decidedBy:currentAuthUser.name||'Samrajya',reason:cleanReason});
-      showToast(`Late approval rejected. ${originalMinutes}m late mark remains.`);
-      renderLateExceptions();
-      if(currentActivePage==='page-dashboard')renderEmployeePersonalData();
-      if(currentActivePage==='page-history')renderPersonalLedgerView();
-    }
+
 
     async function reopenLateException(attendanceId) {
       if(!isSuperAdmin())return showToast('Permission Denied: Super Admin only.',true); appState=loadState(); const log=(appState.attendance||[]).find(a=>a.id===attendanceId); if(!log||!log.isLate)return showToast('Attendance record not found.',true);
@@ -4182,8 +4478,8 @@
       const previous=log.lateExceptionStatus||(log.lateExceptionApproved?'APPROVED':'PENDING'); log.lateExceptionStatus='PENDING'; log.lateExceptionApproved=false; log.lateExceptionBy=null; log.lateExceptionAt=null; log.lateExceptionReason=null; saveState(appState);
       addAuditLog('REOPEN_LATE_EXCEPTION','ATTENDANCE',JSON.stringify({attendanceId,previousStatus:previous,reason:reason.trim()}),attendanceId); renderLateExceptions(); showToast('Late exception reopened for review.');
     }
-    function grantLateException(attendanceId){decideLateException(attendanceId,'APPROVED');}
-    function revokeLateException(attendanceId){reopenLateException(attendanceId);}
+
+
 
     function renderReportsTabUI() {
     }
@@ -4204,67 +4500,7 @@
       if (boxManual) boxManual.classList.toggle('hidden', !isSuperAdmin());
     }
 
-    async function fetchAndStoreCurrentGPS() {
-      if (!isSuperAdmin()) {
-        return showToast('Permission Denied: Root access required to alter store GPS.', true);
-      }
 
-      showToast('Fetching high accuracy phone GPS...');
-      const accuracyInfo = document.getElementById('gps-accuracy-info');
-      if (accuracyInfo) accuracyInfo.innerText = 'Connecting to GPS satellites...';
-
-      if (!navigator.geolocation) {
-        return showToast('Geolocation is not supported by your browser.', true);
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          const accuracy = Math.round(pos.coords.accuracy);
-
-          appState = loadState();
-          appState.storeConfig.lat = lat;
-          appState.storeConfig.lng = lng;
-          saveState(appState);
-
-          updateGeofenceSettingsUI();
-          if (accuracyInfo) accuracyInfo.innerText = `Calibrated with ${accuracy}m GPS accuracy. Store anchor updated!`;
-
-          haptic(30);
-          showToast(`Store GPS Saved: ${lat.toFixed(6)}, ${lng.toFixed(6)} (±${accuracy}m)`);
-          updateGateRadarDistance(true);
-        },
-        (err) => {
-          showToast('Failed to fetch GPS. Ensure phone Location is ON.', true);
-          if (accuracyInfo) accuracyInfo.innerText = 'GPS error. Try using Manual Override below.';
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    }
-
-    function saveManualCoordinates() {
-      if (!isSuperAdmin()) {
-        return showToast('Permission Denied: Root access required to alter store GPS.', true);
-      }
-
-      const latInput = parseFloat(document.getElementById('input-manual-lat')?.value);
-      const lngInput = parseFloat(document.getElementById('input-manual-lng')?.value);
-
-      if (isNaN(latInput) || isNaN(lngInput)) {
-        return showToast('Please enter valid numeric latitude and longitude.', true);
-      }
-
-      appState = loadState();
-      appState.storeConfig.lat = latInput;
-      appState.storeConfig.lng = lngInput;
-      saveState(appState);
-
-      updateGeofenceSettingsUI();
-      haptic(20);
-      showToast(`Coordinates updated: ${latInput.toFixed(6)}, ${lngInput.toFixed(6)}`);
-      updateGateRadarDistance(true);
-    }
 
     function renderAdminRoster() {
       appState = loadState();
@@ -4410,37 +4646,7 @@
     }
 
     // Super Admin Staff Enrollment Fix
-    function registerNewStaff() {
-      if (!isOwnerRole()) return showToast('Permission Denied: Management level only.', true);
 
-      const name = document.getElementById('new-emp-name').value.trim();
-      const phone = document.getElementById('new-emp-phone').value.trim();
-      const pin = document.getElementById('new-emp-pin').value.trim();
-      let role = document.getElementById('new-emp-role').value;
-      const weekOff = document.getElementById('new-emp-weekoff').value;
-
-      if (!isSuperAdmin() && (role === 'OWNER' || role === 'MANAGER')) {
-        role = 'STAFF';
-      }
-
-      if (!name || phone.length !== 10 || pin.length !== 4) {
-        return showToast('Provide name, 10-digit mobile, and 4-digit PIN', true);
-      }
-
-      appState = loadState();
-      if (appState.employees.some(e => e.phone === phone)) {
-        return showToast('Employee with this mobile already exists', true);
-      }
-
-      appState.employees.push({ id: 'usr_' + Date.now(), name, phone, pin, role, weekOff });
-      saveState(appState);
-
-      document.getElementById('new-emp-name').value = '';
-      document.getElementById('new-emp-phone').value = '';
-      document.getElementById('new-emp-pin').value = '';
-      showToast(`User "${name}" enrolled as ${getDisplayRole(role)}!`);
-      renderSettingsStaffList();
-    }
 
     // Super Admin Staff Deletion Fix (Pure In-App Modal)
     function openDeleteUserModal(empId, empName) {
@@ -4479,6 +4685,8 @@
       appState.employees = appState.employees.filter(e => e.id !== id);
       appState.deletedEmployeeIds = Array.isArray(appState.deletedEmployeeIds) ? appState.deletedEmployeeIds : [];
       if (!appState.deletedEmployeeIds.includes(id)) appState.deletedEmployeeIds.push(id);
+      appState.deletedEmployeeCodes = Array.isArray(appState.deletedEmployeeCodes) ? appState.deletedEmployeeCodes : [];
+      if (target.employeeCode && !appState.deletedEmployeeCodes.includes(target.employeeCode)) appState.deletedEmployeeCodes.push(target.employeeCode);
       appState.storeSessions = (appState.storeSessions || []).filter(s => s.userId !== id);
 
       saveState(appState);
@@ -4553,116 +4761,34 @@
       });
     }
 
-    function openEmployeeModal(employeeId) {
-      if (!isManagerRole()) return;
-      selectedModalEmployeeId = employeeId;
-      appState = loadState();
-      const emp = (appState.employees || []).find(e => e.id === employeeId);
-      if (!emp) return;
-
-      document.getElementById('modal-emp-name').innerText = emp.name;
-      document.getElementById('modal-emp-phone').innerText = emp.phone;
-      document.getElementById('modal-emp-role').innerText = getDisplayRole(emp.role);
-      document.getElementById('modal-emp-pin').innerText = emp.pin;
-
-      const rolePowerBox = document.getElementById('modal-role-power-box');
-      const roleSelect = document.getElementById('modal-emp-role-select');
-      if (rolePowerBox && roleSelect) {
-        if (isSuperAdmin() && emp.phone !== '8088504219') {
-          rolePowerBox.classList.remove('hidden');
-          roleSelect.value = emp.role === 'SUPER_ADMIN' ? 'OWNER' : (emp.role || 'STAFF');
-        } else {
-          rolePowerBox.classList.add('hidden');
-        }
-      }
-
-      const selectOff = document.getElementById('modal-emp-weekoff-select');
-      selectOff.value = emp.weekOff || 'Sunday';
-      selectOff.disabled = !isOwnerRole();
-
-      document.getElementById('modal-delete-emp-container').classList.toggle('hidden', !isSuperAdmin() || emp.phone === '8088504219');
-      document.getElementById('modal-pin-box').classList.toggle('hidden', !isSuperAdmin());
-
-      renderEmployeeAnalyticsChart(emp.id);
-      document.getElementById('modal-employee-detail').classList.remove('hidden');
-    }
 
     function closeEmployeeModal() {
       document.getElementById('modal-employee-detail').classList.add('hidden');
       selectedModalEmployeeId = null;
     }
 
-    function updateEmployeeRoleBySuperAdmin(newRole) {
+    async function updateEmployeeRoleBySuperAdmin(newRole) {
       if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
-      appState = loadState();
-      const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
-      if (emp && emp.phone !== '8088504219') {
-        emp.role = newRole;
-        saveState(appState);
-        document.getElementById('modal-emp-role').innerText = getDisplayRole(newRole);
-        showToast(`Role power for ${emp.name} updated to ${getDisplayRole(newRole)}.`);
-        renderSettingsStaffList();
-        renderAdminRoster();
-      }
+      appState = loadState(); const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
+      if (!emp || emp.phone === '8088504219') return;
+      const old = emp.role; emp.role = newRole;
+      try {
+        if (!await syncEmployeeAccountToFirebase(emp)) throw new Error('Firebase role update failed');
+        saveState(appState); document.getElementById('modal-emp-role').innerText = getDisplayRole(newRole);
+        showToast(`Role power for ${emp.name} updated online to ${getDisplayRole(newRole)}.`); renderSettingsStaffList(); renderAdminRoster();
+      } catch (err) { emp.role = old; console.error('Firebase role update failed:', err); showToast('Could not update the role online.', true); }
     }
 
-    function updateEmployeeWeekOff(val) {
+    async function updateEmployeeWeekOff(val) {
       if (!isOwnerRole()) return showToast('Permission Denied: Management level only.', true);
-      appState = loadState();
-      const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId);
-      if (emp) {
-        emp.weekOff = val;
-        saveState(appState);
-        showToast(`Weekly off for ${emp.name} updated to ${val}.`);
-        renderAdminRoster();
-        renderSettingsStaffList();
-      }
+      appState = loadState(); const emp = (appState.employees || []).find(e => e.id === selectedModalEmployeeId); if (!emp) return;
+      const old = emp.weekOff; emp.weekOff = val;
+      try {
+        if (!await syncEmployeeAccountToFirebase(emp)) throw new Error('Firebase week-off update failed');
+        saveState(appState); showToast(`Weekly off for ${emp.name} updated online to ${val}.`); renderAdminRoster(); renderSettingsStaffList();
+      } catch (err) { emp.weekOff = old; console.error('Firebase week-off update failed:', err); showToast('Could not update the weekly off online.', true); }
     }
 
-    function renderEmployeeAnalyticsChart(empId) {
-      const logs = (appState.attendance || []).filter(a => a.employeeId === empId);
-      let totalMins = 0;
-      let onTimeCount = 0;
-
-      logs.forEach(l => {
-        totalMins += (l.totalMinutes || 0);
-        if (!l.isLate || l.lateExceptionApproved) onTimeCount++;
-      });
-
-      const onTimePct = logs.length > 0 ? Math.round((onTimeCount / logs.length) * 100) : 100;
-      document.getElementById('modal-stat-shifts').innerText = logs.length;
-      document.getElementById('modal-stat-hours').innerText = `${(totalMins / 60).toFixed(1)}h`;
-      document.getElementById('modal-stat-ontime').innerText = `${onTimePct}%`;
-
-      const chartBars = document.getElementById('modal-chart-bars');
-      const chartLabels = document.getElementById('modal-chart-labels');
-      chartBars.innerHTML = '';
-      chartLabels.innerHTML = '';
-
-      const last7Logs = logs.slice(-7);
-      if (last7Logs.length === 0) {
-        chartBars.innerHTML = `<div class="w-full text-center text-slate-400 py-6">No shift logs available</div>`;
-        return;
-      }
-
-      last7Logs.forEach(log => {
-        const hrs = ((log.totalMinutes || 0) / 60);
-        const heightPct = Math.min(100, Math.round((hrs / 14) * 100));
-        const barColor = hrs >= 12.5 ? 'bg-emerald-600' : 'bg-amber-500';
-
-        const barCol = document.createElement('div');
-        barCol.className = 'flex-1 flex flex-col items-center gap-1 h-full justify-end group relative';
-        barCol.innerHTML = `
-          <div class="text-[8px] font-mono text-slate-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">${hrs.toFixed(1)}h</div>
-          <div style="height: ${heightPct}%;" class="w-full rounded-t-md ${barColor} shadow-2xs transition-all duration-500"></div>
-        `;
-        chartBars.appendChild(barCol);
-
-        const lbl = document.createElement('span');
-        lbl.innerText = log.date.substring(8);
-        chartLabels.appendChild(lbl);
-      });
-    }
 
     function renderAdminLeavesList() {
       appState = loadState();
@@ -4858,21 +4984,7 @@
     }
 
     // ================= ENQUIRIES & STOCK ALERTS ================= //
-    function submitStockAlert() {
-      const p = document.getElementById('input-stock-product').value.trim();
-      const q = document.getElementById('input-stock-qty').value.trim();
-      const u = document.getElementById('input-stock-urgency').value;
-      if (!p || !q) return showToast('Provide product name and quantity.', true);
 
-      appState = loadState();
-      appState.stockAlerts.push({ id: 'stk_' + Date.now(), date: getLocalDateString(), product: p, qty: parseInt(q)||0, urgency: u });
-      saveState(appState);
-
-      document.getElementById('input-stock-product').value = '';
-      document.getElementById('input-stock-qty').value = '';
-      showToast('Low stock alert saved.');
-      renderCounterDeskView();
-    }
 
     function submitCustomerEnquiry() {
       const n = document.getElementById('input-cust-name').value.trim();
@@ -4925,55 +5037,11 @@
     }
 
     // ================= SYSTEM UTILITIES & EXPORTS ================= //
-    function exportAttendanceCSV() {
-      appState = loadState();
-      let csv = 'Store,Employee,Date,Punch In,Punch Out,Minutes,Late,Late Exception,Exception By,Exception Reason\n';
-      (appState.attendance || []).forEach(a => {
-        const emp = (appState.employees || []).find(e => e.id === a.employeeId) || { name: 'Staff' };
-        csv += `"Wellwith Mangaluru","${emp.name}","${a.date}","${a.punchInTime||''}","${a.punchOutTime||''}","${a.totalMinutes||0}","${a.isLate?'YES':'NO'}","${a.lateExceptionApproved?'APPROVED':'NO'}","${a.lateExceptionBy||''}","${a.lateExceptionReason||''}"\n`;
-      });
-      downloadFile(csv, `wellwith_attendance_${Date.now()}.csv`, 'text/csv');
-      showToast('Attendance CSV exported!');
-    }
 
-    function exportCashCSV() {
-      appState = loadState();
-      let csv = 'Store,Date,Morning Float,Vyapar Cash,Physical Cash,Diff\n';
-      (appState.cashDrawerLogs || []).forEach(c => {
-        csv += `"Wellwith Mangaluru","${c.date}","${c.morningCash||0}","${c.nightVyaparCash||0}","${c.nightPhysicalCash||0}","${c.nightDifference||0}"\n`;
-      });
-      downloadFile(csv, `wellwith_cash_${Date.now()}.csv`, 'text/csv');
-      showToast('Cash CSV exported!');
-    }
 
-    function exportSystemJSON() {
-      downloadFile(JSON.stringify(appState, null, 2), `wellwith_backup_${Date.now()}.json`, 'application/json');
-      showToast('JSON backup exported.');
-    }
 
-    function clearPettyCashHistory() {
-      if (!isOwnerRole()) return;
-      appState = loadState();
-      appState.pettyCashExpenses = [];
-      appState.pettyDeclarations = [];
-      saveState(appState);
-      renderPetty();
-      showToast('Petty cash cleared.');
-    }
 
-    function cleanCorruptedDuplicatesToday() {
-      const today = getLocalDateString();
-      (appState.employees || []).forEach(emp => {
-        const logs = (appState.attendance || []).filter(a => a.employeeId === emp.id && a.date === today);
-        if (logs.length > 1) {
-          const keep = logs[logs.length - 1];
-          appState.attendance = appState.attendance.filter(a => !(a.employeeId === emp.id && a.date === today) || a.id === keep.id);
-        }
-      });
-      saveState(appState);
-      showToast('Cleaned duplicate shift entries.');
-      renderEmployeePersonalData();
-    }
+
 
     function downloadFile(content, fileName, mimeType) {
       const blob = new Blob([content], { type: mimeType });
@@ -5102,16 +5170,6 @@
       return !!(rec && rec.punchInTime);
     }
 
-    function autoCleanDuplicateSessions() {
-      const today = getLocalDateString();
-      (appState.employees || []).forEach(emp => {
-        const logs = (appState.attendance || []).filter(a => a.employeeId === emp.id && a.date === today);
-        if (logs.length > 1) {
-          const keep = logs[logs.length - 1];
-          appState.attendance = appState.attendance.filter(a => !(a.employeeId === emp.id && a.date === today) || a.id === keep.id);
-        }
-      });
-    }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
       const R = 6371e3;
@@ -5481,6 +5539,7 @@
         pin: String(u.pin || ''),
         role: u.role || 'STAFF',
         weekOff: u.weekOff || 'Sunday',
+        employeeCode: u.employeeCode || null,
         disabled: !!u.disabled,
         archived: !!u.archived,
         archivedAt: u.archivedAt || null
@@ -5517,6 +5576,7 @@
             pin: String(e.pin),
             role: e.role || 'STAFF',
             weekOff: e.weekOff || 'Sunday',
+            employeeCode: e.employeeCode || null,
             disabled: !!e.disabled,
             archived: !!e.archived,
             archivedAt: e.archivedAt || null
@@ -5538,14 +5598,18 @@
             if (id !== 'usr_super') delete latest[id];
           });
 
-          // Root Super Admin is an invariant and must always exist.
+          // Root Super Admin security credentials and role stay protected,
+          // while profile details such as name, week-off and date of joining remain editable.
+          const rootProfile=(state.employees||[]).find(e=>String(e.id||'')==='usr_super'||String(e.phone||'')==='8088504219')||{};
           latest.usr_super = {
             id: 'usr_super',
-            name: 'Samrajya',
+            name: rootProfile.name || 'Samrajya',
             phone: '8088504219',
             pin: '1614',
             role: 'SUPER_ADMIN',
-            weekOff: 'Sunday',
+            weekOff: rootProfile.weekOff || 'Sunday',
+            dateOfJoining: rootProfile.dateOfJoining || null,
+            employeeCode: 'DV001',
             disabled: false,
             archived: false,
             archivedAt: null
@@ -5752,6 +5816,39 @@
       }
     }
 
+    // ================= SALARY SLIPS ================= //
+    function salaryEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+    function formatSalaryMoney(v){return '₹'+Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});}
+    function salaryMonthLabel(v){if(!v)return '--';const [y,m]=String(v).split('-').map(Number);if(!y||!m)return v;return new Date(y,m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});}
+    function salarySlipEmployee(id){return (appState.employees||[]).find(e=>String(e.id)===String(id)) || (appState.archivedEmployees||[]).find(e=>String(e.id)===String(id));}
+    function renderMySalarySlips(){
+      if(!currentAuthUser)return; appState=loadState(); const list=document.getElementById('my-salary-slip-list'); if(!list)return;
+      const slips=(appState.salarySlips||[]).filter(s=>s.employeeId===currentAuthUser.id && s.status==='ISSUED').slice().sort((a,b)=>String(b.salaryMonth).localeCompare(String(a.salaryMonth)));
+      if(!slips.length){list.innerHTML='<div class="bg-white p-6 rounded-3xl border border-slate-200 text-center text-xs text-slate-400">No salary slips have been issued yet.</div>';return;}
+      list.innerHTML=slips.map(x=>`<div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm"><div class="flex items-start justify-between gap-3"><div><div class="text-[9px] uppercase tracking-widest font-black text-emerald-700">${salaryEsc(salaryMonthLabel(x.salaryMonth))}</div><div class="text-lg font-black text-slate-900 mt-1">${formatSalaryMoney(x.netSalary)}</div><div class="text-[9px] text-slate-400 mt-1">Paid ${salaryEsc(x.paymentDate||'--')} · ${salaryEsc(x.paymentMode||'--')}</div></div><span class="text-[8px] font-black bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full">ISSUED</span></div><button onclick="printSalarySlip('${salaryEsc(x.id)}')" class="w-full mt-3 py-2.5 bg-[#05281b] text-white rounded-xl text-[10px] font-black">🖨️ View / Print Salary Slip</button></div>`).join('');
+    }
+    function populateSalaryEmployeeSelect(){
+      const sel=document.getElementById('sa-salary-employee'); if(!sel)return; appState=loadState(); const emps=(appState.employees||[]).filter(e=>!e.archived); const old=sel.value; sel.innerHTML='<option value="">Select employee</option>'+emps.map(e=>`<option value="${salaryEsc(e.id)}">${salaryEsc(e.employeeCode||'')} — ${salaryEsc(e.name)}</option>`).join(''); if(emps.some(e=>String(e.id)===old))sel.value=old;
+    }
+    function renderAdminSalarySlips(){
+      if(!isSuperAdmin())return; appState=loadState(); populateSalaryEmployeeSelect(); const list=document.getElementById('sa-salary-slip-list'); if(!list)return;
+      const slips=(appState.salarySlips||[]).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,50);
+      list.innerHTML=slips.length?slips.map(x=>{const e=salarySlipEmployee(x.employeeId);return `<div class="p-2.5 rounded-2xl border border-slate-200 bg-slate-50"><div class="flex justify-between gap-2"><div><div class="text-[10px] font-black text-slate-900">${salaryEsc(e?.name||x.employeeName||'Employee')}</div><div class="text-[9px] text-slate-500">${salaryEsc(salaryMonthLabel(x.salaryMonth))} · ${formatSalaryMoney(x.netSalary)}</div></div><span class="text-[8px] font-black ${x.status==='ISSUED'?'text-emerald-700':'text-amber-700'}">${salaryEsc(x.status)}</span></div><div class="flex gap-2 mt-2"><button onclick="printSalarySlip('${salaryEsc(x.id)}')" class="flex-1 py-1.5 bg-white border rounded-lg text-[8px] font-black">View / Print</button>${x.status==='ISSUED'?`<button onclick="reissueSalarySlip('${salaryEsc(x.id)}')" class="px-2 py-1.5 bg-white border rounded-lg text-[8px] font-black">Reissue</button>`:''}</div></div>`}).join(''):'<div class="p-4 text-center text-[10px] text-slate-400">No salary slips issued yet.</div>';
+    }
+    function clearSalaryForm(){['sa-salary-month','sa-salary-payment-date','sa-salary-basic','sa-salary-hra','sa-salary-other','sa-salary-gross','sa-salary-deductions','sa-salary-net','sa-salary-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
+    async function createSalarySlip(){
+      if(!isSuperAdmin())return; if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline){showToast('Firebase connection is required to issue a salary slip.',true);return;}
+      appState=loadState(); const employeeId=document.getElementById('sa-salary-employee')?.value, salaryMonth=document.getElementById('sa-salary-month')?.value, paymentDate=document.getElementById('sa-salary-payment-date')?.value, paymentMode=document.getElementById('sa-salary-payment-mode')?.value||'Bank Transfer';
+      const basic=Number(document.getElementById('sa-salary-basic')?.value)||0,hra=Number(document.getElementById('sa-salary-hra')?.value)||0,other=Number(document.getElementById('sa-salary-other')?.value)||0,gross=Number(document.getElementById('sa-salary-gross')?.value)||0,deductions=Number(document.getElementById('sa-salary-deductions')?.value)||0,netRaw=document.getElementById('sa-salary-net')?.value.trim(),net=Number(netRaw),notes=document.getElementById('sa-salary-notes')?.value.trim()||'';
+      const emp=salarySlipEmployee(employeeId); if(!emp)return showToast('Select an employee.',true); if(!/^\d{4}-\d{2}$/.test(salaryMonth||''))return showToast('Select the salary month.',true); if(!paymentDate)return showToast('Select the payment date.',true); if(netRaw===''||!Number.isFinite(net)||net<0)return showToast('Enter the final net salary paid.',true);
+      const duplicate=(appState.salarySlips||[]).find(x=>x.employeeId===employeeId&&x.salaryMonth===salaryMonth&&x.status==='ISSUED'); if(duplicate){showToast('A salary slip for this employee and month is already issued.',true);return;}
+      const now=new Date().toISOString(), slip={id:'SAL-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),employeeId,employeeName:emp.name,employeeCode:emp.employeeCode||null,designation:emp.designation||emp.role||'Staff',dateOfJoining:emp.dateOfJoining||null,salaryMonth,paymentDate,paymentMode,basicSalary:basic,hra,otherAllowances:other,totalEarnings:gross,totalDeductions:deductions,netSalary:Math.round(net*100)/100,notes,status:'ISSUED',createdAt:now,issuedAt:now,issuedBy:currentAuthUser.id,issuedByName:currentAuthUser.name};
+      try{const result=await cloudDb.ref('storeState').transaction(state=>{const latest=ensureStateArrays(state||{});latest.salarySlips=Array.isArray(latest.salarySlips)?latest.salarySlips:[];if(latest.salarySlips.some(x=>x.employeeId===employeeId&&x.salaryMonth===salaryMonth&&x.status==='ISSUED'))return;latest.salarySlips.unshift(slip);latest.salarySlips=latest.salarySlips.slice(0,1000);return latest;});if(!result.committed){showToast('Another device already issued this employee/month slip.',true);return;}appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);addAuditLog('ISSUE_SALARY_SLIP','SALARY',`Issued ${salaryMonth} salary slip to ${emp.name} (${emp.employeeCode||emp.id})`,slip.id);clearSalaryForm();renderAdminSalarySlips();showToast(`Salary slip issued to ${emp.name}.`);}catch(e){console.error(e);showToast('Could not issue salary slip.',true);}
+    }
+    async function reissueSalarySlip(id){if(!isSuperAdmin())return;const slip=(appState.salarySlips||[]).find(x=>x.id===id);if(!slip)return;const reason=await adminAsk('Why are you reissuing this salary slip?',{title:'Reissue Salary Slip',fieldLabel:'Reason'});if(!reason)return;slip.status='REISSUED';slip.reissuedAt=new Date().toISOString();slip.reissuedBy=currentAuthUser.id;slip.reissueReason=reason;saveState(appState);addAuditLog('REISSUE_SALARY_SLIP','SALARY',reason,id);renderAdminSalarySlips();showToast('Original slip marked as reissued. Create a new corrected slip if required.');}
+    function printSalarySlip(id){appState=loadState();const x=(appState.salarySlips||[]).find(s=>s.id===id);if(!x)return showToast('Salary slip not found.',true);if(!isSuperAdmin()&&x.employeeId!==currentAuthUser?.id)return showToast('Access denied.',true);const emp=salarySlipEmployee(x.employeeId)||x;const words=numberToIndianWords(x.netSalary);const w=window.open('','_blank','width=900,height=1100');if(!w)return showToast('Please allow pop-ups to print the salary slip.',true);w.document.write(`<!doctype html><html><head><title>Salary Slip - ${salaryEsc(x.employeeName)} - ${salaryEsc(x.salaryMonth)}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#172033;margin:0;font-size:12px}.head{text-align:center;border-bottom:2px solid #05281b;padding-bottom:12px}.company{font-size:20px;font-weight:800;letter-spacing:.4px}.sub{font-size:11px;color:#52606d;margin-top:4px}.title{display:inline-block;background:#05281b;color:white;padding:8px 24px;border-radius:5px;font-size:16px;font-weight:800;margin:16px 0}.info,.details,.grid{width:100%;border-collapse:collapse}.info td,.details td,.grid td,.grid th{border:1px solid #d7dee7;padding:8px}.label{font-size:9px;text-transform:uppercase;font-weight:800;color:#65748b}.value{font-weight:700}.section{background:#05281b;color:#fff;font-weight:800;padding:8px;margin-top:14px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid th{background:#eef4f1;text-align:left}.right{text-align:right}.net{margin-top:14px;border:2px solid #05281b;background:#f0f7f3;text-align:center;padding:14px}.net .nlabel{font-size:10px;font-weight:800;letter-spacing:1px}.net .amount{font-size:28px;font-weight:900;color:#05281b;margin-top:4px}.small{font-size:10px;color:#52606d}.sign{margin-top:35px;display:flex;justify-content:space-between}.footer{margin-top:28px;border-top:1px solid #d7dee7;padding-top:8px;text-align:center;color:#718096;font-size:9px}</style></head><body><div class="head"><div class="company">DURGA VENTURES</div><div class="sub">Shop No. 6, Upper Ground Floor, Mallikatte Market Complex, Kadri, Mangalore – 575002</div><div class="sub"><b>GSTIN: 29ABAFD3264A1ZV</b> &nbsp; | &nbsp; +91-8618486377</div><div class="title">SALARY SLIP</div></div><table class="info"><tr><td><div class="label">Salary Month</div><div class="value">${salaryEsc(salaryMonthLabel(x.salaryMonth))}</div></td><td><div class="label">Payment Date</div><div class="value">${salaryEsc(x.paymentDate||'--')}</div></td><td><div class="label">Payment Mode</div><div class="value">${salaryEsc(x.paymentMode||'--')}</div></td></tr></table><div class="section">EMPLOYEE DETAILS</div><table class="details"><tr><td class="label">Employee Name</td><td class="value">${salaryEsc(x.employeeName)}</td></tr><tr><td class="label">Employee ID</td><td class="value">${salaryEsc(x.employeeCode||'--')}</td></tr><tr><td class="label">Designation</td><td class="value">${salaryEsc(emp.designation||x.designation||'--')}</td></tr><tr><td class="label">Date of Joining</td><td class="value">${salaryEsc(emp.dateOfJoining||x.dateOfJoining||'--')}</td></tr></table><div class="cols"><div><div class="section">EARNINGS</div><table class="grid"><tr><th>Particulars</th><th class="right">Amount (₹)</th></tr><tr><td>Basic Salary</td><td class="right">${formatSalaryMoney(x.basicSalary)}</td></tr><tr><td>HRA</td><td class="right">${formatSalaryMoney(x.hra)}</td></tr><tr><td>Other Allowances</td><td class="right">${formatSalaryMoney(x.otherAllowances)}</td></tr><tr><td><b>TOTAL EARNINGS</b></td><td class="right"><b>${formatSalaryMoney(x.totalEarnings)}</b></td></tr></table></div><div><div class="section">DEDUCTIONS</div><table class="grid"><tr><th>Particulars</th><th class="right">Amount (₹)</th></tr><tr><td>PF</td><td class="right">₹0</td></tr><tr><td>ESI</td><td class="right">₹0</td></tr><tr><td>Other / Total Deductions</td><td class="right">${formatSalaryMoney(x.totalDeductions)}</td></tr><tr><td><b>TOTAL DEDUCTIONS</b></td><td class="right"><b>${formatSalaryMoney(x.totalDeductions)}</b></td></tr></table></div></div><div class="net"><div class="nlabel">NET SALARY PAID</div><div class="amount">${formatSalaryMoney(x.netSalary)}</div><div class="small">(${salaryEsc(words)})</div></div>${x.notes?`<div class="small" style="margin-top:10px"><b>Remarks:</b> ${salaryEsc(x.notes)}</div>`:''}<div class="footer">This is a computer-generated salary slip and does not require a signature or seal.</div></body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250);}
+    function numberToIndianWords(amount){const n=Math.round(Number(amount)||0);if(n===0)return'Zero Rupees Only';const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];function two(x){if(x<20)return ones[x];return tens[Math.floor(x/10)]+(x%10?' '+ones[x%10]:'');}function three(x){return x<100?two(x):ones[Math.floor(x/100)]+' Hundred'+(x%100?' '+two(x%100):'');}let r='';let crore=Math.floor(n/10000000);let lakh=Math.floor((n%10000000)/100000);let thousand=Math.floor((n%100000)/1000);let rem=n%1000;if(crore)r+=three(crore)+' Crore ';if(lakh)r+=three(lakh)+' Lakh ';if(thousand)r+=three(thousand)+' Thousand ';if(rem)r+=three(rem);return r.trim()+' Rupees Only';}
+
     // ================= NEW STAFF EXPERIENCE ================= //
     function getApprovedLeaveDates(employeeId) {
       const dates = new Set();
@@ -5767,6 +5864,39 @@
     }
     function notificationTone(n){const approved=n.type==='LATE_APPROVED'||n.type==='LEAVE_APPROVED',rejected=n.type==='LATE_REJECTED'||n.type==='LEAVE_REJECTED';return approved?'border-emerald-200 bg-emerald-50':rejected?'border-red-200 bg-red-50':n.type==='ATTENDANCE_UPDATED'?'border-blue-200 bg-blue-50':'border-slate-200 bg-white';}
     function renderNotificationCenterPage(){if(!currentAuthUser)return;const list=document.getElementById('notification-center-list'),summary=document.getElementById('notification-center-summary');if(!list)return;const items=getMyNotifications(),unread=items.filter(n=>!n.read);if(summary)summary.innerText=`${items.length} notification${items.length===1?'':'s'} · ${unread.length} unread`;if(!items.length){list.innerHTML='<div class="p-6 text-center text-slate-400 text-xs">No notifications yet.</div>';return;}list.innerHTML=items.map(n=>`<div class="p-3 rounded-2xl border ${notificationTone(n)} ${n.read?'opacity-75':'shadow-sm'}"><div class="flex items-start justify-between gap-2"><div><div class="font-black text-[11px] text-slate-900">${n.title}</div><div class="text-[9px] text-slate-400 mt-0.5">${new Date(n.createdAt).toLocaleString()}</div></div>${n.read?'':'<span class="text-[8px] bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full font-black">NEW</span>'}</div><div class="text-[10px] text-slate-700 mt-2">${n.message}</div>${n.details?.reason?`<div class="mt-2 text-[9px] text-slate-600">Reason: <b>${n.details.reason}</b></div>`:''}${!n.read?`<button onclick="markNotificationRead('${n.id}');renderNotificationCenterPage()" class="mt-2 py-2 px-3 bg-[#05281b] text-white rounded-xl text-[9px] font-black">Mark as Read</button>`:'<div class="mt-2 text-[9px] text-slate-400 font-bold">Read</div>'}</div>`).join('');}
+    function knowledgeEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+    function openKnowledgeEditor(id){
+      if(!isManagerRole()) return showToast('Management authorization required.',true);
+      appState=loadState(); const item=(appState.productKnowledge||[]).find(x=>x.id===id);
+      document.getElementById('knowledge-edit-id').value=item?.id||'';
+      document.getElementById('knowledge-edit-title').value=item?.title||'';
+      document.getElementById('knowledge-edit-category').value=item?.category||'PRODUCT';
+      document.getElementById('knowledge-edit-summary').value=item?.summary||'';
+      document.getElementById('knowledge-edit-questions').value=item?.customerQuestions||'';
+      document.getElementById('knowledge-edit-notes').value=item?.staffNotes||'';
+      document.getElementById('knowledge-editor-modal').classList.remove('hidden');
+    }
+    function closeKnowledgeEditor(){document.getElementById('knowledge-editor-modal')?.classList.add('hidden');}
+    async function saveKnowledgeEntry(){
+      if(!isManagerRole()) return showToast('Management authorization required.',true);
+      if(!cloudDb||!cloudStateLoaded) return showToast('Store data is still connecting to Firebase. Please wait.',true);
+      const id=document.getElementById('knowledge-edit-id').value||('KNOW-'+Date.now()), title=document.getElementById('knowledge-edit-title').value.trim(), category=document.getElementById('knowledge-edit-category').value, summary=document.getElementById('knowledge-edit-summary').value.trim(), customerQuestions=document.getElementById('knowledge-edit-questions').value.trim(), staffNotes=document.getElementById('knowledge-edit-notes').value.trim();
+      if(!title||!summary) return showToast('Title and knowledge summary are required.',true);
+      const now=new Date().toISOString();
+      try{
+        const result=await cloudDb.ref('storeState').transaction(state=>{const latest=ensureStateArrays(state||{});let list=Array.isArray(latest.productKnowledge)?latest.productKnowledge:[];const idx=list.findIndex(x=>x.id===id);const item={id,title,category,summary,customerQuestions,staffNotes,updatedAt:now,updatedBy:currentAuthUser.id};if(idx>=0)list[idx]={...list[idx],...item};else list.unshift(item);latest.productKnowledge=list.slice(0,200);return latest;});
+        if(!result.committed) throw new Error('Knowledge update was not committed.');
+        appState=ensureStateArrays(result.snapshot.val()); cloudBaselineState=cloneCloudSafe(appState); closeKnowledgeEditor(); renderProductKnowledge(); showToast('Product knowledge saved.');
+      }catch(e){console.error('Product knowledge save failed:',e);showToast('Could not save product knowledge.',true);}
+    }
+    function renderProductKnowledge(){
+      if(!currentAuthUser)return; appState=loadState(); const add=document.getElementById('knowledge-add-btn'); if(add) add.classList.toggle('hidden',!isManagerRole());
+      const list=document.getElementById('product-knowledge-list'); if(!list)return; const q=(document.getElementById('knowledge-search')?.value||'').trim().toLowerCase(), cat=document.getElementById('knowledge-category')?.value||'ALL';
+      const items=(appState.productKnowledge||[]).filter(x=>(cat==='ALL'||x.category===cat)&&(!q||[x.title,x.category,x.summary,x.customerQuestions,x.staffNotes].join(' ').toLowerCase().includes(q)));
+      if(!items.length){list.innerHTML='<div class="p-6 text-center text-slate-400 text-xs">No knowledge entries found.</div>';return;}
+      list.innerHTML=items.map(x=>`<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="flex items-start justify-between gap-2"><div><div class="text-[8px] uppercase tracking-widest font-black text-emerald-700">${knowledgeEsc(x.category)}</div><div class="text-xs font-black text-slate-900 mt-1">${knowledgeEsc(x.title)}</div></div>${isManagerRole()?`<button onclick="openKnowledgeEditor('${knowledgeEsc(x.id)}')" class="shrink-0 px-2 py-1.5 bg-white border border-slate-200 rounded-xl text-[8px] font-black text-slate-700">Edit</button>`:''}</div><div class="text-[10px] text-slate-700 mt-2 whitespace-pre-line">${knowledgeEsc(x.summary)}</div>${x.customerQuestions?`<div class="mt-2 p-2 rounded-xl bg-white border border-slate-200"><div class="text-[8px] uppercase font-black text-slate-400">Customer Questions</div><div class="text-[9px] text-slate-700 mt-1 whitespace-pre-line">${knowledgeEsc(x.customerQuestions)}</div></div>`:''}${x.staffNotes?`<div class="mt-2 p-2 rounded-xl bg-white border border-slate-200"><div class="text-[8px] uppercase font-black text-slate-400">Staff Notes</div><div class="text-[9px] text-slate-700 mt-1 whitespace-pre-line">${knowledgeEsc(x.staffNotes)}</div></div>`:''}</div>`).join('');
+    }
+
     function renderMyMilestones(){if(!currentAuthUser)return;appState=loadState();const logs=(appState.attendance||[]).filter(a=>a.employeeId===currentAuthUser.id&&a.punchInTime),totalMinutes=logs.reduce((sum,a)=>sum+Number(a.totalMinutes||0),0),present=logs.length,onTime=logs.filter(a=>!a.isLate||a.lateExceptionApproved).length,milestones=[['🌱','First Shift','Complete your first recorded shift.',present>=1,1,present,'shifts'],['⭐','5 Shifts','Complete 5 recorded shifts.',present>=5,5,present,'shifts'],['🏅','10 Shifts','Complete 10 recorded shifts.',present>=10,10,present,'shifts'],['⏱️','50 Hours','Reach 50 total worked hours.',totalMinutes>=3000,3000,totalMinutes,'minutes'],['🎯','10 On-Time Days','Record 10 days without a late mark.',onTime>=10,10,onTime,'days']],earned=milestones.filter(m=>m[3]).length,summary=document.getElementById('my-milestones-summary'),list=document.getElementById('my-milestones-list');if(summary)summary.innerHTML=`<div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200"><div class="text-[9px] uppercase font-black text-emerald-800">Progress</div><div class="text-lg font-black text-emerald-950 mt-1">${earned} of ${milestones.length} milestones reached</div><div class="text-[9px] text-emerald-800 mt-1">${present} shifts · ${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m worked</div></div>`;if(list)list.innerHTML=milestones.map(m=>{const progress=Math.min(100,(m[5]/m[4])*100),value=m[6]==='minutes'?`${Math.floor(m[5]/60)}h ${m[5]%60}m`:`${m[5]} / ${m[4]}`;return `<div class="p-3 rounded-2xl border ${m[3]?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-white'}"><div class="flex items-center gap-3"><div class="text-2xl">${m[0]}</div><div class="flex-1"><div class="text-xs font-black text-slate-900">${m[1]} ${m[3]?'✓':''}</div><div class="text-[9px] text-slate-500 mt-0.5">${m[2]}</div><div class="h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2"><div class="h-full bg-emerald-600 rounded-full" style="width:${progress}%"></div></div></div><div class="text-[9px] font-black text-slate-500">${value}</div></div></div>`;}).join('');}
     async function submitStaffSuggestion(){if(!currentAuthUser)return;const text=(document.getElementById('suggestion-text')?.value||'').trim(),category=document.getElementById('suggestion-category')?.value||'Other';if(text.length<5){showToast('Please write a little more detail.',true);return;}if(!cloudDb||!cloudStateLoaded){showToast('Store data is still connecting to Firebase. Please wait.',true);return;}const item={id:'SUG-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),employeeId:currentAuthUser.id,employeeName:currentAuthUser.name,category,text,status:'NEW',createdAt:new Date().toISOString()};try{const result=await cloudDb.ref('storeState').transaction(state=>{const latest=ensureStateArrays(state||{});latest.staffSuggestions=Array.isArray(latest.staffSuggestions)?latest.staffSuggestions:[];latest.staffSuggestions.unshift(item);latest.staffSuggestions=latest.staffSuggestions.slice(0,500);return latest;});if(!result.committed)throw new Error('Suggestion was not committed.');appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);document.getElementById('suggestion-text').value='';showToast('Suggestion submitted. Thank you!');renderStaffSuggestions();}catch(e){showToast('Could not submit the suggestion. Please try again.',true);console.error('Staff suggestion save failed:',e);}}
     function renderStaffSuggestions(){if(!currentAuthUser)return;appState=loadState();const mine=(appState.staffSuggestions||[]).filter(s=>s.employeeId===currentAuthUser.id),list=document.getElementById('my-suggestions-list'),count=document.getElementById('my-suggestions-count');if(count)count.innerText=`${mine.length} submitted`;if(list)list.innerHTML=mine.length?mine.map(s=>`<div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="flex justify-between gap-2"><span class="text-[9px] font-black uppercase text-emerald-800">${s.category}</span><span class="text-[8px] font-black bg-white border px-1.5 py-0.5 rounded-full">${s.status||'NEW'}</span></div><div class="text-[10px] text-slate-700 mt-2">${s.text}</div><div class="text-[8px] text-slate-400 mt-1">${new Date(s.createdAt).toLocaleString()}</div></div>`).join(''):'<div class="p-5 text-center text-slate-400 text-xs">No suggestions submitted yet.</div>';}
@@ -5776,17 +5906,19 @@
       if (!currentAuthUser) return;
       if (currentActivePage === 'page-dashboard') renderEmployeePersonalData();
       else if (currentActivePage === 'page-history') renderPersonalLedgerView();
+      else if (currentActivePage === 'page-salary-slips') renderMySalarySlips();
       else if (currentActivePage === 'page-leaves') renderPersonalLeaveHistory();
       else if (currentActivePage === 'page-schedule') renderMySchedule();
       else if (currentActivePage === 'page-notifications') renderNotificationCenterPage();
       else if (currentActivePage === 'page-milestones') renderMyMilestones();
+      else if (currentActivePage === 'page-knowledge') renderProductKnowledge();
       else if (currentActivePage === 'page-shift') renderShiftTabDetails();
       else if (currentActivePage === 'page-cash') renderManagerCashDesk();
       else if (currentActivePage === 'page-punchout') { refreshNightClosingProgress().then(() => checkClosingProgress()); }
       else if (currentActivePage === 'page-enquiries') renderCounterDeskView();
       else if (currentActivePage === 'page-suggestions') renderStaffSuggestions();
       else if (currentActivePage === 'page-daily-snapshot') renderManagementDailySnapshot();
-      else if (currentActivePage === 'page-admin-desk') { renderSuperAdminControl(); renderExtendedSuperAdmin(); }
+      else if (currentActivePage === 'page-admin-desk') { renderSuperAdminControl(); renderExtendedSuperAdmin(); renderAdminSalarySlips(); }
       updateLockPills();
     }
   </script>
