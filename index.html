@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.3.48 -->
+<!-- Wellwith Mangaluru Store Portal v1.3.56 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -13,6 +13,7 @@
 <!-- Firebase Compat Libraries -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -1060,6 +1061,17 @@
           <div id="admin-late-exceptions-list" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar"></div>
         </div>
 
+        <div class="bg-white border border-slate-200 rounded-2xl p-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-[10px] font-black text-slate-900">📷 Staff Attendance Selfies</h4>
+              <p class="text-[9px] text-slate-400">View the selfie captured when staff clocked in.</p>
+            </div>
+            <button type="button" onclick="renderAdminAttendanceLogs()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-700">Refresh</button>
+          </div>
+          <div id="admin-attendance-log-list" class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar"></div>
+        </div>
+
         <div class="hidden" id="sa-approval-list"></div><div class="hidden" id="sa-overtime-list"></div>
       </div>
 
@@ -1683,6 +1695,7 @@
     let pendingDeleteEmployee = null;
     let cachedLocation = null;
     let watchId = null;
+    let gateRadarRequestId = 0;
     // Night closing is a single store-wide first-come claim for each business date.
     // It lives in its own Firebase path so one employee's stale storeState cannot overwrite it.
     let cloudNightClosingByDate = {};
@@ -1976,6 +1989,7 @@
       if (category === 'attendance') {
         const h = [...document.querySelectorAll('#view-admin-control h3')].find(x => x.textContent.trim() === '🕐 Attendance & Break Control');
         if (h) { const card = h.closest('div.bg-white'); if (card) card.classList.remove('hidden'); }
+        renderAdminAttendanceLogs();
       }
       if (category === 'audit') {
         const h = [...document.querySelectorAll('#view-admin-control h3')].find(x => x.textContent.trim() === '🔍 Audit Trail');
@@ -3370,15 +3384,26 @@
         if (tag) tag.innerText = 'GPS + Selfie';
         startCamera();
       }
-      await updateGateRadarDistance(true);
+      // The attendance gate UI may be refreshed while the browser is resolving GPS.
+      // Do not force a second GPS request here; use the passive/cached fix when available.
+      await updateGateRadarDistance(false);
     }
 
     async function updateGateRadarDistance(forceRefresh = false) {
       const radarDist = document.getElementById('gate-radar-distance');
       if (!radarDist) return false;
-      if (forceRefresh) cachedLocation = null;
+
+      const requestId = ++gateRadarRequestId;
+      const previous = cachedLocation;
       try {
-        const coords = await getInstantLocation(true);
+        // Only the explicit Refresh GPS button requests a fresh fix. Normal UI
+        // refreshes use the current passive/cached fix so a temporary GPS timeout
+        // cannot make a valid location suddenly disappear from the screen.
+        const coords = forceRefresh ? await getInstantLocation(true) : await getInstantLocation(false);
+
+        // Ignore an older async GPS response if a newer request has already started.
+        if (requestId !== gateRadarRequestId) return false;
+
         const dist = calculateDistance(coords.lat, coords.lng, appState.storeConfig.lat, appState.storeConfig.lng);
         const rounded = Math.round(dist);
         const inside = dist <= appState.storeConfig.radius;
@@ -3386,8 +3411,21 @@
         radarDist.className = inside ? 'text-2xl font-black tracking-tight text-emerald-300' : 'text-2xl font-black tracking-tight text-amber-300';
         return inside;
       } catch (e) {
-        radarDist.innerText = 'Location unavailable';
-        radarDist.className = 'text-2xl font-black tracking-tight text-red-300';
+        // If a refresh temporarily fails but the browser already has a recent valid
+        // fix, keep showing that fix instead of replacing it with "Location unavailable".
+        const fallback = previous || cachedLocation;
+        if (fallback && Number.isFinite(fallback.lat) && Number.isFinite(fallback.lng) && (Date.now() - (fallback.time || 0) < 120000)) {
+          const dist = calculateDistance(fallback.lat, fallback.lng, appState.storeConfig.lat, appState.storeConfig.lng);
+          const rounded = Math.round(dist);
+          const inside = dist <= appState.storeConfig.radius;
+          radarDist.innerText = inside ? `${rounded}m away · Inside range ✓` : `${rounded}m away · Outside range`;
+          radarDist.className = inside ? 'text-2xl font-black tracking-tight text-emerald-300' : 'text-2xl font-black tracking-tight text-amber-300';
+          return inside;
+        }
+        if (requestId === gateRadarRequestId) {
+          radarDist.innerText = 'Location unavailable';
+          radarDist.className = 'text-2xl font-black tracking-tight text-red-300';
+        }
         return false;
       }
     }
@@ -3423,12 +3461,30 @@
         }
 
         const isLead = isOwnerRole();
-        let selfie = null;
+        let selfieUrl = null;
+        const attendanceId = 'att_' + Date.now();
         if (!isLead) {
-          selfie = captureSelfieSnapshot();
+          const selfie = captureSelfieSnapshot();
           if (!selfie) {
             showToast('Camera verification is required. Allow camera access and try again.', true);
             return;
+          }
+          showToast('Uploading selfie securely…');
+          try {
+            // Do not let Firebase Storage block clock-in indefinitely. Some browsers/
+            // networks can leave a Storage upload pending even though GPS and camera
+            // are already valid. Give Storage a short window, then keep the captured
+            // selfie in the attendance record as a data URL so clock-in can complete.
+            selfieUrl = await Promise.race([
+              uploadAttendanceSelfie(selfie, currentAuthUser.id, today, attendanceId),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('SELFIE_UPLOAD_TIMEOUT')), 8000))
+            ]);
+          } catch (selfieErr) {
+            console.warn('Attendance selfie upload did not complete in time; using secure attendance fallback.', selfieErr);
+            // Fallback keeps the exact captured selfie with this attendance record.
+            // Super Admin can still view it from Attendance even if Storage is unavailable.
+            selfieUrl = selfie;
+            showToast('Selfie captured. Completing clock-in…');
           }
         }
 
@@ -3450,13 +3506,13 @@
         }
 
         const newLog = {
-          id: 'att_' + Date.now(),
+          id: attendanceId,
           employeeId: currentAuthUser.id,
           date: today,
           punchInTime: now.toISOString(),
           punchInLat: coords.lat,
           punchInLng: coords.lng,
-          punchInSelfie: selfie,
+          punchInSelfie: selfieUrl,
           punchOutTime: null,
           totalMinutes: 0,
           totalBreakMins: 0,
@@ -3959,6 +4015,7 @@
               <div class="font-black text-xs text-slate-900 truncate">${name}</div>
               <div class="text-[9px] text-slate-400 font-mono">${log.date || '--'} • ${log.id || 'attendance record'}</div>
             </div>
+            ${log.punchInSelfie ? `<button type="button" onclick="viewAttendanceSelfie('${encodeURIComponent(String(log.punchInSelfie))}')" class="shrink-0 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-[10px] font-black cursor-pointer">📷 View Selfie</button>` : `<span class="shrink-0 px-3 py-2 bg-slate-100 text-slate-400 rounded-xl text-[10px] font-black">📷 No Selfie</span>`}
             <button type="button" onclick="deleteAttendanceLog('${String(log.id || '').replace(/'/g, "\'")}')" class="shrink-0 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-[10px] font-black cursor-pointer">🗑️ Delete</button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 text-[10px]">
@@ -3968,6 +4025,19 @@
           </div>
         </div>`;
       }).join('');
+    }
+
+    function viewAttendanceSelfie(encodedUrl) {
+      if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
+      let url = '';
+      try { url = decodeURIComponent(String(encodedUrl || '')); } catch (e) { url = ''; }
+      if (!url || (!/^https?:\/\//i.test(url) && !/^data:image\//i.test(url))) {
+        return showToast('Selfie image is not available.', true);
+      }
+      const w = window.open('', '_blank', 'width=620,height=760,resizable=yes,scrollbars=yes');
+      if (!w) return showToast('Please allow pop-ups to view the selfie.', true);
+      w.document.write(`<!doctype html><html><head><title>Attendance Selfie</title><style>body{margin:0;background:#071f16;color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}.shell{width:min(92vw,560px);text-align:center}.title{font-size:14px;font-weight:800;margin-bottom:12px}.photo{width:100%;max-height:78vh;object-fit:contain;border-radius:18px;background:#0b2b20;box-shadow:0 12px 40px rgba(0,0,0,.35)}.note{font-size:10px;color:#a7c9bc;margin-top:10px}</style></head><body><div class="shell"><div class="title">📷 Staff Attendance Selfie</div><img class="photo" src="${url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" alt="Attendance selfie"><div class="note">Attendance selfie</div></div></body></html>`);
+      w.document.close();
     }
 
     async function deleteAttendanceLog(logId) {
@@ -5503,6 +5573,34 @@
         return canvas.toDataURL('image/jpeg', 0.6);
       }
       return null;
+    }
+
+    async function uploadAttendanceSelfie(dataUrl, employeeId, date, attendanceId) {
+      if (typeof firebase === 'undefined' || !firebase.storage) {
+        throw new Error('Firebase Storage is unavailable.');
+      }
+      const match = String(dataUrl || '').match(/^data:([^;]+);base64,(.+)$/);
+      if (!match) throw new Error('Invalid selfie image.');
+
+      const mimeType = match[1] || 'image/jpeg';
+      const base64 = match[2];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: mimeType });
+
+      const storage = firebase.storage();
+      const safeEmployeeId = String(employeeId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const safeDate = String(date || 'unknown').replace(/[^0-9-]/g, '_');
+      const safeAttendanceId = String(attendanceId || Date.now()).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const path = `attendance-selfies/${safeEmployeeId}/${safeDate}/${safeAttendanceId}.jpg`;
+      const ref = storage.ref(path);
+
+      await ref.put(blob, {
+        contentType: 'image/jpeg',
+        cacheControl: 'private,max-age=31536000'
+      });
+      return await ref.getDownloadURL();
     }
 
     function renderShiftTabDetails() {
