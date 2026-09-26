@@ -946,7 +946,7 @@
         </div>
         <span id="gps-fetch-status" class="text-[9px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Not fetched</span>
       </div>
-      <button id="btn-fetch-current-gps" onclick="fetchCurrentGPSForAdmin()" class="w-full mt-4 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">📍 Fetch Current GPS</button>
+      <button id="btn-fetch-current-gps" onclick="fetchCurrentGPSForAdmin()" class="w-full mt-4 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">📍 Fetch & Save Current GPS</button>
       <div class="grid grid-cols-2 gap-2 mt-3">
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Latitude</div><div id="admin-gps-lat" class="text-sm font-black text-slate-900 mt-1 break-all">--</div></div>
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Longitude</div><div id="admin-gps-lng" class="text-sm font-black text-slate-900 mt-1 break-all">--</div></div>
@@ -955,7 +955,33 @@
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Accuracy</div><div id="admin-gps-accuracy" class="text-xs font-black text-slate-700 mt-1">--</div></div>
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Fetched At</div><div id="admin-gps-time" class="text-xs font-black text-slate-700 mt-1">--</div></div>
       </div>
-      <p class="text-[9px] text-slate-400 mt-3">Location permission must be allowed in the browser. For best accuracy, use this on the phone at the store location.</p>
+      <p class="text-[9px] text-slate-400 mt-3">Location permission must be allowed in the browser. The fetched coordinates are saved as the store attendance geofence in Firebase.</p>
+    </div>
+
+    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Manual GPS</div>
+          <h3 class="font-black text-sm text-slate-900 mt-1">Enter Store Coordinates Manually</h3>
+          <p class="text-[9px] text-slate-500 mt-1">Use exact latitude and longitude from Google Maps when required.</p>
+        </div>
+        <span class="text-[9px] font-black text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">SUPER ADMIN</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mt-4">
+        <div>
+          <label class="block text-[9px] uppercase tracking-wider font-black text-slate-400 mb-1">Latitude</label>
+          <input id="input-manual-lat" type="number" step="any" placeholder="12.879739" class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-mono font-bold text-xs outline-none"/>
+        </div>
+        <div>
+          <label class="block text-[9px] uppercase tracking-wider font-black text-slate-400 mb-1">Longitude</label>
+          <input id="input-manual-lng" type="number" step="any" placeholder="74.857761" class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-mono font-bold text-xs outline-none"/>
+        </div>
+      </div>
+      <button onclick="saveManualStoreCoordinates()" class="w-full mt-3 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl text-xs font-black">💾 Save Manual Coordinates</button>
+      <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
+        <div class="text-[9px] uppercase tracking-wider font-black text-emerald-800">Current Store Geofence</div>
+        <div class="text-[10px] font-mono font-bold text-emerald-950 mt-1" id="current-store-geofence-display">--</div>
+      </div>
     </div>
   </div>
 
@@ -4771,6 +4797,34 @@
     function renderReportsTabUI() {
     }
 
+    async function saveStoreGeofenceCoordinates(lat, lng, source, accuracy = null) {
+      if (!isSuperAdmin()) throw new Error('Super Admin access required.');
+      if (!cloudDb || !cloudStateLoaded) throw new Error('Store database is still connecting to Firebase. Please wait.');
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        throw new Error('Please enter valid latitude and longitude.');
+      }
+
+      const result = await cloudDb.ref('storeState').transaction(state => {
+        const latest = ensureStateArrays(state || {});
+        latest.storeConfig = { ...(latest.storeConfig || {}), lat, lng };
+        return latest;
+      });
+
+      if (!result.committed) throw new Error('Firebase did not commit the GPS update. Please try again.');
+      appState = ensureStateArrays(result.snapshot.val());
+      cloudBaselineState = cloneCloudSafe(appState);
+      saveState(appState, { skipCloud: true });
+
+      addAuditLog('UPDATE_STORE_GEOFENCE', 'CONFIG', JSON.stringify({
+        latitude: lat,
+        longitude: lng,
+        source,
+        accuracy: Number.isFinite(accuracy) ? Math.round(accuracy) : null
+      }));
+      updateGeofenceSettingsUI();
+      return true;
+    }
+
     async function fetchCurrentGPSForAdmin() {
       if (!isSuperAdmin()) return showToast('Super Admin access required.', true);
       const btn = document.getElementById('btn-fetch-current-gps');
@@ -4779,33 +4833,69 @@
       const lngEl = document.getElementById('admin-gps-lng');
       const accuracyEl = document.getElementById('admin-gps-accuracy');
       const timeEl = document.getElementById('admin-gps-time');
-      if (btn) { btn.disabled = true; btn.innerText = '📡 Fetching GPS...'; }
+      if (btn) { btn.disabled = true; btn.innerText = '📡 Fetching & Saving GPS...'; }
       if (status) { status.innerText = 'Fetching...'; status.className = 'text-[9px] font-black text-amber-700 bg-amber-50 px-2 py-1 rounded-lg'; }
       try {
         const coords = await getInstantLocation(true);
-        if (latEl) latEl.innerText = Number(coords.lat).toFixed(8);
-        if (lngEl) lngEl.innerText = Number(coords.lng).toFixed(8);
-        if (accuracyEl) accuracyEl.innerText = Number.isFinite(coords.accuracy) ? `±${Math.round(coords.accuracy)} m` : '--';
+        const lat = Number(coords.lat);
+        const lng = Number(coords.lng);
+        const accuracy = Number(coords.accuracy);
+        if (latEl) latEl.innerText = lat.toFixed(8);
+        if (lngEl) lngEl.innerText = lng.toFixed(8);
+        if (accuracyEl) accuracyEl.innerText = Number.isFinite(accuracy) ? `±${Math.round(accuracy)} m` : '--';
         if (timeEl) timeEl.innerText = new Date(coords.time || Date.now()).toLocaleString('en-IN');
-        if (status) { status.innerText = 'GPS fetched'; status.className = 'text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg'; }
-        showToast(`GPS fetched: ${Number(coords.lat).toFixed(6)}, ${Number(coords.lng).toFixed(6)}`);
+
+        await saveStoreGeofenceCoordinates(lat, lng, 'CURRENT_PHONE_GPS', accuracy);
+        if (status) { status.innerText = 'Saved to Firebase ✓'; status.className = 'text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg'; }
+        showToast(`Store geofence saved: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       } catch (err) {
         if (status) { status.innerText = 'Failed'; status.className = 'text-[9px] font-black text-red-700 bg-red-50 px-2 py-1 rounded-lg'; }
-        showToast(err?.message || 'Could not fetch GPS location. Turn Location ON and allow browser permission.', true);
+        showToast(err?.message || 'Could not fetch or save GPS location.', true);
       } finally {
-        if (btn) { btn.disabled = false; btn.innerText = '📍 Fetch Current GPS'; }
+        if (btn) { btn.disabled = false; btn.innerText = '📍 Fetch & Save Current GPS'; }
       }
     }
 
+    async function saveManualStoreCoordinates() {
+      if (!isSuperAdmin()) return showToast('Super Admin access required.', true);
+      const lat = Number(document.getElementById('input-manual-lat')?.value);
+      const lng = Number(document.getElementById('input-manual-lng')?.value);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return showToast('Enter a valid latitude (-90 to 90) and longitude (-180 to 180).', true);
+      }
+      const btn = document.querySelector('[onclick="saveManualStoreCoordinates()"]');
+      if (btn) { btn.disabled = true; btn.innerText = 'Saving to Firebase...'; }
+      try {
+        await saveStoreGeofenceCoordinates(lat, lng, 'MANUAL_ENTRY');
+        const status = document.getElementById('gps-fetch-status');
+        if (status) { status.innerText = 'Manual coordinates saved ✓'; status.className = 'text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg'; }
+        showToast(`Store geofence saved: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+      } catch (err) {
+        showToast(err?.message || 'Could not save manual coordinates.', true);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = '💾 Save Manual Coordinates'; }
+      }
+    }
+
+
     function updateGeofenceSettingsUI() {
       appState = loadState();
-      document.getElementById('cfg-lat-val').innerText = appState.storeConfig.lat.toFixed(6);
-      document.getElementById('cfg-lng-val').innerText = appState.storeConfig.lng.toFixed(6);
-      
+      const lat = Number(appState.storeConfig?.lat);
+      const lng = Number(appState.storeConfig?.lng);
+      const latText = Number.isFinite(lat) ? lat.toFixed(6) : '--';
+      const lngText = Number.isFinite(lng) ? lng.toFixed(6) : '--';
+      const cfgLat = document.getElementById('cfg-lat-val');
+      const cfgLng = document.getElementById('cfg-lng-val');
+      if (cfgLat) cfgLat.innerText = latText;
+      if (cfgLng) cfgLng.innerText = lngText;
+
       const manualLat = document.getElementById('input-manual-lat');
       const manualLng = document.getElementById('input-manual-lng');
-      if (manualLat) manualLat.value = appState.storeConfig.lat;
-      if (manualLng) manualLng.value = appState.storeConfig.lng;
+      if (manualLat && Number.isFinite(lat)) manualLat.value = lat;
+      if (manualLng && Number.isFinite(lng)) manualLng.value = lng;
+
+      const currentDisplay = document.getElementById('current-store-geofence-display');
+      if (currentDisplay) currentDisplay.innerText = Number.isFinite(lat) && Number.isFinite(lng) ? `${lat.toFixed(8)}, ${lng.toFixed(8)}` : '--';
 
       const btnCalibrate = document.getElementById('btn-calibrate-gps');
       const boxManual = document.getElementById('box-manual-gps-override');
@@ -6357,4 +6447,3 @@
   </script>
 </body>
 </html>
-
