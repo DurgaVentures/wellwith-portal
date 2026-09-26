@@ -9,7 +9,6 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <title>Wellwith Mangaluru — Store Portal</title>
-<link rel="manifest" href="./manifest.json">
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Firebase Compat Libraries -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -910,10 +909,30 @@
       <button id="tab-simple-people" onclick="switchAdminTab('simple-people')" class="text-emerald-950 bg-emerald-50 rounded-xl py-2.5 font-black">👥 People</button>
       <button id="tab-simple-attendance" onclick="switchAdminTab('simple-attendance')" class="text-slate-500 rounded-xl py-2.5 font-bold">🕐 Attendance</button>
       <button id="tab-simple-cash" onclick="switchAdminTab('simple-cash')" class="text-slate-500 rounded-xl py-2.5 font-bold">💰 Cash</button>
+      <button id="tab-simple-sales" onclick="switchAdminTab('simple-sales')" class="text-slate-500 rounded-xl py-2.5 font-bold">📊 Sales</button>
       <button id="tab-simple-announcements" onclick="switchAdminTab('simple-announcements')" class="text-slate-500 rounded-xl py-2.5 font-bold">📢 Announce</button>
       <button id="tab-simple-settings" onclick="switchAdminTab('simple-settings')" class="text-slate-500 rounded-xl py-2.5 font-bold">⚙️ Settings</button>
       <button id="tab-simple-geofence" onclick="switchAdminTab('simple-geofence')" class="text-slate-500 rounded-xl py-2.5 font-bold">📍 GPS</button>
     </div>
+  </div>
+
+  <div id="view-admin-sales" class="hidden space-y-3">
+    <div class="bg-[#05281b] text-white p-4 rounded-3xl shadow-sm">
+      <div class="flex items-start justify-between gap-3">
+        <div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-200">Business Dashboard</div><h3 class="font-black text-base mt-1">Sales & Business</h3><p class="text-[9px] text-emerald-100 mt-1">Recorded store sales and business activity.</p></div>
+        <button onclick="renderSalesBusinessDashboard()" class="text-[9px] font-black bg-white/10 border border-white/10 px-2.5 py-2 rounded-xl">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="bg-white p-3 rounded-3xl border border-slate-200 space-y-2">
+      <div class="flex items-center justify-between gap-2"><div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Period</div><select id="sa-sales-period" onchange="renderSalesBusinessDashboard()" class="px-2.5 py-2 border rounded-xl text-[10px] font-black bg-white"><option value="today">Today</option><option value="7">Last 7 Days</option><option value="30">Last 30 Days</option><option value="month">This Month</option></select></div>
+      <div id="sa-sales-period-label" class="text-[9px] text-slate-400"></div>
+    </div>
+    <div id="sa-sales-kpis" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+    <div class="grid md:grid-cols-2 gap-3">
+      <div class="bg-white p-3 rounded-3xl border border-slate-200"><h4 class="text-[10px] font-black text-slate-900">Payment Mix</h4><p class="text-[9px] text-slate-400">Recorded sales by payment channel.</p><div id="sa-sales-payment-mix" class="space-y-2 mt-3"></div></div>
+      <div class="bg-white p-3 rounded-3xl border border-slate-200"><h4 class="text-[10px] font-black text-slate-900">Business Activity</h4><p class="text-[9px] text-slate-400">Recorded expenses, bank movements and cash variance.</p><div id="sa-business-activity" class="space-y-2 mt-3"></div></div>
+    </div>
+    <div class="bg-white p-3 rounded-3xl border border-slate-200"><div class="flex items-center justify-between"><div><h4 class="text-[10px] font-black text-slate-900">Daily Sales</h4><p class="text-[9px] text-slate-400">Only dates with recorded sales are shown.</p></div><span id="sa-sales-recorded-days" class="text-[9px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-full">0 days</span></div><div id="sa-sales-daily-list" class="space-y-2 mt-3"></div></div>
   </div>
 
   <div id="view-admin-geofence" class="hidden space-y-3">
@@ -1284,6 +1303,7 @@
 <option value="Thursday">Thursday</option>
 <option value="Friday">Friday</option>
 <option value="Saturday">Saturday</option>
+<option value="NONE">No Weekly Off</option>
 </select>
 </div>
 </div>
@@ -1394,7 +1414,7 @@
         graceMins: 15
       },
       employees: [
-        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'Sunday', employeeCode: 'DV001' },
+        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'NONE', employeeCode: 'DV001' },
         { id: 'usr_owner2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'OWNER', weekOff: 'Sunday', employeeCode: 'DV002' },
         { id: 'usr_staff1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday', employeeCode: 'DV003' }
       ],
@@ -1579,7 +1599,7 @@
         root.phone = '8088504219';
         root.pin = root.pin || '1614';
         root.role = 'SUPER_ADMIN';
-        root.weekOff = root.weekOff || 'Sunday';
+        root.weekOff = 'NONE';
         root.employeeCode = 'DV001';
         root.disabled = false;
         root.archived = false;
@@ -2060,7 +2080,7 @@
             phone: String(u?.phone || ''),
             pin: String(u?.pin || ''),
             role: u?.role || 'STAFF',
-            weekOff: u?.weekOff || 'Sunday',
+            weekOff: (String(u?.phone || '') === '8088504219' || String(u?.id || '') === 'usr_super') ? 'NONE' : (u?.weekOff || 'Sunday'),
             employeeCode: u?.employeeCode || null,
             disabled: !!u?.disabled,
             archived: !!u?.archived,
@@ -2601,7 +2621,7 @@
       set('profile-phone', emp.phone || '--');
       set('profile-role', getDisplayRole(emp.role));
       set('profile-designation', emp.designation || emp.role || 'Staff');
-      set('profile-weekoff', emp.weekOff || 'Sunday');
+      set('profile-weekoff', emp.weekOff === 'NONE' ? 'No Weekly Off' : (emp.weekOff || 'Sunday'));
       set('profile-date-of-joining', emp.dateOfJoining || '--');
       set('profile-status', emp.disabled || emp.archived ? 'INACTIVE' : 'ACTIVE');
       set('profile-present', logs.length);
@@ -2618,7 +2638,7 @@
       document.getElementById('data-user-name').innerText = currentAuthUser.name;
       document.getElementById('data-user-phone').innerText = currentAuthUser.phone;
       document.getElementById('data-role-badge').innerText = getDisplayRole(currentAuthUser.role);
-      document.getElementById('data-user-weekoff').innerText = `Week-Off: ${currentAuthUser.weekOff || 'Sunday'}`;
+      document.getElementById('data-user-weekoff').innerText = `Week-Off: ${currentAuthUser.weekOff === 'NONE' ? 'No Weekly Off' : (currentAuthUser.weekOff || 'Sunday')}`;
 
       const onDuty = isPunchedInToday();
       const finished = isShiftFinishedToday();
@@ -3973,13 +3993,14 @@
         'simple-people': 'people',
         'simple-attendance': 'attendance',
         'simple-cash': 'finance',
+        'simple-sales': 'sales',
         'simple-announcements': 'announcements',
         'simple-settings': 'settings',
         'simple-geofence': 'geofence'
       };
       if (simpleTabs[tabId]) {
         if (!isSuperAdmin()) { showToast('Super Admin access required.', true); return; }
-        ['roster','staff','attendance','leaves','reports','late','control','geofence'].forEach(id => {
+        ['roster','staff','attendance','leaves','reports','late','control','sales','geofence'].forEach(id => {
           document.getElementById(`view-admin-${id}`)?.classList.add('hidden');
         });
         document.getElementById('view-admin-control')?.classList.remove('hidden');
@@ -3988,6 +4009,12 @@
           if (!b) return;
           b.className = id===tabId ? 'text-emerald-950 bg-emerald-50 rounded-xl py-2 font-black' : 'text-slate-400 rounded-xl py-2 font-bold';
         });
+        if (simpleTabs[tabId] === 'sales') {
+          document.getElementById('view-admin-control')?.classList.add('hidden');
+          document.getElementById('view-admin-sales')?.classList.remove('hidden');
+          renderSalesBusinessDashboard();
+          return;
+        }
         if (simpleTabs[tabId] === 'geofence') {
           document.getElementById('view-admin-control')?.classList.add('hidden');
           document.getElementById('view-admin-geofence')?.classList.remove('hidden');
@@ -4275,7 +4302,7 @@
     }
     async function syncEmployeeAccountToFirebase(employee, previousPhone = '') {
       if(!cloudDb || !firebaseUsersLoaded) return false; const targetId=String(employee.id), oldPhone=String(previousPhone||employee.phone||'');
-      const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; let key=Object.keys(latest).find(k=>String(latest[k]?.id||k)===targetId); if(!key&&oldPhone) key=Object.keys(latest).find(k=>String(latest[k]?.phone||'')===oldPhone); if(!key) key=targetId; const existing=latest[key]||{}; latest[key]={...existing,id:targetId,name:employee.name||'',phone:String(employee.phone||''),pin:String(employee.pin||''),role:employee.role||'STAFF',designation:employee.designation||null,weekOff:employee.weekOff||'Sunday',dateOfJoining:employee.dateOfJoining||null,employeeCode:employee.employeeCode||null,disabled:!!employee.disabled,archived:!!employee.archived,archivedAt:employee.archivedAt||null,archivedReason:employee.archivedReason||null,archivedBy:employee.archivedBy||null}; return latest; });
+      const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; let key=Object.keys(latest).find(k=>String(latest[k]?.id||k)===targetId); if(!key&&oldPhone) key=Object.keys(latest).find(k=>String(latest[k]?.phone||'')===oldPhone); if(!key) key=targetId; const existing=latest[key]||{}; latest[key]={...existing,id:targetId,name:employee.name||'',phone:String(employee.phone||''),pin:String(employee.pin||''),role:employee.role||'STAFF',designation:employee.designation||null,weekOff:(employee.phone==='8088504219'||employee.id==='usr_super')?'NONE':(employee.weekOff||'Sunday'),dateOfJoining:employee.dateOfJoining||null,employeeCode:employee.employeeCode||null,disabled:!!employee.disabled,archived:!!employee.archived,archivedAt:employee.archivedAt||null,archivedReason:employee.archivedReason||null,archivedBy:employee.archivedBy||null}; return latest; });
       if(!result.committed) return false; cloudUsers=normalizeFirebaseUsers(result.snapshot.val()); firebaseUsersLoaded=true; return true;
     }
 
@@ -4352,10 +4379,10 @@
       let phone=e.phone;
       if(!isRoot){ phone=await adminAsk('Update the mobile number.',{title:'Edit Employee',fieldLabel:'Mobile number',value:e.phone}); if(phone===null)return; if(!/^\d{10}$/.test(phone.trim()))return showToast('Enter a valid 10-digit mobile number.',true); if(appState.employees.some(x=>x.id!==e.id&&x.phone===phone.trim()))return showToast('Another account already uses this mobile number.',true); }
       const designation=await adminAsk('Update the employee designation.',{title:'Edit Employee',fieldLabel:'Designation',value:e.designation||''}); if(designation===null)return;
-      const weekOff=await adminAsk('Update the weekly off day.',{title:'Edit Employee',fieldLabel:'Weekly off day',value:e.weekOff||'Sunday'}); if(weekOff===null)return;
+      const weekOff=await adminAsk('Update the weekly off day. For Samrajya, enter No Weekly Off if he does not take a weekly off.',{title:'Edit Employee',fieldLabel:'Weekly off day',value:e.weekOff==='NONE'?'No Weekly Off':(e.weekOff||'Sunday')}); if(weekOff===null)return;
       const dateOfJoining=await adminAsk('Update the employee date of joining.',{title:'Edit Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',value:e.dateOfJoining||''}); if(dateOfJoining===null)return; if(dateOfJoining.trim()&&!/^\d{4}-\d{2}-\d{2}$/.test(dateOfJoining.trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
       const reason=await adminAsk('Why are you changing this account?',{title:'Edit Employee',fieldLabel:'Reason'}); if(!reason)return;
-      const before={name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}, oldPhone=e.phone; e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.designation=designation.trim()||null;e.weekOff=weekOff.trim()||'Sunday';e.dateOfJoining=dateOfJoining.trim()||null;
+      const before={name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}, oldPhone=e.phone; e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.designation=designation.trim()||null;e.weekOff=(e.phone==='8088504219' && /^(none|no weekly off|no week off)$/i.test(weekOff.trim()))?'NONE':(weekOff.trim()||'Sunday');if(e.phone!=='8088504219' && e.weekOff==='NONE') e.weekOff='Sunday';e.dateOfJoining=dateOfJoining.trim()||null;
       if(isRoot){e.role='SUPER_ADMIN';e.phone='8088504219';e.employeeCode='DV001';e.disabled=false;e.archived=false;}
       try{if(!await syncEmployeeAccountToFirebase(e,oldPhone))throw new Error('Firebase account update failed');saveState(appState);addAuditLog('EDIT_ACCOUNT','ACCOUNT',JSON.stringify({reason,before,after:{name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}}),e.id);renderExtendedSuperAdmin();renderSuperAdminControl();showToast(isRoot?'Root Super Admin profile updated online.':'Account updated online.');}catch(err){Object.assign(e,before);console.error('Firebase employee edit failed:',err);showToast('Could not update the employee account online.',true);}
     }
@@ -4373,6 +4400,28 @@
     function saToggleAnnouncement(id){if(!superAdminOnly())return;appState=loadState();const a=appState.announcements.find(x=>x.id===id);if(!a)return;a.active=!a.active;saveState(appState);addAuditLog(a.active?'ACTIVATE_ANNOUNCEMENT':'DEACTIVATE_ANNOUNCEMENT','ANNOUNCEMENT',a.title,id);renderExtendedSuperAdmin();}
     function saSaveFinanceControl(){if(!superAdminOnly())return;appState=loadState();const date=document.getElementById('sa-fin-date')?.value||getLocalDateString();const float=Number(document.getElementById('sa-fin-float')?.value||0),cashSales=Number(document.getElementById('sa-fin-cash')?.value||0),digital=Number(document.getElementById('sa-fin-digital')?.value||0),actual=Number(document.getElementById('sa-fin-actual')?.value||0),expected=float+cashSales,reason=document.getElementById('sa-fin-reason')?.value.trim()||'';const diff=actual-expected;if(diff!==0&&!reason)return showToast('Explanation is required for a cash difference.',true);let r=appState.cashDrawerLogs.find(x=>x.date===date);if(!r){r={date};appState.cashDrawerLogs.push(r);}Object.assign(r,{morningCash:float,adminCashSales:cashSales,adminDigitalSales:digital,adminExpectedCash:expected,adminActualCash:actual,adminDifference:diff,adminReconciliationReason:reason,adminReconciledBy:currentAuthUser.id,adminReconciledAt:new Date().toISOString()});saveState(appState);addAuditLog('FINANCE_RECONCILIATION','FINANCE',JSON.stringify({date,float,cashSales,digital,actual,expected,diff,reason}));renderExtendedSuperAdmin();showToast('Finance control saved.');}
     function renderStaffAnnouncements(){appState=loadState();const panel=document.getElementById('staff-announcements-panel'),list=document.getElementById('staff-announcements-list');if(!panel||!list)return;const items=(appState.announcements||[]).filter(a=>a.active&&(a.target==='ALL'||a.target===currentAuthUser?.id)).slice(0,10);panel.classList.toggle('hidden',!items.length);list.innerHTML=items.map(a=>`<div class="p-2.5 bg-white border border-blue-100 rounded-2xl"><div class="flex justify-between gap-2"><b class="text-[10px] text-blue-950">${a.title}</b><span class="text-[8px] font-black">${a.priority}</span></div><div class="text-[10px] text-slate-600 mt-1">${a.message}</div><div class="text-[8px] text-slate-400 mt-1">${new Date(a.createdAt).toLocaleString()}</div></div>`).join('');}
+    function renderSalesBusinessDashboard(){
+      if(!superAdminOnly()) return;
+      appState=loadState();
+      const period=document.getElementById('sa-sales-period')?.value||'today';
+      const today=getLocalDateString();
+      const now=new Date();
+      let startDate=today,label='Today';
+      if(period==='7'){const d=new Date(now);d.setDate(d.getDate()-6);startDate=getLocalDateString(d);label=`${startDate} to ${today}`;}
+      else if(period==='30'){const d=new Date(now);d.setDate(d.getDate()-29);startDate=getLocalDateString(d);label=`${startDate} to ${today}`;}
+      else if(period==='month'){startDate=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;label=`${startDate} to ${today}`;}
+      const logs=(appState.cashDrawerLogs||[]).filter(x=>x.date>=startDate&&x.date<=today),daily={};
+      logs.forEach(r=>{const cash=Number(r.nightVyaparCash??r.adminCashSales??0)||0,edc=Number(r.paytmEDC??0)||0,upi=Number(r.idfcSoundbox??0)||0,adminDigital=Number(r.adminDigitalSales??0)||0,digital=(edc+upi)||adminDigital,total=cash+digital,petty=(appState.pettyCashExpenses||[]).filter(x=>x.date===r.date).reduce((a,x)=>a+(Number(x.amount)||0),0),bank=(appState.bankTransfers||[]).filter(x=>x.date===r.date).reduce((a,x)=>a+(Number(x.amount)||0),0),diff=Number(r.nightDifference??r.adminDifference??0)||0;daily[r.date]={date:r.date,cash,digital,edc,upi,total,petty,bank,diff};});
+      const rows=Object.values(daily).sort((a,b)=>a.date.localeCompare(b.date)),money=v=>'₹'+Math.round(Number(v)||0).toLocaleString('en-IN');
+      const totalSales=rows.reduce((a,r)=>a+r.total,0),totalCash=rows.reduce((a,r)=>a+r.cash,0),totalDigital=rows.reduce((a,r)=>a+r.digital,0),totalPetty=rows.reduce((a,r)=>a+r.petty,0),totalBank=rows.reduce((a,r)=>a+r.bank,0),totalDiff=rows.reduce((a,r)=>a+r.diff,0),avg=rows.length?totalSales/rows.length:0,best=rows.reduce((b,r)=>!b||r.total>b.total?r:b,null);
+      const k=document.getElementById('sa-sales-kpis');if(k)k.innerHTML=[['Total Sales',money(totalSales),'bg-emerald-50 text-emerald-900'],['Avg / Recorded Day',money(avg),'bg-slate-50 text-slate-900'],['Cash Sales',money(totalCash),'bg-amber-50 text-amber-900'],['Digital Sales',money(totalDigital),'bg-blue-50 text-blue-900']].map(x=>`<div class="p-3 rounded-2xl border border-slate-200 ${x[2]}"><div class="text-[9px] uppercase tracking-wider font-black opacity-60">${x[0]}</div><div class="text-base font-black mt-1">${x[1]}</div></div>`).join('');
+      const pl=document.getElementById('sa-sales-period-label');if(pl)pl.textContent=`${label} · ${rows.length} recorded day${rows.length===1?'':'s'}`;
+      const pm=document.getElementById('sa-sales-payment-mix');if(pm)pm.innerHTML=[['Cash',totalCash],['Paytm EDC',rows.reduce((a,r)=>a+r.edc,0)],['IDFC Soundbox / UPI',rows.reduce((a,r)=>a+r.upi,0)]].map(x=>`<div><div class="flex justify-between text-[9px] font-bold"><span>${x[0]}</span><span>${money(x[1])}</span></div><div class="h-2 bg-slate-100 rounded-full mt-1 overflow-hidden"><div class="h-full bg-emerald-600 rounded-full" style="width:${totalSales?Math.min(100,(x[1]/totalSales)*100):0}%"></div></div></div>`).join('')||'<div class="text-[10px] text-slate-400">No sales recorded.</div>';
+      const ba=document.getElementById('sa-business-activity');if(ba)ba.innerHTML=[['Petty Cash',money(totalPetty)],['Bank / Safe Transfers',money(totalBank)],['Cash Variance',money(totalDiff)],['Highest Sales Day',best?`${best.date} · ${money(best.total)}`:'—']].map(x=>`<div class="flex justify-between gap-2 p-2 bg-slate-50 border rounded-xl text-[9px]"><span class="text-slate-500">${x[0]}</span><b class="text-right">${x[1]}</b></div>`).join('');
+      const dl=document.getElementById('sa-sales-daily-list');if(dl)dl.innerHTML=rows.slice().reverse().map(r=>`<div class="p-2.5 bg-slate-50 border rounded-2xl"><div class="flex items-center justify-between gap-2"><div><div class="font-black text-[10px] text-slate-900">${r.date}</div><div class="text-[8px] text-slate-400 mt-0.5">Cash ${money(r.cash)} · Digital ${money(r.digital)}</div></div><div class="text-right"><div class="font-black text-[11px] text-emerald-900">${money(r.total)}</div><div class="text-[8px] text-slate-400">Variance ${money(r.diff)}</div></div></div></div>`).join('')||'<div class="p-3 text-center text-[10px] text-slate-400">No recorded sales for this period.</div>';
+      const rd=document.getElementById('sa-sales-recorded-days');if(rd)rd.textContent=`${rows.length} day${rows.length===1?'':'s'}`;
+    }
+
     function renderExtendedSuperAdmin(){
       if(!superAdminOnly())return; appState=loadState();
       const today=getLocalDateString();
@@ -4705,7 +4754,7 @@
       (appState.employees || []).forEach(emp => {
         const att = getLatestTodayAttendance(emp.id);
         let badgeHtml = '<span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold">Absent / Off</span>';
-        let subtext = `Off: ${emp.weekOff || 'Sunday'}`;
+        let subtext = `Off: ${emp.weekOff === 'NONE' ? 'No Weekly Off' : (emp.weekOff || 'Sunday')}`;
 
         if (att && att.punchInTime && !att.punchOutTime) {
           badgeHtml = `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> On Duty</span>`;
@@ -4897,7 +4946,7 @@
           if (!latest.usr_super) {
             latest.usr_super = {
               id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614',
-              role: 'SUPER_ADMIN', weekOff: 'Sunday', disabled: false, archived: false, archivedAt: null
+              role: 'SUPER_ADMIN', weekOff: 'NONE', disabled: false, archived: false, archivedAt: null
             };
           }
           return latest;
@@ -4947,7 +4996,7 @@
         row.innerHTML = `
           <div>
             <div class="font-bold text-slate-900">${emp.name} <span class="text-[9px] uppercase font-black px-1.5 py-0.2 rounded ${roleColor}">${displayRole}</span></div>
-            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • ${emp.designation || getDisplayRole(emp.role)} • Off: ${emp.weekOff || 'Sunday'}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • ${emp.designation || getDisplayRole(emp.role)} • Off: ${emp.weekOff === 'NONE' ? 'No Weekly Off' : (emp.weekOff || 'Sunday')}</div>
           </div>
           <div class="flex items-center gap-2">
             ${isSuperAdmin() ? `<span class="font-mono text-slate-600 bg-white px-1.5 py-0.5 rounded border text-[10px]">${emp.pin}</span>` : ''}
@@ -5636,17 +5685,21 @@
       const listEl = document.getElementById('my-leave-history-list');
       const weekOff = currentAuthUser.weekOff || 'Sunday';
 
-      if (weekOffEl) weekOffEl.innerText = weekOff;
+      if (weekOffEl) weekOffEl.innerText = weekOff === 'NONE' ? 'No Weekly Off' : weekOff;
 
       const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       const now = new Date();
       const todayIndex = now.getDay();
       const targetIndex = dayNames.indexOf(weekOff);
-      let delta = targetIndex - todayIndex;
-      if (delta <= 0) delta += 7;
-      const nextOff = new Date(now);
-      nextOff.setDate(now.getDate() + delta);
-      if (nextOffEl) nextOffEl.innerText = nextOff.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+      if (weekOff === 'NONE') {
+        if (nextOffEl) nextOffEl.innerText = 'None';
+      } else {
+        let delta = targetIndex - todayIndex;
+        if (delta <= 0) delta += 7;
+        const nextOff = new Date(now);
+        nextOff.setDate(now.getDate() + delta);
+        if (nextOffEl) nextOffEl.innerText = nextOff.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+      }
 
       const today = getLocalDateString();
       const holidays = (appState.holidays || [])
@@ -5736,7 +5789,7 @@
         pin: String(u.pin || ''),
         role: u.role || 'STAFF',
         designation: u.designation || null,
-        weekOff: u.weekOff || 'Sunday',
+        weekOff: (String(u?.phone || '') === '8088504219' || String(u?.id || '') === 'usr_super') ? 'NONE' : (u.weekOff || 'Sunday'),
         employeeCode: u.employeeCode || null,
         disabled: !!u.disabled,
         archived: !!u.archived,
@@ -5776,7 +5829,7 @@
             pin: String(e.pin),
             role: e.role || 'STAFF',
             designation: e.designation || null,
-            weekOff: e.weekOff || 'Sunday',
+            weekOff: (String(e.phone || '') === '8088504219' || String(e.id || '') === 'usr_super') ? 'NONE' : (e.weekOff || 'Sunday'),
             employeeCode: e.employeeCode || null,
             disabled: !!e.disabled,
             archived: !!e.archived,
@@ -5832,7 +5885,7 @@
             pin: '1614',
             role: 'SUPER_ADMIN',
             designation: rootProfile.designation || null,
-            weekOff: rootProfile.weekOff || 'Sunday',
+            weekOff: 'NONE',
             dateOfJoining: rootProfile.dateOfJoining || null,
             employeeCode: 'DV001',
             disabled: false,
@@ -6141,8 +6194,8 @@
     }
     function renderMySchedule() {
       if (!currentAuthUser) return; appState=loadState(); const list=document.getElementById('my-schedule-list'), badge=document.getElementById('schedule-weekoff-badge'); if(!list)return;
-      const weekOff=currentAuthUser.weekOff||'Sunday'; if(badge)badge.innerText=`Weekly off: ${weekOff}`; const approved=getApprovedLeaveDates(currentAuthUser.id), holidays=new Map((appState.holidays||[]).map(h=>[h.date,h.name||'Store holiday'])), today=new Date(), rows=[];
-      for(let i=0;i<7;i++){const d=new Date(today);d.setHours(0,0,0,0);d.setDate(today.getDate()+i);const date=getLocalDateString(d), day=d.toLocaleDateString('en-IN',{weekday:'short'}), label=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});let type='WORKING',note=`${appState.storeConfig.shiftStart||'08:00'} – ${appState.storeConfig.shiftEnd||'21:00'}`;if(holidays.has(date)){type='HOLIDAY';note=holidays.get(date);}else if(day===weekOff.slice(0,3)){type='WEEK OFF';note='Weekly off';}if(approved.has(date)){type='APPROVED OFF';note='Approved time off';}const tone=type==='WORKING'?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-slate-50';rows.push(`<div class="p-3 rounded-2xl border ${tone} flex items-center justify-between gap-3"><div><div class="text-[9px] font-black uppercase text-slate-400">${day} · ${label}${i===0?' · TODAY':''}</div><div class="text-xs font-black text-slate-900 mt-0.5">${type}</div></div><div class="text-right text-[9px] font-bold text-slate-500">${note}</div></div>`);}list.innerHTML=rows.join('');
+      const weekOff=currentAuthUser.weekOff||'Sunday'; if(badge)badge.innerText=`Weekly off: ${weekOff==='NONE'?'No Weekly Off':weekOff}`; const approved=getApprovedLeaveDates(currentAuthUser.id), holidays=new Map((appState.holidays||[]).map(h=>[h.date,h.name||'Store holiday'])), today=new Date(), rows=[];
+      for(let i=0;i<7;i++){const d=new Date(today);d.setHours(0,0,0,0);d.setDate(today.getDate()+i);const date=getLocalDateString(d), day=d.toLocaleDateString('en-IN',{weekday:'short'}), label=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});let type='WORKING',note=`${appState.storeConfig.shiftStart||'08:00'} – ${appState.storeConfig.shiftEnd||'21:00'}`;if(holidays.has(date)){type='HOLIDAY';note=holidays.get(date);}else if(weekOff!=='NONE' && day===weekOff.slice(0,3)){type='WEEK OFF';note='Weekly off';}if(approved.has(date)){type='APPROVED OFF';note='Approved time off';}const tone=type==='WORKING'?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-slate-50';rows.push(`<div class="p-3 rounded-2xl border ${tone} flex items-center justify-between gap-3"><div><div class="text-[9px] font-black uppercase text-slate-400">${day} · ${label}${i===0?' · TODAY':''}</div><div class="text-xs font-black text-slate-900 mt-0.5">${type}</div></div><div class="text-right text-[9px] font-bold text-slate-500">${note}</div></div>`);}list.innerHTML=rows.join('');
     }
     function notificationTone(n){const approved=n.type==='LATE_APPROVED'||n.type==='LEAVE_APPROVED',rejected=n.type==='LATE_REJECTED'||n.type==='LEAVE_REJECTED';return approved?'border-emerald-200 bg-emerald-50':rejected?'border-red-200 bg-red-50':n.type==='ATTENDANCE_UPDATED'?'border-blue-200 bg-blue-50':'border-slate-200 bg-white';}
     function renderNotificationCenterPage(){if(!currentAuthUser)return;const list=document.getElementById('notification-center-list'),summary=document.getElementById('notification-center-summary');if(!list)return;const items=getMyNotifications(),unread=items.filter(n=>!n.read);if(summary)summary.innerText=`${items.length} notification${items.length===1?'':'s'} · ${unread.length} unread`;if(!items.length){list.innerHTML='<div class="p-6 text-center text-slate-400 text-xs">No notifications yet.</div>';return;}list.innerHTML=items.map(n=>`<div class="p-3 rounded-2xl border ${notificationTone(n)} ${n.read?'opacity-75':'shadow-sm'}"><div class="flex items-start justify-between gap-2"><div><div class="font-black text-[11px] text-slate-900">${n.title}</div><div class="text-[9px] text-slate-400 mt-0.5">${new Date(n.createdAt).toLocaleString()}</div></div>${n.read?'':'<span class="text-[8px] bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full font-black">NEW</span>'}</div><div class="text-[10px] text-slate-700 mt-2">${n.message}</div>${n.details?.reason?`<div class="mt-2 text-[9px] text-slate-600">Reason: <b>${n.details.reason}</b></div>`:''}${!n.read?`<button onclick="markNotificationRead('${n.id}');renderNotificationCenterPage()" class="mt-2 py-2 px-3 bg-[#05281b] text-white rounded-xl text-[9px] font-black">Mark as Read</button>`:'<div class="mt-2 text-[9px] text-slate-400 font-bold">Read</div>'}</div>`).join('');}
@@ -6204,15 +6257,5 @@
       updateLockPills();
     }
   </script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function (err) {
-        console.warn('Wellwith PWA service worker registration failed:', err);
-      });
-    });
-  }
-</script>
 </body>
 </html>
