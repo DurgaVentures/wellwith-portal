@@ -1,3 +1,4 @@
+<!-- Wellwith Mangaluru Store Portal v1.3.46 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -954,10 +955,10 @@
             <select id="sa-salary-payment-mode" class="px-3 py-2 border rounded-xl text-[10px] font-bold bg-white"><option>Bank Transfer</option><option>Cash</option><option>UPI</option><option>Other</option></select>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <input id="sa-salary-basic" type="number" min="0" step="0.01" placeholder="Basic Salary ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
-            <input id="sa-salary-hra" type="number" min="0" step="0.01" placeholder="HRA ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
-            <input id="sa-salary-other" type="number" min="0" step="0.01" placeholder="Other Allowances ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
-            <input id="sa-salary-gross" type="number" min="0" step="0.01" placeholder="Total Earnings ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-basic" type="number" min="0" step="0.01" placeholder="Basic Salary ₹" oninput="updateSalaryTotals()" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-hra" type="number" min="0" step="0.01" placeholder="HRA ₹" oninput="updateSalaryTotals()" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-other" type="number" min="0" step="0.01" placeholder="Other Allowances ₹" oninput="updateSalaryTotals()" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
+            <input id="sa-salary-gross" type="number" min="0" step="0.01" placeholder="Total Earnings ₹" readonly class="px-3 py-2 border rounded-xl text-[10px] font-black bg-slate-100 text-slate-700 cursor-not-allowed"/>
             <input id="sa-salary-deductions" type="number" min="0" step="0.01" placeholder="Total Deductions ₹" class="px-3 py-2 border rounded-xl text-[10px] font-bold"/>
             <input id="sa-salary-net" type="number" min="0" step="0.01" placeholder="NET SALARY PAID ₹ *" class="px-3 py-2 border rounded-xl text-[10px] font-black border-emerald-300 bg-emerald-50"/>
           </div>
@@ -2487,6 +2488,7 @@
       set('profile-full-name', emp.name || '--');
       set('profile-phone', emp.phone || '--');
       set('profile-role', getDisplayRole(emp.role));
+      set('profile-designation', emp.designation || emp.role || 'Staff');
       set('profile-weekoff', emp.weekOff || 'Sunday');
       set('profile-date-of-joining', emp.dateOfJoining || '--');
       set('profile-status', emp.disabled || emp.archived ? 'INACTIVE' : 'ACTIVE');
@@ -4146,7 +4148,7 @@
     }
     async function syncEmployeeAccountToFirebase(employee, previousPhone = '') {
       if(!cloudDb || !firebaseUsersLoaded) return false; const targetId=String(employee.id), oldPhone=String(previousPhone||employee.phone||'');
-      const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; let key=Object.keys(latest).find(k=>String(latest[k]?.id||k)===targetId); if(!key&&oldPhone) key=Object.keys(latest).find(k=>String(latest[k]?.phone||'')===oldPhone); if(!key) key=targetId; const existing=latest[key]||{}; latest[key]={...existing,id:targetId,name:employee.name||'',phone:String(employee.phone||''),pin:String(employee.pin||''),role:employee.role||'STAFF',weekOff:employee.weekOff||'Sunday',dateOfJoining:employee.dateOfJoining||null,employeeCode:employee.employeeCode||null,disabled:!!employee.disabled,archived:!!employee.archived,archivedAt:employee.archivedAt||null,archivedReason:employee.archivedReason||null,archivedBy:employee.archivedBy||null}; return latest; });
+      const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; let key=Object.keys(latest).find(k=>String(latest[k]?.id||k)===targetId); if(!key&&oldPhone) key=Object.keys(latest).find(k=>String(latest[k]?.phone||'')===oldPhone); if(!key) key=targetId; const existing=latest[key]||{}; latest[key]={...existing,id:targetId,name:employee.name||'',phone:String(employee.phone||''),pin:String(employee.pin||''),role:employee.role||'STAFF',designation:employee.designation||null,weekOff:employee.weekOff||'Sunday',dateOfJoining:employee.dateOfJoining||null,employeeCode:employee.employeeCode||null,disabled:!!employee.disabled,archived:!!employee.archived,archivedAt:employee.archivedAt||null,archivedReason:employee.archivedReason||null,archivedBy:employee.archivedBy||null}; return latest; });
       if(!result.committed) return false; cloudUsers=normalizeFirebaseUsers(result.snapshot.val()); firebaseUsersLoaded=true; return true;
     }
 
@@ -4156,11 +4158,11 @@
       const phone=await adminAsk('Enter the employee mobile number.',{title:'Add Employee',fieldLabel:'Mobile number'}); if(!/^\d{10}$/.test(phone||''))return showToast('Enter a valid 10-digit mobile number.',true);
       if(appState.employees.some(e=>e.phone===phone))return showToast('An account already uses this mobile number.',true);
       const pin=await adminAsk('Set the initial 4-digit PIN.',{title:'Add Employee',fieldLabel:'Initial 4-digit PIN',placeholder:'0000'}); if(!/^\d{4}$/.test(pin||''))return showToast('PIN must be exactly 4 digits.',true);
-      const role=(await adminAsk('Choose the authority role.',{title:'Add Employee',fieldLabel:'Role',value:'STAFF'}))||'STAFF'; const weekOff=(await adminAsk('Set the weekly off day.',{title:'Add Employee',fieldLabel:'Week-off day',value:'Sunday'}))||'Sunday';
+      const role=(await adminAsk('Choose the authority role.',{title:'Add Employee',fieldLabel:'Role',value:'STAFF'}))||'STAFF'; const designation=await adminAsk('Enter the employee designation.',{title:'Add Employee',fieldLabel:'Designation',placeholder:'Store Manager'}); if(designation===null)return; const weekOff=(await adminAsk('Set the weekly off day.',{title:'Add Employee',fieldLabel:'Week-off day',value:'Sunday'}))||'Sunday';
       const dateOfJoining=await adminAsk('Enter the employee date of joining.',{title:'Add Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',placeholder:'2026-09-07'}); if(dateOfJoining===null)return; if(!/^\d{4}-\d{2}-\d{2}$/.test((dateOfJoining||'').trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
       if(!cloudDb||!firebaseUsersLoaded)return showToast('Firebase account service is still connecting. Please try again.',true);
-      const e={id:'usr_'+Date.now(),name:name.trim(),phone,pin,role:role.toUpperCase(),weekOff,dateOfJoining:dateOfJoining.trim(),employeeCode:null,disabled:false,archived:false,createdAt:new Date().toISOString()};
-      try{ const reserved=(appState.deletedEmployeeCodes||[]).map(String); const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; if(Object.values(latest).some(u=>String(u?.phone||'')===String(phone))) return; const code=getNextEmployeeCodeFromCloudUsers(latest,reserved); latest[e.id]={id:e.id,name:e.name,phone:e.phone,pin:e.pin,role:e.role,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null,employeeCode:code,disabled:false,archived:false,archivedAt:null}; return latest; }); if(!result.committed)return showToast('Could not create the employee account online. Please try again.',true);
+      const e={id:'usr_'+Date.now(),name:name.trim(),phone,pin,role:role.toUpperCase(),designation:designation.trim()||null,weekOff,dateOfJoining:dateOfJoining.trim(),employeeCode:null,disabled:false,archived:false,createdAt:new Date().toISOString()};
+      try{ const reserved=(appState.deletedEmployeeCodes||[]).map(String); const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; if(Object.values(latest).some(u=>String(u?.phone||'')===String(phone))) return; const code=getNextEmployeeCodeFromCloudUsers(latest,reserved); latest[e.id]={id:e.id,name:e.name,phone:e.phone,pin:e.pin,role:e.role,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null,employeeCode:code,disabled:false,archived:false,archivedAt:null}; return latest; }); if(!result.committed)return showToast('Could not create the employee account online. Please try again.',true);
         const cloudAccount=result.snapshot.val()?.[e.id]; if(!cloudAccount)return showToast('Employee account was not returned by Firebase. Please try again.',true); e.employeeCode=cloudAccount.employeeCode||getNextEmployeeCode(appState); cloudUsers=normalizeFirebaseUsers(result.snapshot.val()); firebaseUsersLoaded=true; appState.employees.push(e); saveState(appState); addAuditLog('CREATE_ACCOUNT','ACCOUNT',`Created ${e.name} (${e.role})`,e.id); renderExtendedSuperAdmin();renderSuperAdminControl(); showToast(`Employee account created and synced online as ${e.employeeCode}.`);
       }catch(err){console.error('Firebase employee creation failed:',err);showToast('Could not create the employee account online.',true);}
     }
@@ -4184,12 +4186,13 @@
       const name=await adminAsk('Update the employee name.',{title:'Edit Employee',fieldLabel:'Employee name',value:e.name}); if(name===null)return;
       let phone=e.phone;
       if(!isRoot){ phone=await adminAsk('Update the mobile number.',{title:'Edit Employee',fieldLabel:'Mobile number',value:e.phone}); if(phone===null)return; if(!/^\d{10}$/.test(phone.trim()))return showToast('Enter a valid 10-digit mobile number.',true); if(appState.employees.some(x=>x.id!==e.id&&x.phone===phone.trim()))return showToast('Another account already uses this mobile number.',true); }
+      const designation=await adminAsk('Update the employee designation.',{title:'Edit Employee',fieldLabel:'Designation',value:e.designation||''}); if(designation===null)return;
       const weekOff=await adminAsk('Update the weekly off day.',{title:'Edit Employee',fieldLabel:'Weekly off day',value:e.weekOff||'Sunday'}); if(weekOff===null)return;
       const dateOfJoining=await adminAsk('Update the employee date of joining.',{title:'Edit Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',value:e.dateOfJoining||''}); if(dateOfJoining===null)return; if(dateOfJoining.trim()&&!/^\d{4}-\d{2}-\d{2}$/.test(dateOfJoining.trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
       const reason=await adminAsk('Why are you changing this account?',{title:'Edit Employee',fieldLabel:'Reason'}); if(!reason)return;
-      const before={name:e.name,phone:e.phone,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}, oldPhone=e.phone; e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.weekOff=weekOff.trim()||'Sunday';e.dateOfJoining=dateOfJoining.trim()||null;
+      const before={name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}, oldPhone=e.phone; e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.designation=designation.trim()||null;e.weekOff=weekOff.trim()||'Sunday';e.dateOfJoining=dateOfJoining.trim()||null;
       if(isRoot){e.role='SUPER_ADMIN';e.phone='8088504219';e.employeeCode='DV001';e.disabled=false;e.archived=false;}
-      try{if(!await syncEmployeeAccountToFirebase(e,oldPhone))throw new Error('Firebase account update failed');saveState(appState);addAuditLog('EDIT_ACCOUNT','ACCOUNT',JSON.stringify({reason,before,after:{name:e.name,phone:e.phone,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}}),e.id);renderExtendedSuperAdmin();renderSuperAdminControl();showToast(isRoot?'Root Super Admin profile updated online.':'Account updated online.');}catch(err){Object.assign(e,before);console.error('Firebase employee edit failed:',err);showToast('Could not update the employee account online.',true);}
+      try{if(!await syncEmployeeAccountToFirebase(e,oldPhone))throw new Error('Firebase account update failed');saveState(appState);addAuditLog('EDIT_ACCOUNT','ACCOUNT',JSON.stringify({reason,before,after:{name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}}),e.id);renderExtendedSuperAdmin();renderSuperAdminControl();showToast(isRoot?'Root Super Admin profile updated online.':'Account updated online.');}catch(err){Object.assign(e,before);console.error('Firebase employee edit failed:',err);showToast('Could not update the employee account online.',true);}
     }
     function saArchiveSelectedFromList(empId){
       const sel=document.getElementById('sa-role-employee');
@@ -4750,7 +4753,7 @@
         row.innerHTML = `
           <div>
             <div class="font-bold text-slate-900">${emp.name} <span class="text-[9px] uppercase font-black px-1.5 py-0.2 rounded ${roleColor}">${displayRole}</span></div>
-            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • Off: ${emp.weekOff || 'Sunday'}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • ${emp.designation || getDisplayRole(emp.role)} • Off: ${emp.weekOff || 'Sunday'}</div>
           </div>
           <div class="flex items-center gap-2">
             ${isSuperAdmin() ? `<span class="font-mono text-slate-600 bg-white px-1.5 py-0.5 rounded border text-[10px]">${emp.pin}</span>` : ''}
@@ -5538,6 +5541,7 @@
         phone: String(u.phone || ''),
         pin: String(u.pin || ''),
         role: u.role || 'STAFF',
+        designation: u.designation || null,
         weekOff: u.weekOff || 'Sunday',
         employeeCode: u.employeeCode || null,
         disabled: !!u.disabled,
@@ -5575,6 +5579,7 @@
             phone: String(e.phone),
             pin: String(e.pin),
             role: e.role || 'STAFF',
+            designation: e.designation || null,
             weekOff: e.weekOff || 'Sunday',
             employeeCode: e.employeeCode || null,
             disabled: !!e.disabled,
@@ -5607,6 +5612,7 @@
             phone: '8088504219',
             pin: '1614',
             role: 'SUPER_ADMIN',
+            designation: rootProfile.designation || null,
             weekOff: rootProfile.weekOff || 'Sunday',
             dateOfJoining: rootProfile.dateOfJoining || null,
             employeeCode: 'DV001',
@@ -5833,20 +5839,61 @@
     function renderAdminSalarySlips(){
       if(!isSuperAdmin())return; appState=loadState(); populateSalaryEmployeeSelect(); const list=document.getElementById('sa-salary-slip-list'); if(!list)return;
       const slips=(appState.salarySlips||[]).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,50);
-      list.innerHTML=slips.length?slips.map(x=>{const e=salarySlipEmployee(x.employeeId);return `<div class="p-2.5 rounded-2xl border border-slate-200 bg-slate-50"><div class="flex justify-between gap-2"><div><div class="text-[10px] font-black text-slate-900">${salaryEsc(e?.name||x.employeeName||'Employee')}</div><div class="text-[9px] text-slate-500">${salaryEsc(salaryMonthLabel(x.salaryMonth))} · ${formatSalaryMoney(x.netSalary)}</div></div><span class="text-[8px] font-black ${x.status==='ISSUED'?'text-emerald-700':'text-amber-700'}">${salaryEsc(x.status)}</span></div><div class="flex gap-2 mt-2"><button onclick="printSalarySlip('${salaryEsc(x.id)}')" class="flex-1 py-1.5 bg-white border rounded-lg text-[8px] font-black">View / Print</button>${x.status==='ISSUED'?`<button onclick="reissueSalarySlip('${salaryEsc(x.id)}')" class="px-2 py-1.5 bg-white border rounded-lg text-[8px] font-black">Reissue</button>`:''}</div></div>`}).join(''):'<div class="p-4 text-center text-[10px] text-slate-400">No salary slips issued yet.</div>';
+      list.innerHTML=slips.length?slips.map(x=>{const e=salarySlipEmployee(x.employeeId);return `<div class="p-2.5 rounded-2xl border border-slate-200 bg-slate-50"><div class="flex justify-between gap-2"><div><div class="text-[10px] font-black text-slate-900">${salaryEsc(e?.name||x.employeeName||'Employee')}</div><div class="text-[9px] text-slate-500">${salaryEsc(salaryMonthLabel(x.salaryMonth))} · ${formatSalaryMoney(x.netSalary)}</div></div><span class="text-[8px] font-black ${x.status==='ISSUED'?'text-emerald-700':'text-amber-700'}">${salaryEsc(x.status)}</span></div><div class="flex gap-2 mt-2"><button onclick="printSalarySlip('${salaryEsc(x.id)}')" class="flex-1 py-1.5 bg-white border rounded-lg text-[8px] font-black">View / Print</button>${x.status==='ISSUED'?`<button onclick="reissueSalarySlip('${salaryEsc(x.id)}')" class="px-2 py-1.5 bg-white border rounded-lg text-[8px] font-black">Reissue</button>`:''}<button onclick="deleteSalarySlip('${salaryEsc(x.id)}')" class="px-2 py-1.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-[8px] font-black">Delete</button></div></div>`}).join(''):'<div class="p-4 text-center text-[10px] text-slate-400">No salary slips issued yet.</div>';
     }
+    function updateSalaryTotals(){
+      const basic=Number(document.getElementById('sa-salary-basic')?.value)||0;
+      const hra=Number(document.getElementById('sa-salary-hra')?.value)||0;
+      const other=Number(document.getElementById('sa-salary-other')?.value)||0;
+      const gross=Math.round((basic+hra+other)*100)/100;
+      const grossEl=document.getElementById('sa-salary-gross');
+      if(grossEl) grossEl.value=gross ? String(gross) : '';
+      return gross;
+    }
+
     function clearSalaryForm(){['sa-salary-month','sa-salary-payment-date','sa-salary-basic','sa-salary-hra','sa-salary-other','sa-salary-gross','sa-salary-deductions','sa-salary-net','sa-salary-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
     async function createSalarySlip(){
       if(!isSuperAdmin())return; if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline){showToast('Firebase connection is required to issue a salary slip.',true);return;}
       appState=loadState(); const employeeId=document.getElementById('sa-salary-employee')?.value, salaryMonth=document.getElementById('sa-salary-month')?.value, paymentDate=document.getElementById('sa-salary-payment-date')?.value, paymentMode=document.getElementById('sa-salary-payment-mode')?.value||'Bank Transfer';
-      const basic=Number(document.getElementById('sa-salary-basic')?.value)||0,hra=Number(document.getElementById('sa-salary-hra')?.value)||0,other=Number(document.getElementById('sa-salary-other')?.value)||0,gross=Number(document.getElementById('sa-salary-gross')?.value)||0,deductions=Number(document.getElementById('sa-salary-deductions')?.value)||0,netRaw=document.getElementById('sa-salary-net')?.value.trim(),net=Number(netRaw),notes=document.getElementById('sa-salary-notes')?.value.trim()||'';
+      const basic=Number(document.getElementById('sa-salary-basic')?.value)||0,hra=Number(document.getElementById('sa-salary-hra')?.value)||0,other=Number(document.getElementById('sa-salary-other')?.value)||0,gross=Math.round((basic+hra+other)*100)/100,deductions=Number(document.getElementById('sa-salary-deductions')?.value)||0,netRaw=document.getElementById('sa-salary-net')?.value.trim(),net=Number(netRaw),notes=document.getElementById('sa-salary-notes')?.value.trim()||'';
       const emp=salarySlipEmployee(employeeId); if(!emp)return showToast('Select an employee.',true); if(!/^\d{4}-\d{2}$/.test(salaryMonth||''))return showToast('Select the salary month.',true); if(!paymentDate)return showToast('Select the payment date.',true); if(netRaw===''||!Number.isFinite(net)||net<0)return showToast('Enter the final net salary paid.',true);
       const duplicate=(appState.salarySlips||[]).find(x=>x.employeeId===employeeId&&x.salaryMonth===salaryMonth&&x.status==='ISSUED'); if(duplicate){showToast('A salary slip for this employee and month is already issued.',true);return;}
       const now=new Date().toISOString(), slip={id:'SAL-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),employeeId,employeeName:emp.name,employeeCode:emp.employeeCode||null,designation:emp.designation||emp.role||'Staff',dateOfJoining:emp.dateOfJoining||null,salaryMonth,paymentDate,paymentMode,basicSalary:basic,hra,otherAllowances:other,totalEarnings:gross,totalDeductions:deductions,netSalary:Math.round(net*100)/100,notes,status:'ISSUED',createdAt:now,issuedAt:now,issuedBy:currentAuthUser.id,issuedByName:currentAuthUser.name};
       try{const result=await cloudDb.ref('storeState').transaction(state=>{const latest=ensureStateArrays(state||{});latest.salarySlips=Array.isArray(latest.salarySlips)?latest.salarySlips:[];if(latest.salarySlips.some(x=>x.employeeId===employeeId&&x.salaryMonth===salaryMonth&&x.status==='ISSUED'))return;latest.salarySlips.unshift(slip);latest.salarySlips=latest.salarySlips.slice(0,1000);return latest;});if(!result.committed){showToast('Another device already issued this employee/month slip.',true);return;}appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);addAuditLog('ISSUE_SALARY_SLIP','SALARY',`Issued ${salaryMonth} salary slip to ${emp.name} (${emp.employeeCode||emp.id})`,slip.id);clearSalaryForm();renderAdminSalarySlips();showToast(`Salary slip issued to ${emp.name}.`);}catch(e){console.error(e);showToast('Could not issue salary slip.',true);}
     }
     async function reissueSalarySlip(id){if(!isSuperAdmin())return;const slip=(appState.salarySlips||[]).find(x=>x.id===id);if(!slip)return;const reason=await adminAsk('Why are you reissuing this salary slip?',{title:'Reissue Salary Slip',fieldLabel:'Reason'});if(!reason)return;slip.status='REISSUED';slip.reissuedAt=new Date().toISOString();slip.reissuedBy=currentAuthUser.id;slip.reissueReason=reason;saveState(appState);addAuditLog('REISSUE_SALARY_SLIP','SALARY',reason,id);renderAdminSalarySlips();showToast('Original slip marked as reissued. Create a new corrected slip if required.');}
-    function printSalarySlip(id){appState=loadState();const x=(appState.salarySlips||[]).find(s=>s.id===id);if(!x)return showToast('Salary slip not found.',true);if(!isSuperAdmin()&&x.employeeId!==currentAuthUser?.id)return showToast('Access denied.',true);const emp=salarySlipEmployee(x.employeeId)||x;const words=numberToIndianWords(x.netSalary);const w=window.open('','_blank','width=900,height=1100');if(!w)return showToast('Please allow pop-ups to print the salary slip.',true);w.document.write(`<!doctype html><html><head><title>Salary Slip - ${salaryEsc(x.employeeName)} - ${salaryEsc(x.salaryMonth)}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#172033;margin:0;font-size:12px}.head{text-align:center;border-bottom:2px solid #05281b;padding-bottom:12px}.company{font-size:20px;font-weight:800;letter-spacing:.4px}.sub{font-size:11px;color:#52606d;margin-top:4px}.title{display:inline-block;background:#05281b;color:white;padding:8px 24px;border-radius:5px;font-size:16px;font-weight:800;margin:16px 0}.info,.details,.grid{width:100%;border-collapse:collapse}.info td,.details td,.grid td,.grid th{border:1px solid #d7dee7;padding:8px}.label{font-size:9px;text-transform:uppercase;font-weight:800;color:#65748b}.value{font-weight:700}.section{background:#05281b;color:#fff;font-weight:800;padding:8px;margin-top:14px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid th{background:#eef4f1;text-align:left}.right{text-align:right}.net{margin-top:14px;border:2px solid #05281b;background:#f0f7f3;text-align:center;padding:14px}.net .nlabel{font-size:10px;font-weight:800;letter-spacing:1px}.net .amount{font-size:28px;font-weight:900;color:#05281b;margin-top:4px}.small{font-size:10px;color:#52606d}.sign{margin-top:35px;display:flex;justify-content:space-between}.footer{margin-top:28px;border-top:1px solid #d7dee7;padding-top:8px;text-align:center;color:#718096;font-size:9px}</style></head><body><div class="head"><div class="company">DURGA VENTURES</div><div class="sub">Shop No. 6, Upper Ground Floor, Mallikatte Market Complex, Kadri, Mangalore – 575002</div><div class="sub"><b>GSTIN: 29ABAFD3264A1ZV</b> &nbsp; | &nbsp; +91-8618486377</div><div class="title">SALARY SLIP</div></div><table class="info"><tr><td><div class="label">Salary Month</div><div class="value">${salaryEsc(salaryMonthLabel(x.salaryMonth))}</div></td><td><div class="label">Payment Date</div><div class="value">${salaryEsc(x.paymentDate||'--')}</div></td><td><div class="label">Payment Mode</div><div class="value">${salaryEsc(x.paymentMode||'--')}</div></td></tr></table><div class="section">EMPLOYEE DETAILS</div><table class="details"><tr><td class="label">Employee Name</td><td class="value">${salaryEsc(x.employeeName)}</td></tr><tr><td class="label">Employee ID</td><td class="value">${salaryEsc(x.employeeCode||'--')}</td></tr><tr><td class="label">Designation</td><td class="value">${salaryEsc(emp.designation||x.designation||'--')}</td></tr><tr><td class="label">Date of Joining</td><td class="value">${salaryEsc(emp.dateOfJoining||x.dateOfJoining||'--')}</td></tr></table><div class="cols"><div><div class="section">EARNINGS</div><table class="grid"><tr><th>Particulars</th><th class="right">Amount (₹)</th></tr><tr><td>Basic Salary</td><td class="right">${formatSalaryMoney(x.basicSalary)}</td></tr><tr><td>HRA</td><td class="right">${formatSalaryMoney(x.hra)}</td></tr><tr><td>Other Allowances</td><td class="right">${formatSalaryMoney(x.otherAllowances)}</td></tr><tr><td><b>TOTAL EARNINGS</b></td><td class="right"><b>${formatSalaryMoney(x.totalEarnings)}</b></td></tr></table></div><div><div class="section">DEDUCTIONS</div><table class="grid"><tr><th>Particulars</th><th class="right">Amount (₹)</th></tr><tr><td>PF</td><td class="right">₹0</td></tr><tr><td>ESI</td><td class="right">₹0</td></tr><tr><td>Other / Total Deductions</td><td class="right">${formatSalaryMoney(x.totalDeductions)}</td></tr><tr><td><b>TOTAL DEDUCTIONS</b></td><td class="right"><b>${formatSalaryMoney(x.totalDeductions)}</b></td></tr></table></div></div><div class="net"><div class="nlabel">NET SALARY PAID</div><div class="amount">${formatSalaryMoney(x.netSalary)}</div><div class="small">(${salaryEsc(words)})</div></div>${x.notes?`<div class="small" style="margin-top:10px"><b>Remarks:</b> ${salaryEsc(x.notes)}</div>`:''}<div class="footer">This is a computer-generated salary slip and does not require a signature or seal.</div></body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250);}
+    async function deleteSalarySlip(id){
+      if(!isSuperAdmin())return showToast('Permission Denied: Super Admin only.',true);
+      if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required to delete a salary slip.',true);
+      appState=loadState();
+      const slip=(appState.salarySlips||[]).find(x=>String(x.id)===String(id));
+      if(!slip)return showToast('Salary slip not found.',true);
+      const employeeName=slip.employeeName||salarySlipEmployee(slip.employeeId)?.name||'Employee';
+      const month=salaryMonthLabel(slip.salaryMonth);
+      const confirmed=await adminConfirm(`Delete the salary slip for ${employeeName} for ${month}?\n\nThis will permanently remove the slip from the online salary-slip records.`, 'Delete Salary Slip');
+      if(!confirmed)return;
+      try{
+        const result=await cloudDb.ref('storeState').transaction(state=>{
+          const latest=ensureStateArrays(state||{});
+          const slips=Array.isArray(latest.salarySlips)?latest.salarySlips:[];
+          const index=slips.findIndex(x=>String(x.id)===String(id));
+          if(index<0)return;
+          slips.splice(index,1);
+          latest.salarySlips=slips;
+          return latest;
+        });
+        if(!result.committed){showToast('Salary slip changed on another device. Please refresh and try again.',true);return;}
+        appState=ensureStateArrays(result.snapshot.val());
+        cloudBaselineState=cloneCloudSafe(appState);
+        addAuditLog('DELETE_SALARY_SLIP','SALARY',`Deleted ${month} salary slip for ${employeeName}.`,id);
+        renderAdminSalarySlips();
+        showToast(`Salary slip for ${employeeName} (${month}) deleted.`);
+      }catch(e){
+        console.error(e);
+        showToast('Could not delete the salary slip.',true);
+      }
+    }
+    function printSalarySlip(id){appState=loadState();const x=(appState.salarySlips||[]).find(s=>s.id===id);if(!x)return showToast('Salary slip not found.',true);if(!isSuperAdmin()&&x.employeeId!==currentAuthUser?.id)return showToast('Access denied.',true);const emp=salarySlipEmployee(x.employeeId)||x;const words=numberToIndianWords(x.netSalary);const w=window.open('','_blank','width=900,height=1100');if(!w)return showToast('Please allow pop-ups to print the salary slip.',true);w.document.write(`<!doctype html><html><head><title>Salary Slip - ${salaryEsc(x.employeeName)} - ${salaryEsc(x.salaryMonth)}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#172033;margin:0;font-size:12px}.slip-shell{border:1.5px solid #172033;min-height:calc(100vh - 2px);box-sizing:border-box}.head{text-align:center;border-bottom:2px solid #05281b;padding-bottom:12px}.company{font-size:20px;font-weight:800;letter-spacing:.4px}.sub{font-size:11px;color:#52606d;margin-top:4px}.title{display:inline-block;background:#05281b;color:white;padding:8px 24px;border-radius:5px;font-size:16px;font-weight:800;margin:16px 0}.info,.details,.grid{width:100%;border-collapse:collapse}.info td,.details td,.grid td,.grid th{border:1px solid #d7dee7;padding:8px}.label{font-size:9px;text-transform:uppercase;font-weight:800;color:#65748b}.value{font-weight:700}.section{background:#05281b;color:#fff;font-weight:800;padding:8px;margin-top:14px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid th{background:#eef4f1;text-align:left}.right{text-align:right}.net{margin-top:14px;border:2px solid #05281b;background:#f0f7f3;text-align:center;padding:14px}.net .nlabel{font-size:10px;font-weight:800;letter-spacing:1px}.net .amount{font-size:28px;font-weight:900;color:#05281b;margin-top:4px}.small{font-size:10px;color:#52606d}.sign{margin-top:35px;display:flex;justify-content:space-between}.footer{margin-top:28px;border-top:1px solid #d7dee7;padding-top:8px;text-align:center;color:#718096;font-size:9px}</style></head><body><div class="slip-shell"><div class="head"><div class="company">DURGA VENTURES</div><div class="sub">Shop No. 6, Upper Ground Floor, Mallikatte Market Complex, Kadri, Mangalore – 575002</div><div class="sub"><b>GSTIN: 29ABAFD3264A1ZV</b> &nbsp; | &nbsp; +91-8618486377</div><div class="title">SALARY SLIP</div></div><table class="info"><tr><td><div class="label">Salary Month</div><div class="value">${salaryEsc(salaryMonthLabel(x.salaryMonth))}</div></td><td><div class="label">Payment Date</div><div class="value">${salaryEsc(x.paymentDate||'--')}</div></td><td><div class="label">Payment Mode</div><div class="value">${salaryEsc(x.paymentMode||'--')}</div></td></tr></table><div class="section">EMPLOYEE DETAILS</div><table class="details"><tr><td class="label">Employee Name</td><td class="value">${salaryEsc(x.employeeName)}</td></tr><tr><td class="label">Employee ID</td><td class="value">${salaryEsc(x.employeeCode||'--')}</td></tr><tr><td class="label">Designation</td><td class="value">${salaryEsc(emp.designation||x.designation||'--')}</td></tr><tr><td class="label">Date of Joining</td><td class="value">${salaryEsc(emp.dateOfJoining||x.dateOfJoining||'--')}</td></tr></table><div class="cols"><div><div class="section">EARNINGS</div><table class="grid"><tr><th>Particulars</th><th class="right">Amount (₹)</th></tr><tr><td>Basic Salary</td><td class="right">${formatSalaryMoney(x.basicSalary)}</td></tr><tr><td>HRA</td><td class="right">${formatSalaryMoney(x.hra)}</td></tr><tr><td>Other Allowances</td><td class="right">${formatSalaryMoney(x.otherAllowances)}</td></tr><tr><td><b>TOTAL EARNINGS</b></td><td class="right"><b>${formatSalaryMoney(x.totalEarnings)}</b></td></tr></table></div><div><div class="section">DEDUCTIONS</div><table class="grid"><tr><th>Particulars</th><th class="right">Amount (₹)</th></tr><tr><td>PF</td><td class="right">₹0</td></tr><tr><td>ESI</td><td class="right">₹0</td></tr><tr><td>Other / Total Deductions</td><td class="right">${formatSalaryMoney(x.totalDeductions)}</td></tr><tr><td><b>TOTAL DEDUCTIONS</b></td><td class="right"><b>${formatSalaryMoney(x.totalDeductions)}</b></td></tr></table></div></div><div class="net"><div class="nlabel">NET SALARY PAID</div><div class="amount">${formatSalaryMoney(x.netSalary)}</div><div class="small">(${salaryEsc(words)})</div></div>${x.notes?`<div class="small" style="margin-top:10px"><b>Remarks:</b> ${salaryEsc(x.notes)}</div>`:''}<div class="footer">This is a computer-generated salary slip and does not require a signature or seal.</div></div></body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),250);}
     function numberToIndianWords(amount){const n=Math.round(Number(amount)||0);if(n===0)return'Zero Rupees Only';const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];function two(x){if(x<20)return ones[x];return tens[Math.floor(x/10)]+(x%10?' '+ones[x%10]:'');}function three(x){return x<100?two(x):ones[Math.floor(x/100)]+' Hundred'+(x%100?' '+two(x%100):'');}let r='';let crore=Math.floor(n/10000000);let lakh=Math.floor((n%10000000)/100000);let thousand=Math.floor((n%100000)/1000);let rem=n%1000;if(crore)r+=three(crore)+' Crore ';if(lakh)r+=three(lakh)+' Lakh ';if(thousand)r+=three(thousand)+' Thousand ';if(rem)r+=three(rem);return r.trim()+' Rupees Only';}
 
     // ================= NEW STAFF EXPERIENCE ================= //
@@ -5924,3 +5971,4 @@
   </script>
 </body>
 </html>
+
