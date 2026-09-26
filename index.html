@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.3.46 -->
+<!-- Wellwith Mangaluru Store Portal v1.3.48 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -1153,7 +1153,7 @@
           Permanently remove employee <strong class="text-slate-900 font-bold font-mono" id="delete-target-name">--</strong>?
         </p>
 <p class="text-[10px] text-red-600 font-semibold bg-red-50 p-2 rounded-xl border border-red-100">
-          This revokes access on all connected store terminals and deletes the account from the database.
+          Use Delete only for an incorrect or wrongly created employee entry. This permanently removes the account from Firebase and cannot be used as normal employee offboarding. For former staff, use Archive instead.
         </p>
 </div>
 <div class="flex gap-2 pt-1">
@@ -1408,6 +1408,92 @@
       salarySlips: []
     };
 
+    // Employee identity integrity: one account per phone, one account per employee code.
+    // This also repairs duplicate records created by older portal versions without
+    // changing valid employee codes. Fixed historical codes always win.
+    function employeeCodeNumber(code) {
+      const m = String(code || '').match(/^DV(\d+)$/i);
+      return m ? Number(m[1]) : Number.MAX_SAFE_INTEGER;
+    }
+
+    function reconcileEmployeeRecords(parsed) {
+      if (!parsed || !Array.isArray(parsed.employees)) return parsed;
+      parsed.deletedEmployeeIds = Array.isArray(parsed.deletedEmployeeIds) ? parsed.deletedEmployeeIds : [];
+      parsed.deletedEmployeeCodes = Array.isArray(parsed.deletedEmployeeCodes) ? parsed.deletedEmployeeCodes : [];
+
+      const fixedByPhone = {
+        '8088504219': 'DV001',
+        '7676573670': 'DV002',
+        '8618486377': 'DV003'
+      };
+      const rank = (e) => {
+        const fixed = fixedByPhone[String(e?.phone || '')];
+        const fixedCode = fixed && String(e?.employeeCode || '') === fixed;
+        const code = String(e?.employeeCode || '');
+        const created = e?.createdAt ? Date.parse(e.createdAt) : Number.MAX_SAFE_INTEGER;
+        return [fixedCode ? 0 : 1, employeeCodeNumber(code), created];
+      };
+      const better = (a, b) => {
+        const ra = rank(a), rb = rank(b);
+        for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] < rb[i] ? a : b;
+        return String(a?.id || '') <= String(b?.id || '') ? a : b;
+      };
+
+      const byPhone = new Map();
+      const byCode = new Map();
+      const keep = new Map();
+      const removed = [];
+
+      (parsed.employees || []).forEach(e => {
+        if (!e || !e.id) return;
+        const phone = String(e.phone || '').trim();
+        const code = String(e.employeeCode || '').trim();
+        let winner = e;
+        if (phone && byPhone.has(phone)) winner = better(byPhone.get(phone), winner);
+        if (code && byCode.has(code)) winner = better(byCode.get(code), winner);
+
+        if (winner !== e) {
+          removed.push(e);
+          return;
+        }
+        if (phone && byPhone.has(phone) && byPhone.get(phone) !== e) {
+          const old = byPhone.get(phone);
+          removed.push(old);
+          keep.delete(old.id);
+          byCode.delete(String(old.employeeCode || ''));
+        }
+        if (code && byCode.has(code) && byCode.get(code) !== e) {
+          const old = byCode.get(code);
+          removed.push(old);
+          keep.delete(old.id);
+          byPhone.delete(String(old.phone || ''));
+        }
+        keep.set(e.id, e);
+        if (phone) byPhone.set(phone, e);
+        if (code) byCode.set(code, e);
+      });
+
+      // Rebuild deterministically after collision resolution.
+      const unique = Array.from(keep.values());
+      const seenIds = new Set(unique.map(e => String(e.id)));
+      const uniqueRemoved = [];
+      (parsed.employees || []).forEach(e => {
+        if (e?.id && !seenIds.has(String(e.id))) uniqueRemoved.push(e);
+      });
+
+      const allRemoved = [...removed, ...uniqueRemoved];
+      const removedIds = new Set();
+      allRemoved.forEach(e => {
+        if (!e?.id || removedIds.has(String(e.id))) return;
+        removedIds.add(String(e.id));
+        if (!parsed.deletedEmployeeIds.includes(e.id)) parsed.deletedEmployeeIds.push(e.id);
+        if (e.employeeCode && !parsed.deletedEmployeeCodes.includes(e.employeeCode)) parsed.deletedEmployeeCodes.push(e.employeeCode);
+      });
+
+      parsed.employees = unique;
+      return parsed;
+    }
+
     // Sole Invariant: Root Super Admin (8088504219) is retained to prevent lockout.
     // Other accounts are strictly preserved as deleted once removed.
     function ensureEmployeeCodes(parsed) {
@@ -1509,6 +1595,7 @@
       if (!parsed.systemConfig || typeof parsed.systemConfig !== 'object') parsed.systemConfig = JSON.parse(JSON.stringify(defaultState.systemConfig));
       if (!Array.isArray(parsed.deletedEmployeeIds)) parsed.deletedEmployeeIds = [];
       if (!Array.isArray(parsed.salarySlips)) parsed.salarySlips = [];
+      reconcileEmployeeRecords(parsed);
       ensureEmployeeCodes(parsed);
       if (!Array.isArray(parsed.securityEvents)) parsed.securityEvents = [];
       if (parsed.emergencyLock === undefined) parsed.emergencyLock = false;
@@ -3942,7 +4029,7 @@
       const acct=document.getElementById('sa-account-list');
       const activeEmployees=(appState.employees||[]).filter(e=>!e.archived);
       const archivedEmployees=(appState.employees||[]).filter(e=>e.archived);
-      if(acct) acct.innerHTML=activeEmployees.map(e=>`<div class="p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between"><div><b>${e.name}</b><div class="text-[9px] text-slate-500">${e.employeeCode||'—'} · ${getDisplayRole(e.role)} · ${e.phone}</div></div><div class="flex gap-1">${e.phone!=='8088504219'?`<button onclick="saArchiveSelectedFromList('${e.id}')" class="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg font-bold">Archive</button>`:''}<button onclick="adminResetUserPin('${e.id}')" class="px-2 py-1 bg-white border rounded-lg font-bold">Reset PIN</button></div></div>`).join('')||'<div class="text-[10px] text-slate-400">No active employee accounts.</div>';
+      if(acct) acct.innerHTML=activeEmployees.map(e=>`<div class="p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between gap-2"><div class="min-w-0"><b class="truncate block">${e.name}</b><div class="text-[9px] text-slate-500 truncate">${e.employeeCode||'—'} · ${getDisplayRole(e.role)} · ${e.phone}</div></div><div class="flex gap-1 shrink-0">${e.phone!=='8088504219'?`<button onclick="saArchiveSelectedFromList('${e.id}')" class="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg font-bold">Archive</button><button onclick="openDeleteUserModal('${e.id}')" class="px-2 py-1 bg-red-50 border border-red-200 text-red-800 rounded-lg font-bold" title="Permanently delete incorrect employee entry">Delete</button>`:''}<button onclick="adminResetUserPin('${e.id}')" class="px-2 py-1 bg-white border rounded-lg font-bold">Reset PIN</button></div></div>`).join('')||'<div class="text-[10px] text-slate-400">No active employee accounts.</div>';
       const archivedList=document.getElementById('sa-archived-list');
       const archivedCount=document.getElementById('sa-archived-count');
       if(archivedCount) archivedCount.innerText=String(archivedEmployees.length);
@@ -4143,8 +4230,16 @@
 
 
     function getNextEmployeeCodeFromCloudUsers(users, reservedCodes = []) {
-      const used = new Set((reservedCodes || []).map(String)); Object.values(users || {}).forEach(u => { if (u?.employeeCode) used.add(String(u.employeeCode)); });
-      let n=1; while(used.has(`DV${String(n).padStart(3,'0')}`)) n++; return `DV${String(n).padStart(3,'0')}`;
+      const used = new Set((reservedCodes || []).map(String));
+      const fixedByPhone = { '8088504219': 'DV001', '7676573670': 'DV002', '8618486377': 'DV003' };
+      Object.entries(fixedByPhone).forEach(([phone, code]) => {
+        used.add(code);
+        const found = Object.values(users || {}).find(u => String(u?.phone || '') === phone);
+        if (found?.employeeCode && String(found.employeeCode) !== code) used.add(String(found.employeeCode));
+      });
+      Object.values(users || {}).forEach(u => { if (u?.employeeCode) used.add(String(u.employeeCode)); });
+      let n=1; while(used.has(`DV${String(n).padStart(3,'0')}`)) n++;
+      return `DV${String(n).padStart(3,'0')}`;
     }
     async function syncEmployeeAccountToFirebase(employee, previousPhone = '') {
       if(!cloudDb || !firebaseUsersLoaded) return false; const targetId=String(employee.id), oldPhone=String(previousPhone||employee.phone||'');
@@ -4153,18 +4248,56 @@
     }
 
     async function saCreateEmployee(){
-      if(!superAdminOnly())return; appState=loadState();
+      if(!superAdminOnly())return;
+      appState=loadState();
+      reconcileEmployeeRecords(appState);
+
       const name=await adminAsk('Create a new employee account.',{title:'Add Employee',fieldLabel:'Employee name'}); if(!name)return;
-      const phone=await adminAsk('Enter the employee mobile number.',{title:'Add Employee',fieldLabel:'Mobile number'}); if(!/^\d{10}$/.test(phone||''))return showToast('Enter a valid 10-digit mobile number.',true);
-      if(appState.employees.some(e=>e.phone===phone))return showToast('An account already uses this mobile number.',true);
+      const phone=(await adminAsk('Enter the employee mobile number.',{title:'Add Employee',fieldLabel:'Mobile number'}))?.trim();
+      if(!/^\d{10}$/.test(phone||''))return showToast('Enter a valid 10-digit mobile number.',true);
+      if((appState.employees||[]).some(e=>String(e.phone||'')===phone))return showToast('An account already uses this mobile number.',true);
+      if((appState.archivedEmployees||[]).some(e=>String(e.phone||'')===phone))return showToast('This mobile number belongs to an archived employee. Restore that employee instead.',true);
       const pin=await adminAsk('Set the initial 4-digit PIN.',{title:'Add Employee',fieldLabel:'Initial 4-digit PIN',placeholder:'0000'}); if(!/^\d{4}$/.test(pin||''))return showToast('PIN must be exactly 4 digits.',true);
-      const role=(await adminAsk('Choose the authority role.',{title:'Add Employee',fieldLabel:'Role',value:'STAFF'}))||'STAFF'; const designation=await adminAsk('Enter the employee designation.',{title:'Add Employee',fieldLabel:'Designation',placeholder:'Store Manager'}); if(designation===null)return; const weekOff=(await adminAsk('Set the weekly off day.',{title:'Add Employee',fieldLabel:'Week-off day',value:'Sunday'}))||'Sunday';
-      const dateOfJoining=await adminAsk('Enter the employee date of joining.',{title:'Add Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',placeholder:'2026-09-07'}); if(dateOfJoining===null)return; if(!/^\d{4}-\d{2}-\d{2}$/.test((dateOfJoining||'').trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
+      const role=(await adminAsk('Choose the authority role.',{title:'Add Employee',fieldLabel:'Role',value:'STAFF'}))||'STAFF';
+      const designation=await adminAsk('Enter the employee designation.',{title:'Add Employee',fieldLabel:'Designation',placeholder:'Store Manager'}); if(designation===null)return;
+      const weekOff=(await adminAsk('Set the weekly off day.',{title:'Add Employee',fieldLabel:'Week-off day',value:'Sunday'}))||'Sunday';
+      const dateOfJoining=await adminAsk('Enter the employee date of joining.',{title:'Add Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',placeholder:'2026-09-07'}); if(dateOfJoining===null)return;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test((dateOfJoining||'').trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
       if(!cloudDb||!firebaseUsersLoaded)return showToast('Firebase account service is still connecting. Please try again.',true);
-      const e={id:'usr_'+Date.now(),name:name.trim(),phone,pin,role:role.toUpperCase(),designation:designation.trim()||null,weekOff,dateOfJoining:dateOfJoining.trim(),employeeCode:null,disabled:false,archived:false,createdAt:new Date().toISOString()};
-      try{ const reserved=(appState.deletedEmployeeCodes||[]).map(String); const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; if(Object.values(latest).some(u=>String(u?.phone||'')===String(phone))) return; const code=getNextEmployeeCodeFromCloudUsers(latest,reserved); latest[e.id]={id:e.id,name:e.name,phone:e.phone,pin:e.pin,role:e.role,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null,employeeCode:code,disabled:false,archived:false,archivedAt:null}; return latest; }); if(!result.committed)return showToast('Could not create the employee account online. Please try again.',true);
-        const cloudAccount=result.snapshot.val()?.[e.id]; if(!cloudAccount)return showToast('Employee account was not returned by Firebase. Please try again.',true); e.employeeCode=cloudAccount.employeeCode||getNextEmployeeCode(appState); cloudUsers=normalizeFirebaseUsers(result.snapshot.val()); firebaseUsersLoaded=true; appState.employees.push(e); saveState(appState); addAuditLog('CREATE_ACCOUNT','ACCOUNT',`Created ${e.name} (${e.role})`,e.id); renderExtendedSuperAdmin();renderSuperAdminControl(); showToast(`Employee account created and synced online as ${e.employeeCode}.`);
-      }catch(err){console.error('Firebase employee creation failed:',err);showToast('Could not create the employee account online.',true);}
+
+      const e={id:'usr_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),name:name.trim(),phone,pin,role:role.toUpperCase(),designation:designation.trim()||null,weekOff,dateOfJoining:dateOfJoining.trim(),employeeCode:null,disabled:false,archived:false,createdAt:new Date().toISOString()};
+      try{
+        const reserved=[...(appState.deletedEmployeeCodes||[]),...(appState.employees||[]).map(x=>x.employeeCode).filter(Boolean),...(appState.archivedEmployees||[]).map(x=>x.employeeCode).filter(Boolean)];
+        const result=await cloudDb.ref('users').transaction(users=>{
+          const latest=(users&&typeof users==='object')?{...users}:{};
+          const duplicatePhone=Object.values(latest).some(u=>String(u?.phone||'').trim()===phone);
+          if(duplicatePhone) return;
+          const code=getNextEmployeeCodeFromCloudUsers(latest,reserved);
+          latest[e.id]={id:e.id,name:e.name,phone:e.phone,pin:e.pin,role:e.role,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null,employeeCode:code,disabled:false,archived:false,archivedAt:null,createdAt:e.createdAt};
+          return latest;
+        });
+        if(!result.committed)return showToast('This employee could not be created because the account already exists online or Firebase rejected the transaction.',true);
+
+        const latestUsers=result.snapshot.val()||{};
+        const cloudAccount=latestUsers[e.id];
+        if(!cloudAccount)return showToast('Employee account was not returned by Firebase. Please try again.',true);
+        e.employeeCode=cloudAccount.employeeCode||getNextEmployeeCode(appState);
+
+        // Merge by immutable Firebase ID/phone instead of blindly pushing a second row.
+        const existingIndex=(appState.employees||[]).findIndex(x=>String(x.id)===String(e.id)||String(x.phone||'')===phone);
+        if(existingIndex>=0) appState.employees[existingIndex]={...appState.employees[existingIndex],...e};
+        else appState.employees.push(e);
+        reconcileEmployeeRecords(appState);
+        cloudUsers=normalizeFirebaseUsers(latestUsers);
+        firebaseUsersLoaded=true;
+        saveState(appState);
+        addAuditLog('CREATE_ACCOUNT','ACCOUNT',`Created ${e.name} (${e.role}) as ${e.employeeCode}`,e.id);
+        renderExtendedSuperAdmin();renderSuperAdminControl();renderSettingsStaffList();
+        showToast(`Employee account created and synced online as ${e.employeeCode}.`);
+      }catch(err){
+        console.error('Firebase employee creation failed:',err);
+        showToast('Could not create the employee account online.',true);
+      }
     }
     function syncSelectedEmployeeRoleUI(){
       const employeeSelect=document.getElementById('sa-role-employee');
@@ -4652,14 +4785,17 @@
 
 
     // Super Admin Staff Deletion Fix (Pure In-App Modal)
-    function openDeleteUserModal(empId, empName) {
+    function openDeleteUserModal(empId, empName = null) {
       if (!isSuperAdmin()) return showToast('Permission Denied: Only Super Admin can delete users.', true);
 
+      appState = loadState();
       const emp = (appState.employees || []).find(e => e.id === empId);
-      if (emp && emp.phone === '8088504219') return showToast('Root Super Admin cannot be deleted.', true);
+      if (!emp) return showToast('Employee account not found.', true);
+      if (emp.phone === '8088504219' || emp.id === 'usr_super') return showToast('Root Super Admin cannot be deleted.', true);
 
-      pendingDeleteEmployee = { id: empId, name: empName };
-      document.getElementById('delete-target-name').innerText = `${empName} (${emp ? emp.phone : ''})`;
+      const resolvedName = empName || emp.name || 'Employee';
+      pendingDeleteEmployee = { id: empId, name: resolvedName };
+      document.getElementById('delete-target-name').innerText = `${resolvedName} (${emp.phone || ''})`;
       document.getElementById('modal-confirm-delete')?.classList.remove('hidden');
     }
 
@@ -5570,6 +5706,8 @@
     async function syncUsersToCloud(state = appState) {
       if (!cloudDb) return;
       try {
+        state = ensureStateArrays(state);
+        reconcileEmployeeRecords(state);
         const localUsers = {};
         (state.employees || []).forEach(e => {
           if (!e || !e.id || !e.phone || !e.pin) return;
@@ -5595,8 +5733,31 @@
           const latest = (serverUsers && typeof serverUsers === 'object') ? { ...serverUsers } : {};
           const deletedIds = new Set((state.deletedEmployeeIds || []).map(String));
 
+          // Remove stale duplicate Firebase accounts by phone/code before applying
+          // the canonical local employee collection. This is what prevents an older
+          // duplicate record from reappearing after a successful employee creation.
+          const canonicalIds = new Set(Object.keys(localUsers));
+          const canonicalPhones = new Set(Object.values(localUsers).map(x => String(x.phone || '')));
+          const canonicalCodes = new Set(Object.values(localUsers).map(x => String(x.employeeCode || '')));
+          Object.entries(latest).forEach(([key, user]) => {
+            const id = String(user?.id || key);
+            const phone = String(user?.phone || '');
+            const code = String(user?.employeeCode || '');
+            const staleDuplicate = id !== 'usr_super' && !canonicalIds.has(id) && ((phone && canonicalPhones.has(phone)) || (code && canonicalCodes.has(code)));
+            if (id !== 'usr_super' && (deletedIds.has(id) || staleDuplicate)) delete latest[key];
+          });
+
+          const seenPhones = new Set();
+          const seenCodes = new Set();
           Object.entries(localUsers).forEach(([id, user]) => {
-            if (!deletedIds.has(String(id))) latest[id] = user;
+            if (deletedIds.has(String(id))) return;
+            const phone = String(user.phone || '');
+            const code = String(user.employeeCode || '');
+            if (phone && seenPhones.has(phone)) return;
+            if (code && seenCodes.has(code)) return;
+            if (phone) seenPhones.add(phone);
+            if (code) seenCodes.add(code);
+            latest[id] = user;
           });
 
           deletedIds.forEach(id => {
@@ -5704,9 +5865,25 @@
           if (snapshot.exists()) {
             // Firebase is authoritative. Replace the in-memory state with the
             // latest online snapshot; never hydrate from browser storage.
-            appState = ensureStateArrays(snapshot.val());
+            const rawStoreState = snapshot.val();
+            appState = ensureStateArrays(rawStoreState);
             cloudBaselineState = JSON.parse(JSON.stringify(appState));
             cloudStateLoaded = true;
+            // Repair legacy duplicate employee records once the authoritative snapshot is loaded.
+            // The reconciliation is deterministic and preserves fixed historical employee codes.
+            if (JSON.stringify(rawStoreState?.employees || []) !== JSON.stringify(appState.employees || [])) {
+              cloudWriteQueue = cloudWriteQueue.catch(() => {}).then(() => cloudDb.ref('storeState').transaction(serverValue => {
+                if (!serverValue) return serverValue;
+                const repaired = ensureStateArrays(serverValue);
+                return repaired;
+              })).then(result => {
+                if (result?.committed) {
+                  appState = ensureStateArrays(result.snapshot.val());
+                  cloudBaselineState = JSON.parse(JSON.stringify(appState));
+                }
+              }).catch(err => console.warn('Employee duplicate repair failed:', err));
+            }
+
           } else {
             // First-ever database initialization uses the app's built-in defaults.
             // It never imports a device-local database.
@@ -5781,7 +5958,7 @@
           return copy;
         });
         const patch = buildStatePatch(cloudState, baselineForPatch);
-        if (!patch) return;
+        if (!patch) { syncUsersToCloud(state); return; }
 
         cloudWriteQueue = cloudWriteQueue
           .catch(() => {})
@@ -5971,4 +6148,3 @@
   </script>
 </body>
 </html>
-
