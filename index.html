@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.3.56 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.9 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -9,11 +9,11 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <title>Wellwith Mangaluru — Store Portal</title>
+<link rel="manifest" href="./manifest.json">
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Firebase Compat Libraries -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -151,6 +151,8 @@
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-admin-desk')">
 <span>⚙️</span> <span>Administration Console</span>
 </button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-store-brain')"><span>🧠</span> <span>Store Brain</span></button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-action-center')"><span>✅</span> <span>Action Center</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-daily-snapshot')"><span>📊</span> <span>Daily Store Snapshot</span></button>
 </div>
 <!-- SUPER ADMIN SIDEBAR: intentionally minimal. Detailed controls live inside the Command Center. -->
@@ -245,6 +247,75 @@
     </div>
   </div>
 
+  <!-- Management daily command center -->
+  <section id="management-home-command" class="hidden space-y-3">
+    <div class="flex items-center justify-between px-1">
+      <div><div class="text-[9px] uppercase tracking-widest font-black text-slate-400">Management Home</div><div class="text-sm font-black text-slate-900">Today at a glance</div></div>
+      <span id="management-home-date" class="text-[9px] font-bold text-slate-400"></span>
+    </div>
+    <div class="grid grid-cols-2 gap-2.5">
+      <button onclick="navigateTo('page-store-brain');haptic(8)" class="text-left bg-white border border-slate-200 rounded-2xl p-3 shadow-sm active:scale-[.99]">
+        <div class="flex items-center justify-between"><span class="text-lg">🧠</span><span id="mh-brain-count" class="text-[9px] font-black px-2 py-1 rounded-full bg-red-100 text-red-800">0</span></div>
+        <div class="text-[11px] font-black mt-2 text-slate-900">Store Brain</div><div id="mh-brain-text" class="text-[9px] text-slate-500 mt-0.5">No immediate attention</div>
+      </button>
+      <button onclick="navigateTo('page-action-center');haptic(8)" class="text-left bg-white border border-slate-200 rounded-2xl p-3 shadow-sm active:scale-[.99]">
+        <div class="flex items-center justify-between"><span class="text-lg">🎯</span><span id="mh-action-count" class="text-[9px] font-black px-2 py-1 rounded-full bg-amber-100 text-amber-800">0</span></div>
+        <div class="text-[11px] font-black mt-2 text-slate-900">Action Center</div><div id="mh-action-text" class="text-[9px] text-slate-500 mt-0.5">No unresolved actions</div>
+      </button>
+    </div>
+    <div class="grid grid-cols-3 gap-2">
+      <button onclick="openManagementAttendance();haptic(8)" class="bg-white border border-slate-200 rounded-2xl p-3 text-left active:scale-[.99]" title="View today's attendance"><div class="text-base">👥</div><div id="mh-staff" class="text-sm font-black text-slate-900 mt-1">0/0</div><div class="text-[8px] font-bold text-slate-400 uppercase">On Duty</div></button>
+      <button onclick="navigateTo('page-enquiries');haptic(8)" class="bg-white border border-slate-200 rounded-2xl p-3 text-left active:scale-[.99]"><div class="text-base">💬</div><div id="mh-enquiries" class="text-sm font-black text-slate-900 mt-1">0</div><div class="text-[8px] font-bold text-slate-400 uppercase">Enquiries</div></button>
+      <button onclick="navigateTo('page-punchout');haptic(8)" class="bg-white border border-slate-200 rounded-2xl p-3 text-left active:scale-[.99]"><div class="text-base">🌅</div><div id="mh-opening" class="text-sm font-black text-slate-900 mt-1">—</div><div class="text-[8px] font-bold text-slate-400 uppercase">Opening</div></button>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3">
+      <div class="flex items-center justify-between"><div class="text-[9px] uppercase tracking-widest font-black text-slate-400">Quick Actions</div><span class="text-[8px] text-slate-400">Management</span></div>
+      <div class="grid grid-cols-3 gap-2 mt-2">
+        <button onclick="navigateTo('page-admin-desk');haptic(8)" class="py-2.5 bg-white border border-slate-200 rounded-xl text-[9px] font-black text-slate-700">👥 Staff</button>
+        <button onclick="navigateTo('page-enquiries');haptic(8)" class="py-2.5 bg-white border border-slate-200 rounded-xl text-[9px] font-black text-slate-700">💬 Enquiry</button>
+        <button onclick="navigateTo('page-announcements');haptic(8)" class="py-2.5 bg-white border border-slate-200 rounded-xl text-[9px] font-black text-slate-700">📢 Announce</button>
+      </div>
+    </div>
+    <button type="button" onclick="haptic(8); navigateTo('page-daily-snapshot')" class="w-full text-left bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm active:scale-[.99]">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center text-lg">📋</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] uppercase tracking-widest font-black text-emerald-700">Daily Store Snapshot</div>
+          <div class="text-xs font-black text-slate-900 mt-0.5">See the full picture of today</div>
+          <div class="text-[9px] text-slate-500 mt-0.5">Attendance · operations · today's status</div>
+        </div>
+        <span class="text-slate-400 text-sm">›</span>
+      </div>
+    </button>
+  </section>
+
+  <!-- Employee My Day -->
+  <section id="employee-my-day" class="hidden space-y-3">
+    <div class="flex items-center justify-between px-1">
+      <div><div class="text-[9px] uppercase tracking-widest font-black text-slate-400">My Day</div><div class="text-sm font-black text-slate-900">Your store day at a glance</div></div>
+      <span id="my-day-date" class="text-[9px] font-bold text-slate-400"></span>
+    </div>
+    <div id="my-day-attendance" class="bg-emerald-50 border border-emerald-200 rounded-3xl p-4"></div>
+    <div class="grid grid-cols-2 gap-2.5">
+      <button type="button" onclick="haptic(8); navigateTo('page-enquiries')" class="text-left bg-white border border-slate-200 rounded-2xl p-3 shadow-sm active:scale-[.99]">
+        <div class="flex items-center justify-between"><span class="text-lg">💬</span><span id="my-day-enquiry-count" class="text-[9px] font-black px-2 py-1 rounded-full bg-amber-100 text-amber-800">0</span></div>
+        <div class="text-[11px] font-black mt-2 text-slate-900">Customer Follow-ups</div><div id="my-day-enquiry-text" class="text-[9px] text-slate-500 mt-0.5">No pending follow-ups</div>
+      </button>
+      <button type="button" onclick="haptic(8); navigateTo('page-knowledge')" class="text-left bg-white border border-slate-200 rounded-2xl p-3 shadow-sm active:scale-[.99]">
+        <div class="flex items-center justify-between"><span class="text-lg">📚</span><span class="text-[9px] font-black px-2 py-1 rounded-full bg-blue-100 text-blue-800">Learn</span></div>
+        <div class="text-[11px] font-black mt-2 text-slate-900">Today's Learning</div><div id="my-day-learning-text" class="text-[9px] text-slate-500 mt-0.5">Open Product Knowledge</div>
+      </button>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm">
+      <div class="flex items-center justify-between"><div><div class="text-[9px] uppercase tracking-widest font-black text-slate-400">My Actions</div><div id="my-day-actions-summary" class="text-xs font-black text-slate-900 mt-1">No assigned actions</div></div><span id="my-day-actions-count" class="text-[9px] font-black px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">0</span></div>
+      <div id="my-day-actions-list" class="space-y-2 mt-3"></div>
+    </div>
+    <div id="my-day-updates" class="hidden bg-blue-50 border border-blue-200 rounded-3xl p-4 shadow-sm">
+      <div class="flex items-center gap-2"><span class="text-lg">📢</span><div><div class="text-[9px] uppercase tracking-widest font-black text-blue-700">Store Updates</div><div id="my-day-updates-summary" class="text-xs font-black text-blue-950 mt-1">New update</div></div></div>
+      <div id="my-day-updates-list" class="space-y-2 mt-3"></div>
+    </div>
+  </section>
+
   <!-- My Profile shortcut -->
   <button type="button" onclick="haptic(8); navigateTo('page-profile')" class="w-full text-left bg-white rounded-3xl border border-slate-200/80 shadow-sm p-3.5 hover:border-emerald-200 active:scale-[0.99] transition cursor-pointer">
     <div class="flex items-center gap-3">
@@ -285,9 +356,22 @@
     <button class="w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-black py-3.5 rounded-2xl text-xs transition shadow flex items-center justify-center gap-1.5 cursor-pointer" onclick="haptic(10); navigateTo('page-gate')"><span>📍</span><span>Clock In for Today</span></button>
   </div>
 
-  <!-- Opening sequence -->
+  <!-- Guided Store Opening -->
   <div class="hidden bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3.5" id="module-opening-steps">
-    <div class="flex justify-between items-center border-b border-slate-100 pb-2"><div class="flex items-center gap-2"><span class="text-base">📋</span><h3 class="font-black text-xs text-slate-900">Morning Opening</h3></div><span class="text-[9px] font-black px-2 py-1 rounded-full bg-amber-100 text-amber-800" id="steps-completion-tag">Action Required</span></div>
+    <div class="flex justify-between items-start gap-3 border-b border-slate-100 pb-3">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2"><span class="text-base">🌅</span><h3 class="font-black text-xs text-slate-900">Open Store</h3></div>
+        <p class="text-[9px] text-slate-500 font-semibold mt-1">Complete the checks in order before the store is ready for customers.</p>
+      </div>
+      <span class="shrink-0 text-[9px] font-black px-2 py-1 rounded-full bg-amber-100 text-amber-800" id="steps-completion-tag">Step 1 of 2</span>
+    </div>
+    <div class="space-y-2">
+      <div class="flex items-center gap-2">
+        <div class="h-1.5 flex-1 rounded-full bg-slate-100 overflow-hidden"><div id="opening-progress-bar" class="h-full w-0 rounded-full bg-[#05281b] transition-all duration-300"></div></div>
+        <span id="opening-progress-text" class="text-[8px] font-black text-slate-500 whitespace-nowrap">0 / 2</span>
+      </div>
+      <div class="flex justify-between text-[8px] font-black uppercase tracking-wider text-slate-400"><span>Store checks</span><span>Opening float</span></div>
+    </div>
     <div class="p-3 rounded-2xl border space-y-2.5 bg-amber-50/60 border-amber-200" id="card-step-1">
       <div class="flex justify-between items-center"><span class="font-black text-xs text-slate-900 flex items-center gap-1.5"><span class="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]" id="badge-step-1">1</span>Store Opening</span><span class="text-[10px] font-extrabold text-amber-700" id="status-step-1">Pending 4 Checks</span></div>
       <div class="space-y-1.5 text-xs text-slate-700 pt-1" id="step-1-checklist-body">
@@ -900,6 +984,82 @@
 
 <!-- ================= MODULE 10D: STAFF SUGGESTIONS ================= -->
 <section class="hidden space-y-4" id="page-suggestions"><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Team Voice</div><h2 class="text-xl font-black text-slate-900 mt-1">Staff Suggestions</h2><p class="text-[10px] text-slate-500 mt-1">Share a practical idea that can improve the store.</p><div class="mt-4 space-y-3"><select id="suggestion-category" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold"><option>Customer Experience</option><option>Store Operations</option><option>Products</option><option>Team</option><option>Other</option></select><textarea id="suggestion-text" rows="4" maxlength="500" placeholder="Write your suggestion..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium resize-none"></textarea><button onclick="submitStaffSuggestion()" class="w-full py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">💡 Submit Suggestion</button></div></div><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="flex justify-between items-center"><div><h3 class="text-xs font-black text-slate-900">My Suggestions</h3><p class="text-[9px] text-slate-400">Your submitted ideas</p></div><span id="my-suggestions-count" class="text-[9px] font-black text-slate-400"></span></div><div id="my-suggestions-list" class="space-y-2 mt-3"></div></div></section>
+<!-- ================= MODULE 10E: STORE BRAIN ================= -->
+<section class="hidden space-y-4" id="page-store-brain">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Store OS · Management</div>
+        <h2 class="text-xl font-black text-slate-900 mt-1">🧠 Store Brain</h2>
+        <p id="store-brain-date" class="text-[10px] text-slate-500 mt-1">--</p>
+      </div>
+      <button onclick="renderStoreBrain()" class="text-[9px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-2 rounded-xl">Refresh</button>
+    </div>
+
+    <div class="mt-4 p-4 rounded-2xl bg-[#05281b] text-white">
+      <div class="text-[9px] uppercase tracking-widest font-black text-emerald-200">Daily Briefing</div>
+      <div id="store-brain-briefing" class="text-sm font-bold leading-relaxed mt-2">Loading store briefing...</div>
+    </div>
+
+    <div class="mt-4">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <div class="text-[9px] uppercase tracking-widest font-black text-slate-400">Today’s Attention</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Items that need a management decision or follow-up.</div>
+        </div>
+        <span id="store-brain-attention-count" class="text-[9px] font-black bg-amber-50 text-amber-800 border border-amber-200 px-2 py-1 rounded-full">0</span>
+      </div>
+      <div id="store-brain-attention" class="space-y-2 mt-3"></div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+      <div class="text-[9px] uppercase tracking-widest font-black text-slate-400">Store Health</div>
+      <div class="text-[10px] text-slate-500 mt-1">Operational signals from today’s existing store data.</div>
+      <div id="store-brain-health" class="space-y-2 mt-3"></div>
+    </div>
+
+    <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+      <div class="text-[9px] uppercase tracking-widest font-black text-slate-400">Pending Actions</div>
+      <div class="text-[10px] text-slate-500 mt-1">Open the relevant workspace directly from here.</div>
+      <div id="store-brain-actions" class="space-y-2 mt-3"></div>
+    </div>
+  </div>
+
+  <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[9px] text-slate-500">
+    <b class="text-slate-700">Store Brain foundation:</b> this first version reads the portal’s existing attendance, cash, closing, leave and suggestion data. Sales forecasting, inventory intelligence and customer conversion intelligence will be connected in later phases.
+  </div>
+</section>
+
+<!-- ================= MODULE 10F: ACTION CENTER ================= -->
+<section class="hidden space-y-4" id="page-action-center">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Management View</div>
+        <h2 class="text-xl font-black text-slate-900 mt-1">Action Center</h2>
+        <p id="action-center-summary" class="text-[10px] text-slate-500 mt-1">Only exceptions that need a human follow-up appear here.</p>
+      </div>
+      <button onclick="renderActionCenter(); haptic(8)" class="text-[9px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-2 rounded-xl">Refresh</button>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-4">
+      <div class="p-3 rounded-2xl border border-amber-200 bg-amber-50"><div class="text-[8px] uppercase font-black text-amber-700">Needs Attention</div><div id="action-count-pending" class="text-lg font-black text-amber-950 mt-1">0</div></div>
+      <div class="p-3 rounded-2xl border border-blue-200 bg-blue-50"><div class="text-[8px] uppercase font-black text-blue-700">My Actions</div><div id="action-count-mine" class="text-lg font-black text-blue-950 mt-1">0</div></div>
+      <div class="p-3 rounded-2xl border border-red-200 bg-red-50"><div class="text-[8px] uppercase font-black text-red-700">Overdue</div><div id="action-count-overdue" class="text-lg font-black text-red-950 mt-1">0</div></div>
+      <div class="p-3 rounded-2xl border border-emerald-200 bg-emerald-50"><div class="text-[8px] uppercase font-black text-emerald-700">Completed Today</div><div id="action-count-done" class="text-lg font-black text-emerald-950 mt-1">0</div></div>
+    </div>
+    <div class="mt-4 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[9px] text-slate-600 leading-relaxed">
+      <b class="text-slate-800">How this works:</b> Store Brain detects an exception → the system creates an action → the responsible person is assigned automatically when known → the action stays here until resolved. Routine items such as cash/closing status remain in Store Brain and Daily Store Snapshot.
+    </div>
+    <div class="mt-3 flex gap-2">
+      <button onclick="syncActionCenterFromBrain(true); haptic(8)" class="flex-1 py-3 bg-[#05281b] text-white rounded-2xl text-[10px] font-black">Sync New Actions</button>
+      <button onclick="navigateTo('page-store-brain'); haptic(8)" class="px-3 py-3 bg-slate-100 text-slate-700 rounded-2xl text-[10px] font-black">Open Brain</button>
+    </div>
+  </div>
+  <div id="action-center-list" class="space-y-3"></div>
+</section>
+
 <!-- ================= MODULE 10E: MANAGEMENT DAILY SNAPSHOT ================= -->
 <section class="hidden space-y-4" id="page-daily-snapshot"><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="flex items-start justify-between gap-3"><div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Management View</div><h2 class="text-xl font-black text-slate-900 mt-1">Daily Store Snapshot</h2><p id="daily-snapshot-date" class="text-[10px] text-slate-500 mt-1">--</p></div><button onclick="renderManagementDailySnapshot()" class="text-[9px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-2 rounded-xl">Refresh</button></div><div id="daily-snapshot-kpis" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4"></div><div class="grid md:grid-cols-2 gap-3 mt-3"><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-slate-400">Today</div><div id="daily-snapshot-attendance" class="text-xs font-bold text-slate-800 mt-2"></div></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-slate-400">Operations</div><div id="daily-snapshot-operations" class="text-xs font-bold text-slate-800 mt-2"></div></div></div><div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-amber-800">Needs Attention</div><div id="daily-snapshot-attention" class="space-y-1 mt-2 text-[10px] font-semibold text-amber-950"></div></div></div></section>
 
@@ -910,30 +1070,10 @@
       <button id="tab-simple-people" onclick="switchAdminTab('simple-people')" class="text-emerald-950 bg-emerald-50 rounded-xl py-2.5 font-black">👥 People</button>
       <button id="tab-simple-attendance" onclick="switchAdminTab('simple-attendance')" class="text-slate-500 rounded-xl py-2.5 font-bold">🕐 Attendance</button>
       <button id="tab-simple-cash" onclick="switchAdminTab('simple-cash')" class="text-slate-500 rounded-xl py-2.5 font-bold">💰 Cash</button>
-      <button id="tab-simple-sales" onclick="switchAdminTab('simple-sales')" class="text-slate-500 rounded-xl py-2.5 font-bold">📊 Sales</button>
       <button id="tab-simple-announcements" onclick="switchAdminTab('simple-announcements')" class="text-slate-500 rounded-xl py-2.5 font-bold">📢 Announce</button>
       <button id="tab-simple-settings" onclick="switchAdminTab('simple-settings')" class="text-slate-500 rounded-xl py-2.5 font-bold">⚙️ Settings</button>
       <button id="tab-simple-geofence" onclick="switchAdminTab('simple-geofence')" class="text-slate-500 rounded-xl py-2.5 font-bold">📍 GPS</button>
     </div>
-  </div>
-
-  <div id="view-admin-sales" class="hidden space-y-3">
-    <div class="bg-[#05281b] text-white p-4 rounded-3xl shadow-sm">
-      <div class="flex items-start justify-between gap-3">
-        <div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-200">Business Dashboard</div><h3 class="font-black text-base mt-1">Sales & Business</h3><p class="text-[9px] text-emerald-100 mt-1">Recorded store sales and business activity.</p></div>
-        <button onclick="renderSalesBusinessDashboard()" class="text-[9px] font-black bg-white/10 border border-white/10 px-2.5 py-2 rounded-xl">↻ Refresh</button>
-      </div>
-    </div>
-    <div class="bg-white p-3 rounded-3xl border border-slate-200 space-y-2">
-      <div class="flex items-center justify-between gap-2"><div class="text-[9px] font-black uppercase tracking-wider text-slate-500">Period</div><select id="sa-sales-period" onchange="renderSalesBusinessDashboard()" class="px-2.5 py-2 border rounded-xl text-[10px] font-black bg-white"><option value="today">Today</option><option value="7">Last 7 Days</option><option value="30">Last 30 Days</option><option value="month">This Month</option></select></div>
-      <div id="sa-sales-period-label" class="text-[9px] text-slate-400"></div>
-    </div>
-    <div id="sa-sales-kpis" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
-    <div class="grid md:grid-cols-2 gap-3">
-      <div class="bg-white p-3 rounded-3xl border border-slate-200"><h4 class="text-[10px] font-black text-slate-900">Payment Mix</h4><p class="text-[9px] text-slate-400">Recorded sales by payment channel.</p><div id="sa-sales-payment-mix" class="space-y-2 mt-3"></div></div>
-      <div class="bg-white p-3 rounded-3xl border border-slate-200"><h4 class="text-[10px] font-black text-slate-900">Business Activity</h4><p class="text-[9px] text-slate-400">Recorded expenses, bank movements and cash variance.</p><div id="sa-business-activity" class="space-y-2 mt-3"></div></div>
-    </div>
-    <div class="bg-white p-3 rounded-3xl border border-slate-200"><div class="flex items-center justify-between"><div><h4 class="text-[10px] font-black text-slate-900">Daily Sales</h4><p class="text-[9px] text-slate-400">Only dates with recorded sales are shown.</p></div><span id="sa-sales-recorded-days" class="text-[9px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-full">0 days</span></div><div id="sa-sales-daily-list" class="space-y-2 mt-3"></div></div>
   </div>
 
   <div id="view-admin-geofence" class="hidden space-y-3">
@@ -946,7 +1086,7 @@
         </div>
         <span id="gps-fetch-status" class="text-[9px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Not fetched</span>
       </div>
-      <button id="btn-fetch-current-gps" onclick="fetchCurrentGPSForAdmin()" class="w-full mt-4 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">📍 Fetch & Save Current GPS</button>
+      <button id="btn-fetch-current-gps" onclick="fetchCurrentGPSForAdmin()" class="w-full mt-4 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">📍 Fetch Current GPS</button>
       <div class="grid grid-cols-2 gap-2 mt-3">
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Latitude</div><div id="admin-gps-lat" class="text-sm font-black text-slate-900 mt-1 break-all">--</div></div>
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Longitude</div><div id="admin-gps-lng" class="text-sm font-black text-slate-900 mt-1 break-all">--</div></div>
@@ -955,33 +1095,7 @@
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Accuracy</div><div id="admin-gps-accuracy" class="text-xs font-black text-slate-700 mt-1">--</div></div>
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase tracking-wider font-black text-slate-400">Fetched At</div><div id="admin-gps-time" class="text-xs font-black text-slate-700 mt-1">--</div></div>
       </div>
-      <p class="text-[9px] text-slate-400 mt-3">Location permission must be allowed in the browser. The fetched coordinates are saved as the store attendance geofence in Firebase.</p>
-    </div>
-
-    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Manual GPS</div>
-          <h3 class="font-black text-sm text-slate-900 mt-1">Enter Store Coordinates Manually</h3>
-          <p class="text-[9px] text-slate-500 mt-1">Use exact latitude and longitude from Google Maps when required.</p>
-        </div>
-        <span class="text-[9px] font-black text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">SUPER ADMIN</span>
-      </div>
-      <div class="grid grid-cols-2 gap-2 mt-4">
-        <div>
-          <label class="block text-[9px] uppercase tracking-wider font-black text-slate-400 mb-1">Latitude</label>
-          <input id="input-manual-lat" type="number" step="any" placeholder="12.879739" class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-mono font-bold text-xs outline-none"/>
-        </div>
-        <div>
-          <label class="block text-[9px] uppercase tracking-wider font-black text-slate-400 mb-1">Longitude</label>
-          <input id="input-manual-lng" type="number" step="any" placeholder="74.857761" class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-mono font-bold text-xs outline-none"/>
-        </div>
-      </div>
-      <button onclick="saveManualStoreCoordinates()" class="w-full mt-3 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl text-xs font-black">💾 Save Manual Coordinates</button>
-      <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
-        <div class="text-[9px] uppercase tracking-wider font-black text-emerald-800">Current Store Geofence</div>
-        <div class="text-[10px] font-mono font-bold text-emerald-950 mt-1" id="current-store-geofence-display">--</div>
-      </div>
+      <p class="text-[9px] text-slate-400 mt-3">Location permission must be allowed in the browser. For best accuracy, use this on the phone at the store location.</p>
     </div>
   </div>
 
@@ -1085,17 +1199,6 @@
             <button onclick="renderLateExceptions()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-700">Refresh</button>
           </div>
           <div id="admin-late-exceptions-list" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar"></div>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-2xl p-3 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <div>
-              <h4 class="text-[10px] font-black text-slate-900">📷 Staff Attendance Selfies</h4>
-              <p class="text-[9px] text-slate-400">View the selfie captured when staff clocked in.</p>
-            </div>
-            <button type="button" onclick="renderAdminAttendanceLogs()" class="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-700">Refresh</button>
-          </div>
-          <div id="admin-attendance-log-list" class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar"></div>
         </div>
 
         <div class="hidden" id="sa-approval-list"></div><div class="hidden" id="sa-overtime-list"></div>
@@ -1341,7 +1444,6 @@
 <option value="Thursday">Thursday</option>
 <option value="Friday">Friday</option>
 <option value="Saturday">Saturday</option>
-<option value="NONE">No Weekly Off</option>
 </select>
 </div>
 </div>
@@ -1452,7 +1554,7 @@
         graceMins: 15
       },
       employees: [
-        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'NONE', employeeCode: 'DV001' },
+        { id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614', role: 'SUPER_ADMIN', weekOff: 'Sunday', employeeCode: 'DV001' },
         { id: 'usr_owner2', name: 'Rachana Bhat', phone: '7676573670', pin: '0205', role: 'OWNER', weekOff: 'Sunday', employeeCode: 'DV002' },
         { id: 'usr_staff1', name: 'DG001', phone: '8618486377', pin: '2005', role: 'STAFF', weekOff: 'Sunday', employeeCode: 'DV003' }
       ],
@@ -1637,7 +1739,7 @@
         root.phone = '8088504219';
         root.pin = root.pin || '1614';
         root.role = 'SUPER_ADMIN';
-        root.weekOff = 'NONE';
+        root.weekOff = root.weekOff || 'Sunday';
         root.employeeCode = 'DV001';
         root.disabled = false;
         root.archived = false;
@@ -1681,6 +1783,7 @@
       reconcileEmployeeRecords(parsed);
       ensureEmployeeCodes(parsed);
       if (!Array.isArray(parsed.securityEvents)) parsed.securityEvents = [];
+      if (!Array.isArray(parsed.storeActions)) parsed.storeActions = [];
       if (parsed.emergencyLock === undefined) parsed.emergencyLock = false;
       if (!parsed.storeConfig || typeof parsed.storeConfig !== 'object') parsed.storeConfig = JSON.parse(JSON.stringify(defaultState.storeConfig));
       parsed.storeConfig = { ...defaultState.storeConfig, ...parsed.storeConfig };
@@ -1721,7 +1824,6 @@
     let pendingDeleteEmployee = null;
     let cachedLocation = null;
     let watchId = null;
-    let gateRadarRequestId = 0;
     // Night closing is a single store-wide first-come claim for each business date.
     // It lives in its own Firebase path so one employee's stale storeState cannot overwrite it.
     let cloudNightClosingByDate = {};
@@ -1845,7 +1947,7 @@
       toggleSidebar(false);
       if(currentAuthUser && pageId!=='page-welcome' && pageId!=='page-login' && !isCurrentSessionValid()){ currentAuthUser=null; showToast('Your session was ended by Super Admin.',true); pageId='page-login'; }
 
-      const adminOnlyPages = ['page-admin-desk', 'page-daily-snapshot'];
+      const adminOnlyPages = ['page-admin-desk', 'page-daily-snapshot', 'page-store-brain', 'page-action-center'];
       if (adminOnlyPages.includes(pageId) && !isManagerRole()) {
         showToast('Access Denied. Management authorization required.', true);
         navigateTo('page-dashboard');
@@ -1874,7 +1976,7 @@
 
       const allPages = [
         'page-welcome', 'page-login', 'page-dashboard', 'page-profile', 'page-salary-slips', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones', 'page-knowledge',
-        'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-admin-desk'
+        'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
       ];
       allPages.forEach(id => {
         const el = document.getElementById(id);
@@ -1927,6 +2029,8 @@
         else if (pageId === 'page-enquiries') { titleEl.innerText = 'Enquiries & Stock'; subtitleEl.innerText = 'Counter Leads & Alerts'; }
         else if (pageId === 'page-suggestions') { titleEl.innerText = 'Staff Suggestions'; subtitleEl.innerText = 'Team Voice'; }
         else if (pageId === 'page-daily-snapshot') { titleEl.innerText = 'Daily Store Snapshot'; subtitleEl.innerText = 'Management View'; }
+      else if (pageId === 'page-store-brain') { titleEl.innerText = 'Store Brain'; subtitleEl.innerText = 'Operational Intelligence'; }
+      else if (pageId === 'page-action-center') { titleEl.innerText = 'Action Center'; subtitleEl.innerText = 'Exceptions & Follow-up'; }
         else if (pageId === 'page-admin-desk') { titleEl.innerText = 'Administration Console'; subtitleEl.innerText = 'Management Control'; }
       }
 
@@ -1960,6 +2064,8 @@
       else if (pageId === 'page-enquiries') renderCounterDeskView();
       else if (pageId === 'page-suggestions') renderStaffSuggestions();
       else if (pageId === 'page-daily-snapshot') renderManagementDailySnapshot();
+      else if (pageId === 'page-store-brain') renderStoreBrain();
+      else if (pageId === 'page-action-center') renderActionCenter();
       else if (pageId === 'page-admin-desk') { switchAdminTab('simple-people'); }
     }
 
@@ -2015,7 +2121,6 @@
       if (category === 'attendance') {
         const h = [...document.querySelectorAll('#view-admin-control h3')].find(x => x.textContent.trim() === '🕐 Attendance & Break Control');
         if (h) { const card = h.closest('div.bg-white'); if (card) card.classList.remove('hidden'); }
-        renderAdminAttendanceLogs();
       }
       if (category === 'audit') {
         const h = [...document.querySelectorAll('#view-admin-control h3')].find(x => x.textContent.trim() === '🔍 Audit Trail');
@@ -2120,7 +2225,7 @@
             phone: String(u?.phone || ''),
             pin: String(u?.pin || ''),
             role: u?.role || 'STAFF',
-            weekOff: (String(u?.phone || '') === '8088504219' || String(u?.id || '') === 'usr_super') ? 'NONE' : (u?.weekOff || 'Sunday'),
+            weekOff: u?.weekOff || 'Sunday',
             employeeCode: u?.employeeCode || null,
             disabled: !!u?.disabled,
             archived: !!u?.archived,
@@ -2449,6 +2554,15 @@
     }
 
     // ================= DASHBOARD OPENING ================= //
+    function updateOpeningProgress(sopDone, floatDone) {
+      const completed = (sopDone ? 1 : 0) + (floatDone ? 1 : 0);
+      const pct = Math.round((completed / 2) * 100);
+      const bar = document.getElementById('opening-progress-bar');
+      const text = document.getElementById('opening-progress-text');
+      if (bar) bar.style.width = pct + '%';
+      if (text) text.innerText = `${completed} / 2`;
+    }
+
     function renderDashboardSteps() {
       const today = getLocalDateString();
       const onDuty = isPunchedInToday();
@@ -2463,6 +2577,7 @@
       const sopDone = (appState.morningSOPLogs || []).some(s => s.date === today);
       const rec = getTodayCashRecord();
       const floatDone = (rec.morningCash !== null);
+      updateOpeningProgress(sopDone, floatDone);
 
       if (sopDone && floatDone) {
         moduleEl.classList.add('hidden');
@@ -2520,7 +2635,7 @@
           doneSummary2.classList.add('hidden');
         }
 
-        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional' : 'Step 2 of 2 Pending';
+        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional · Step 2' : 'Step 2 of 2';
       } else {
         card1.className = 'p-3.5 rounded-2xl border transition-all space-y-2.5 bg-amber-50/60 border-amber-200';
         badge1.className = 'w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]';
@@ -2538,7 +2653,7 @@
         floatBtn.disabled = true;
         floatBtn.className = 'bg-slate-300 text-slate-500 font-black px-4 py-2 rounded-xl text-xs transition cursor-not-allowed';
 
-        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional' : 'Step 1 of 2 Pending';
+        document.getElementById('steps-completion-tag').innerText = isOwnerRole() ? 'Optional · Step 1' : 'Step 1 of 2';
       }
 
       const editFloatBtn1 = document.getElementById('btn-open-float-edit');
@@ -2661,7 +2776,7 @@
       set('profile-phone', emp.phone || '--');
       set('profile-role', getDisplayRole(emp.role));
       set('profile-designation', emp.designation || emp.role || 'Staff');
-      set('profile-weekoff', emp.weekOff === 'NONE' ? 'No Weekly Off' : (emp.weekOff || 'Sunday'));
+      set('profile-weekoff', emp.weekOff || 'Sunday');
       set('profile-date-of-joining', emp.dateOfJoining || '--');
       set('profile-status', emp.disabled || emp.archived ? 'INACTIVE' : 'ACTIVE');
       set('profile-present', logs.length);
@@ -2671,6 +2786,45 @@
       if (status) status.className = `text-[9px] font-black px-2.5 py-1 rounded-full ${emp.disabled || emp.archived ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`;
     }
 
+    function renderEmployeeMyDay(){
+      const panel=document.getElementById('employee-my-day');
+      if(!panel||!currentAuthUser)return;
+      appState=loadState();
+      const manager=isManagerRole();
+      panel.classList.toggle('hidden',manager);
+      if(manager)return;
+      const today=getLocalDateString();
+      const rec=getLatestTodayAttendance(currentAuthUser.id);
+      const onDuty=!!(rec&&rec.punchInTime&&!rec.punchOutTime);
+      const finished=!!(rec&&rec.punchOutTime);
+      const attendance=document.getElementById('my-day-attendance');
+      const inText=rec?.punchInTime?new Date(rec.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--';
+      const outText=rec?.punchOutTime?new Date(rec.punchOutTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--';
+      if(attendance){
+        const cls=onDuty?'bg-emerald-50 border-emerald-200':finished?'bg-slate-50 border-slate-200':'bg-amber-50 border-amber-200';
+        const label=onDuty?'ON DUTY':finished?'SHIFT COMPLETED':'NOT CLOCKED IN';
+        const sub=onDuty?`Clocked in at ${inText}`:finished?`Clocked in ${inText} · Checked out ${outText}`:'Clock in when you are ready to start your shift.';
+        attendance.className=`border rounded-3xl p-4 ${cls}`;
+        attendance.innerHTML=`<div class="flex items-center justify-between gap-3"><div><div class="text-[9px] uppercase tracking-widest font-black text-slate-500">Today's Attendance</div><div class="text-sm font-black text-slate-900 mt-1">${label}</div><div class="text-[9px] text-slate-600 mt-1">${sub}</div></div><span class="text-xl">${onDuty?'🟢':finished?'✓':'🕘'}</span></div>`;
+      }
+      const enquiries=(appState.customerEnquiries||[]).filter(e=>e.status==='PENDING'&&(e.createdBy===currentAuthUser.id||e.assignedTo===currentAuthUser.id));
+      const ec=document.getElementById('my-day-enquiry-count');if(ec)ec.innerText=enquiries.length;
+      const et=document.getElementById('my-day-enquiry-text');if(et)et.innerText=enquiries.length?`${enquiries.length} customer${enquiries.length===1?'':'s'} need follow-up`:'No pending follow-ups';
+      const actions=(appState.storeActions||[]).filter(a=>a.status==='PENDING'&&a.assignedTo===currentAuthUser.id).sort((a,b)=>String(a.dueDate||'').localeCompare(String(b.dueDate||''))||String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+      const ac=document.getElementById('my-day-actions-count');if(ac)ac.innerText=actions.length;
+      const as=document.getElementById('my-day-actions-summary');if(as)as.innerText=actions.length?`${actions.length} action${actions.length===1?'':'s'} assigned to you`:'No assigned actions';
+      const al=document.getElementById('my-day-actions-list');
+      if(al)al.innerHTML=actions.length?actions.slice(0,4).map(a=>`<div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="flex items-start gap-2"><span class="text-base">${a.icon||'🎯'}</span><div class="min-w-0 flex-1"><div class="text-[10px] font-black text-slate-900">${knowledgeEsc(a.title||'Action')}</div><div class="text-[9px] text-slate-500 mt-1">${knowledgeEsc(a.actionText||a.detail||'Follow up on this item.')}</div><div class="flex items-center justify-between gap-2 mt-2"><span class="text-[8px] font-bold text-slate-400">Due: ${knowledgeEsc(a.dueDate||'Today')}</span><button onclick="haptic(8); navigateTo('${a.page||'page-store-brain'}')" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-[8px] font-black text-slate-700">Open</button></div></div></div></div>`).join(''):'<div class="text-[9px] text-slate-400">Nothing is currently assigned to you.</div>';
+      const knowledge=(appState.productKnowledge||[]).filter(Boolean);
+      const learn=document.getElementById('my-day-learning-text');if(learn)learn.innerText=knowledge.length?`${knowledge[0].title} · Open to learn`:'Product knowledge is not added yet';
+      const announcements=(appState.announcements||[]).filter(a=>a.active&&(a.target==='ALL'||a.target===currentAuthUser.id)).slice(0,3);
+      const up=document.getElementById('my-day-updates');const ul=document.getElementById('my-day-updates-list');const us=document.getElementById('my-day-updates-summary');
+      if(up)up.classList.toggle('hidden',!announcements.length);
+      if(us&&announcements.length)us.innerText=`${announcements.length} new store update${announcements.length===1?'':'s'}`;
+      if(ul)ul.innerHTML=announcements.map(a=>`<div class="p-2.5 bg-white border border-blue-100 rounded-2xl"><div class="text-[10px] font-black text-blue-950">${knowledgeEsc(a.title)}</div><div class="text-[9px] text-slate-600 mt-1">${knowledgeEsc(a.message)}</div></div>`).join('');
+      const date=document.getElementById('my-day-date');if(date)date.innerText=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+    }
+
     function renderEmployeePersonalData() {
       appState = loadState();
       renderStaffNotifications();
@@ -2678,7 +2832,12 @@
       document.getElementById('data-user-name').innerText = currentAuthUser.name;
       document.getElementById('data-user-phone').innerText = currentAuthUser.phone;
       document.getElementById('data-role-badge').innerText = getDisplayRole(currentAuthUser.role);
-      document.getElementById('data-user-weekoff').innerText = `Week-Off: ${currentAuthUser.weekOff === 'NONE' ? 'No Weekly Off' : (currentAuthUser.weekOff || 'Sunday')}`;
+      document.getElementById('data-user-weekoff').innerText = `Week-Off: ${currentAuthUser.weekOff || 'Sunday'}`;
+      const managementQuickAccess = document.getElementById('management-quick-access');
+      if (managementQuickAccess) managementQuickAccess.classList.toggle('hidden', !isManagerRole());
+      renderManagementHome();
+      refreshManagementHomeDuty();
+      renderEmployeeMyDay();
 
       const onDuty = isPunchedInToday();
       const finished = isShiftFinishedToday();
@@ -2721,6 +2880,86 @@
       document.getElementById('stat-net-hours').innerText = `${Math.floor(totalWorkMinutes / 60)}h ${totalWorkMinutes % 60}m`;
 
       renderDashboardSteps();
+    }
+
+    function openManagementAttendance(){
+      if(!isManagerRole()) return;
+      navigateTo('page-admin-desk');
+      setTimeout(()=>{ try{ switchAdminTab('simple-attendance'); }catch(e){} }, 0);
+    }
+
+    function getManagementHomeDutyStats(){
+      try {
+        appState=loadState();
+        const today=getLocalDateString();
+        const employees=(appState.employees||[]).filter(e=>!e.archived && !e.disabled);
+        const attendance=(appState.attendance||[]).filter(a=>a && a.punchInTime);
+        const latestByEmployee=new Map();
+        attendance.forEach(a=>{
+          const key=String(a.employeeId||a.userId||'');
+          if(!key) return;
+          let isToday=false;
+          try { isToday = a.date===today || getLocalDateString(new Date(a.punchInTime))===today; } catch(e) {}
+          if(!isToday) return;
+          const previous=latestByEmployee.get(key);
+          const t=Date.parse(a.punchInTime)||0;
+          const pt=previous ? (Date.parse(previous.punchInTime)||0) : -1;
+          if(!previous || t>=pt) latestByEmployee.set(key,a);
+        });
+        const rosterIds=new Set(employees.map(e=>String(e.id||e.employeeId||'')).filter(Boolean));
+        const attendanceIds=new Set(latestByEmployee.keys());
+        const allIds=new Set([...rosterIds,...attendanceIds]);
+        const onDuty=Array.from(allIds).filter(id=>{
+          const rec=latestByEmployee.get(id);
+          return !!(rec && rec.punchInTime && !rec.punchOutTime);
+        }).length;
+        return {onDuty, total: rosterIds.size || allIds.size, todayRecords:Array.from(latestByEmployee.values())};
+      } catch(e) {
+        console.warn('Management duty calculation failed',e);
+        return {onDuty:0,total:0,todayRecords:[]};
+      }
+    }
+
+    function refreshManagementHomeDuty(){
+      const el=document.getElementById('mh-staff');
+      if(!el) return;
+      const stats=getManagementHomeDutyStats();
+      el.innerText=`${stats.onDuty}/${stats.total}`;
+    }
+
+    function renderManagementHome() {
+      const panel=document.getElementById('management-home-command');
+      if(!panel) return;
+      const manager=isManagerRole();
+      panel.classList.toggle('hidden',!manager);
+      if(!manager) return;
+      appState=loadState();
+      const today=getLocalDateString();
+      const employees=(appState.employees||[]).filter(e=>!e.archived && !e.disabled);
+      const dutyStats=getManagementHomeDutyStats();
+      const todayAttendanceByEmployee=new Map();
+      dutyStats.todayRecords.forEach(a=>{const key=String(a.employeeId||a.userId||'');if(key)todayAttendanceByEmployee.set(key,a);});
+      const onDuty=dutyStats.onDuty;
+      const activeStaffCount=dutyStats.total;
+      const todayRecords=dutyStats.todayRecords;
+      const late=todayRecords.filter(a=>a.isLate && !a.lateExceptionApproved).length;
+      const enquiries=(appState.customerEnquiries||[]).filter(e=>e.status==='PENDING').length;
+      const attention=getStoreBrainAttentionItems().filter(x=>x && !String(x.sourceKey||'').startsWith('cash:') && !String(x.sourceKey||'').startsWith('closing:') && !String(x.sourceKey||'').startsWith('break:')).length;
+      const actions=(appState.storeActions||[]).filter(isActionableStoreAction && true);
+      const pendingActions=actions.filter(a=>a.status==='PENDING').length;
+      const sopDone=(appState.morningSOPLogs||[]).some(x=>x.date===today);
+      const rec=getTodayCashRecord();
+      const floatDone=!!(rec && rec.morningCash!==null && rec.morningCash!==undefined);
+      const openingDone=sopDone && floatDone;
+      const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
+      set('management-home-date',new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+      set('mh-brain-count',attention);
+      set('mh-brain-text',attention?`${attention} item${attention===1?'':'s'} need attention${late?` · ${late} late`:''}`:'No immediate attention');
+      set('mh-action-count',pendingActions);
+      set('mh-action-text',pendingActions?`${pendingActions} unresolved action${pendingActions===1?'':'s'}`:'No unresolved actions');
+      set('mh-staff',`${onDuty}/${activeStaffCount}`);
+      set('mh-enquiries',enquiries);
+      set('mh-opening',openingDone?'✓ Done':(sopDone||floatDone?'In progress':'Pending'));
     }
 
     function renderPersonalLedgerView() {
@@ -3410,26 +3649,15 @@
         if (tag) tag.innerText = 'GPS + Selfie';
         startCamera();
       }
-      // The attendance gate UI may be refreshed while the browser is resolving GPS.
-      // Do not force a second GPS request here; use the passive/cached fix when available.
-      await updateGateRadarDistance(false);
+      await updateGateRadarDistance(true);
     }
 
     async function updateGateRadarDistance(forceRefresh = false) {
       const radarDist = document.getElementById('gate-radar-distance');
       if (!radarDist) return false;
-
-      const requestId = ++gateRadarRequestId;
-      const previous = cachedLocation;
+      if (forceRefresh) cachedLocation = null;
       try {
-        // Only the explicit Refresh GPS button requests a fresh fix. Normal UI
-        // refreshes use the current passive/cached fix so a temporary GPS timeout
-        // cannot make a valid location suddenly disappear from the screen.
-        const coords = forceRefresh ? await getInstantLocation(true) : await getInstantLocation(false);
-
-        // Ignore an older async GPS response if a newer request has already started.
-        if (requestId !== gateRadarRequestId) return false;
-
+        const coords = await getInstantLocation(true);
         const dist = calculateDistance(coords.lat, coords.lng, appState.storeConfig.lat, appState.storeConfig.lng);
         const rounded = Math.round(dist);
         const inside = dist <= appState.storeConfig.radius;
@@ -3437,21 +3665,8 @@
         radarDist.className = inside ? 'text-2xl font-black tracking-tight text-emerald-300' : 'text-2xl font-black tracking-tight text-amber-300';
         return inside;
       } catch (e) {
-        // If a refresh temporarily fails but the browser already has a recent valid
-        // fix, keep showing that fix instead of replacing it with "Location unavailable".
-        const fallback = previous || cachedLocation;
-        if (fallback && Number.isFinite(fallback.lat) && Number.isFinite(fallback.lng) && (Date.now() - (fallback.time || 0) < 120000)) {
-          const dist = calculateDistance(fallback.lat, fallback.lng, appState.storeConfig.lat, appState.storeConfig.lng);
-          const rounded = Math.round(dist);
-          const inside = dist <= appState.storeConfig.radius;
-          radarDist.innerText = inside ? `${rounded}m away · Inside range ✓` : `${rounded}m away · Outside range`;
-          radarDist.className = inside ? 'text-2xl font-black tracking-tight text-emerald-300' : 'text-2xl font-black tracking-tight text-amber-300';
-          return inside;
-        }
-        if (requestId === gateRadarRequestId) {
-          radarDist.innerText = 'Location unavailable';
-          radarDist.className = 'text-2xl font-black tracking-tight text-red-300';
-        }
+        radarDist.innerText = 'Location unavailable';
+        radarDist.className = 'text-2xl font-black tracking-tight text-red-300';
         return false;
       }
     }
@@ -3487,30 +3702,12 @@
         }
 
         const isLead = isOwnerRole();
-        let selfieUrl = null;
-        const attendanceId = 'att_' + Date.now();
+        let selfie = null;
         if (!isLead) {
-          const selfie = captureSelfieSnapshot();
+          selfie = captureSelfieSnapshot();
           if (!selfie) {
             showToast('Camera verification is required. Allow camera access and try again.', true);
             return;
-          }
-          showToast('Uploading selfie securely…');
-          try {
-            // Do not let Firebase Storage block clock-in indefinitely. Some browsers/
-            // networks can leave a Storage upload pending even though GPS and camera
-            // are already valid. Give Storage a short window, then keep the captured
-            // selfie in the attendance record as a data URL so clock-in can complete.
-            selfieUrl = await Promise.race([
-              uploadAttendanceSelfie(selfie, currentAuthUser.id, today, attendanceId),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('SELFIE_UPLOAD_TIMEOUT')), 8000))
-            ]);
-          } catch (selfieErr) {
-            console.warn('Attendance selfie upload did not complete in time; using secure attendance fallback.', selfieErr);
-            // Fallback keeps the exact captured selfie with this attendance record.
-            // Super Admin can still view it from Attendance even if Storage is unavailable.
-            selfieUrl = selfie;
-            showToast('Selfie captured. Completing clock-in…');
           }
         }
 
@@ -3532,13 +3729,13 @@
         }
 
         const newLog = {
-          id: attendanceId,
+          id: 'att_' + Date.now(),
           employeeId: currentAuthUser.id,
           date: today,
           punchInTime: now.toISOString(),
           punchInLat: coords.lat,
           punchInLng: coords.lng,
-          punchInSelfie: selfieUrl,
+          punchInSelfie: selfie,
           punchOutTime: null,
           totalMinutes: 0,
           totalBreakMins: 0,
@@ -3588,6 +3785,9 @@
         showToast(isLate ? `Checked in at ${inStr}! Late by ${lateMinutes}m.` : `Checked in at ${inStr}! Time logged.`);
         updateLockPills();
         navigateTo('page-dashboard');
+        // Refresh the management KPI immediately after a successful punch-in.
+        // This keeps the On Duty card synchronized without requiring a page reload.
+        setTimeout(() => { try { renderManagementHome(); refreshManagementHomeDuty(); } catch (e) {} }, 0);
       } catch (err) {
         showToast(err.message, true);
       }
@@ -4041,7 +4241,6 @@
               <div class="font-black text-xs text-slate-900 truncate">${name}</div>
               <div class="text-[9px] text-slate-400 font-mono">${log.date || '--'} • ${log.id || 'attendance record'}</div>
             </div>
-            ${log.punchInSelfie ? `<button type="button" onclick="viewAttendanceSelfie('${encodeURIComponent(String(log.punchInSelfie))}')" class="shrink-0 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-[10px] font-black cursor-pointer">📷 View Selfie</button>` : `<span class="shrink-0 px-3 py-2 bg-slate-100 text-slate-400 rounded-xl text-[10px] font-black">📷 No Selfie</span>`}
             <button type="button" onclick="deleteAttendanceLog('${String(log.id || '').replace(/'/g, "\'")}')" class="shrink-0 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-[10px] font-black cursor-pointer">🗑️ Delete</button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 text-[10px]">
@@ -4051,19 +4250,6 @@
           </div>
         </div>`;
       }).join('');
-    }
-
-    function viewAttendanceSelfie(encodedUrl) {
-      if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
-      let url = '';
-      try { url = decodeURIComponent(String(encodedUrl || '')); } catch (e) { url = ''; }
-      if (!url || (!/^https?:\/\//i.test(url) && !/^data:image\//i.test(url))) {
-        return showToast('Selfie image is not available.', true);
-      }
-      const w = window.open('', '_blank', 'width=620,height=760,resizable=yes,scrollbars=yes');
-      if (!w) return showToast('Please allow pop-ups to view the selfie.', true);
-      w.document.write(`<!doctype html><html><head><title>Attendance Selfie</title><style>body{margin:0;background:#071f16;color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}.shell{width:min(92vw,560px);text-align:center}.title{font-size:14px;font-weight:800;margin-bottom:12px}.photo{width:100%;max-height:78vh;object-fit:contain;border-radius:18px;background:#0b2b20;box-shadow:0 12px 40px rgba(0,0,0,.35)}.note{font-size:10px;color:#a7c9bc;margin-top:10px}</style></head><body><div class="shell"><div class="title">📷 Staff Attendance Selfie</div><img class="photo" src="${url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" alt="Attendance selfie"><div class="note">Attendance selfie</div></div></body></html>`);
-      w.document.close();
     }
 
     async function deleteAttendanceLog(logId) {
@@ -4089,14 +4275,13 @@
         'simple-people': 'people',
         'simple-attendance': 'attendance',
         'simple-cash': 'finance',
-        'simple-sales': 'sales',
         'simple-announcements': 'announcements',
         'simple-settings': 'settings',
         'simple-geofence': 'geofence'
       };
       if (simpleTabs[tabId]) {
         if (!isSuperAdmin()) { showToast('Super Admin access required.', true); return; }
-        ['roster','staff','attendance','leaves','reports','late','control','sales','geofence'].forEach(id => {
+        ['roster','staff','attendance','leaves','reports','late','control','geofence'].forEach(id => {
           document.getElementById(`view-admin-${id}`)?.classList.add('hidden');
         });
         document.getElementById('view-admin-control')?.classList.remove('hidden');
@@ -4105,12 +4290,6 @@
           if (!b) return;
           b.className = id===tabId ? 'text-emerald-950 bg-emerald-50 rounded-xl py-2 font-black' : 'text-slate-400 rounded-xl py-2 font-bold';
         });
-        if (simpleTabs[tabId] === 'sales') {
-          document.getElementById('view-admin-control')?.classList.add('hidden');
-          document.getElementById('view-admin-sales')?.classList.remove('hidden');
-          renderSalesBusinessDashboard();
-          return;
-        }
         if (simpleTabs[tabId] === 'geofence') {
           document.getElementById('view-admin-control')?.classList.add('hidden');
           document.getElementById('view-admin-geofence')?.classList.remove('hidden');
@@ -4398,7 +4577,7 @@
     }
     async function syncEmployeeAccountToFirebase(employee, previousPhone = '') {
       if(!cloudDb || !firebaseUsersLoaded) return false; const targetId=String(employee.id), oldPhone=String(previousPhone||employee.phone||'');
-      const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; let key=Object.keys(latest).find(k=>String(latest[k]?.id||k)===targetId); if(!key&&oldPhone) key=Object.keys(latest).find(k=>String(latest[k]?.phone||'')===oldPhone); if(!key) key=targetId; const existing=latest[key]||{}; latest[key]={...existing,id:targetId,name:employee.name||'',phone:String(employee.phone||''),pin:String(employee.pin||''),role:employee.role||'STAFF',designation:employee.designation||null,weekOff:(employee.phone==='8088504219'||employee.id==='usr_super')?'NONE':(employee.weekOff||'Sunday'),dateOfJoining:employee.dateOfJoining||null,employeeCode:employee.employeeCode||null,disabled:!!employee.disabled,archived:!!employee.archived,archivedAt:employee.archivedAt||null,archivedReason:employee.archivedReason||null,archivedBy:employee.archivedBy||null}; return latest; });
+      const result=await cloudDb.ref('users').transaction(users=>{ const latest=(users&&typeof users==='object')?{...users}:{}; let key=Object.keys(latest).find(k=>String(latest[k]?.id||k)===targetId); if(!key&&oldPhone) key=Object.keys(latest).find(k=>String(latest[k]?.phone||'')===oldPhone); if(!key) key=targetId; const existing=latest[key]||{}; latest[key]={...existing,id:targetId,name:employee.name||'',phone:String(employee.phone||''),pin:String(employee.pin||''),role:employee.role||'STAFF',designation:employee.designation||null,weekOff:employee.weekOff||'Sunday',dateOfJoining:employee.dateOfJoining||null,employeeCode:employee.employeeCode||null,disabled:!!employee.disabled,archived:!!employee.archived,archivedAt:employee.archivedAt||null,archivedReason:employee.archivedReason||null,archivedBy:employee.archivedBy||null}; return latest; });
       if(!result.committed) return false; cloudUsers=normalizeFirebaseUsers(result.snapshot.val()); firebaseUsersLoaded=true; return true;
     }
 
@@ -4475,10 +4654,10 @@
       let phone=e.phone;
       if(!isRoot){ phone=await adminAsk('Update the mobile number.',{title:'Edit Employee',fieldLabel:'Mobile number',value:e.phone}); if(phone===null)return; if(!/^\d{10}$/.test(phone.trim()))return showToast('Enter a valid 10-digit mobile number.',true); if(appState.employees.some(x=>x.id!==e.id&&x.phone===phone.trim()))return showToast('Another account already uses this mobile number.',true); }
       const designation=await adminAsk('Update the employee designation.',{title:'Edit Employee',fieldLabel:'Designation',value:e.designation||''}); if(designation===null)return;
-      const weekOff=await adminAsk('Update the weekly off day. For Samrajya, enter No Weekly Off if he does not take a weekly off.',{title:'Edit Employee',fieldLabel:'Weekly off day',value:e.weekOff==='NONE'?'No Weekly Off':(e.weekOff||'Sunday')}); if(weekOff===null)return;
+      const weekOff=await adminAsk('Update the weekly off day.',{title:'Edit Employee',fieldLabel:'Weekly off day',value:e.weekOff||'Sunday'}); if(weekOff===null)return;
       const dateOfJoining=await adminAsk('Update the employee date of joining.',{title:'Edit Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',value:e.dateOfJoining||''}); if(dateOfJoining===null)return; if(dateOfJoining.trim()&&!/^\d{4}-\d{2}-\d{2}$/.test(dateOfJoining.trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
       const reason=await adminAsk('Why are you changing this account?',{title:'Edit Employee',fieldLabel:'Reason'}); if(!reason)return;
-      const before={name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}, oldPhone=e.phone; e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.designation=designation.trim()||null;e.weekOff=(e.phone==='8088504219' && /^(none|no weekly off|no week off)$/i.test(weekOff.trim()))?'NONE':(weekOff.trim()||'Sunday');if(e.phone!=='8088504219' && e.weekOff==='NONE') e.weekOff='Sunday';e.dateOfJoining=dateOfJoining.trim()||null;
+      const before={name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}, oldPhone=e.phone; e.name=name.trim()||e.name;e.phone=phone.trim()||e.phone;e.designation=designation.trim()||null;e.weekOff=weekOff.trim()||'Sunday';e.dateOfJoining=dateOfJoining.trim()||null;
       if(isRoot){e.role='SUPER_ADMIN';e.phone='8088504219';e.employeeCode='DV001';e.disabled=false;e.archived=false;}
       try{if(!await syncEmployeeAccountToFirebase(e,oldPhone))throw new Error('Firebase account update failed');saveState(appState);addAuditLog('EDIT_ACCOUNT','ACCOUNT',JSON.stringify({reason,before,after:{name:e.name,phone:e.phone,designation:e.designation||null,weekOff:e.weekOff,dateOfJoining:e.dateOfJoining||null}}),e.id);renderExtendedSuperAdmin();renderSuperAdminControl();showToast(isRoot?'Root Super Admin profile updated online.':'Account updated online.');}catch(err){Object.assign(e,before);console.error('Firebase employee edit failed:',err);showToast('Could not update the employee account online.',true);}
     }
@@ -4496,28 +4675,6 @@
     function saToggleAnnouncement(id){if(!superAdminOnly())return;appState=loadState();const a=appState.announcements.find(x=>x.id===id);if(!a)return;a.active=!a.active;saveState(appState);addAuditLog(a.active?'ACTIVATE_ANNOUNCEMENT':'DEACTIVATE_ANNOUNCEMENT','ANNOUNCEMENT',a.title,id);renderExtendedSuperAdmin();}
     function saSaveFinanceControl(){if(!superAdminOnly())return;appState=loadState();const date=document.getElementById('sa-fin-date')?.value||getLocalDateString();const float=Number(document.getElementById('sa-fin-float')?.value||0),cashSales=Number(document.getElementById('sa-fin-cash')?.value||0),digital=Number(document.getElementById('sa-fin-digital')?.value||0),actual=Number(document.getElementById('sa-fin-actual')?.value||0),expected=float+cashSales,reason=document.getElementById('sa-fin-reason')?.value.trim()||'';const diff=actual-expected;if(diff!==0&&!reason)return showToast('Explanation is required for a cash difference.',true);let r=appState.cashDrawerLogs.find(x=>x.date===date);if(!r){r={date};appState.cashDrawerLogs.push(r);}Object.assign(r,{morningCash:float,adminCashSales:cashSales,adminDigitalSales:digital,adminExpectedCash:expected,adminActualCash:actual,adminDifference:diff,adminReconciliationReason:reason,adminReconciledBy:currentAuthUser.id,adminReconciledAt:new Date().toISOString()});saveState(appState);addAuditLog('FINANCE_RECONCILIATION','FINANCE',JSON.stringify({date,float,cashSales,digital,actual,expected,diff,reason}));renderExtendedSuperAdmin();showToast('Finance control saved.');}
     function renderStaffAnnouncements(){appState=loadState();const panel=document.getElementById('staff-announcements-panel'),list=document.getElementById('staff-announcements-list');if(!panel||!list)return;const items=(appState.announcements||[]).filter(a=>a.active&&(a.target==='ALL'||a.target===currentAuthUser?.id)).slice(0,10);panel.classList.toggle('hidden',!items.length);list.innerHTML=items.map(a=>`<div class="p-2.5 bg-white border border-blue-100 rounded-2xl"><div class="flex justify-between gap-2"><b class="text-[10px] text-blue-950">${a.title}</b><span class="text-[8px] font-black">${a.priority}</span></div><div class="text-[10px] text-slate-600 mt-1">${a.message}</div><div class="text-[8px] text-slate-400 mt-1">${new Date(a.createdAt).toLocaleString()}</div></div>`).join('');}
-    function renderSalesBusinessDashboard(){
-      if(!superAdminOnly()) return;
-      appState=loadState();
-      const period=document.getElementById('sa-sales-period')?.value||'today';
-      const today=getLocalDateString();
-      const now=new Date();
-      let startDate=today,label='Today';
-      if(period==='7'){const d=new Date(now);d.setDate(d.getDate()-6);startDate=getLocalDateString(d);label=`${startDate} to ${today}`;}
-      else if(period==='30'){const d=new Date(now);d.setDate(d.getDate()-29);startDate=getLocalDateString(d);label=`${startDate} to ${today}`;}
-      else if(period==='month'){startDate=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;label=`${startDate} to ${today}`;}
-      const logs=(appState.cashDrawerLogs||[]).filter(x=>x.date>=startDate&&x.date<=today),daily={};
-      logs.forEach(r=>{const cash=Number(r.nightVyaparCash??r.adminCashSales??0)||0,edc=Number(r.paytmEDC??0)||0,upi=Number(r.idfcSoundbox??0)||0,adminDigital=Number(r.adminDigitalSales??0)||0,digital=(edc+upi)||adminDigital,total=cash+digital,petty=(appState.pettyCashExpenses||[]).filter(x=>x.date===r.date).reduce((a,x)=>a+(Number(x.amount)||0),0),bank=(appState.bankTransfers||[]).filter(x=>x.date===r.date).reduce((a,x)=>a+(Number(x.amount)||0),0),diff=Number(r.nightDifference??r.adminDifference??0)||0;daily[r.date]={date:r.date,cash,digital,edc,upi,total,petty,bank,diff};});
-      const rows=Object.values(daily).sort((a,b)=>a.date.localeCompare(b.date)),money=v=>'₹'+Math.round(Number(v)||0).toLocaleString('en-IN');
-      const totalSales=rows.reduce((a,r)=>a+r.total,0),totalCash=rows.reduce((a,r)=>a+r.cash,0),totalDigital=rows.reduce((a,r)=>a+r.digital,0),totalPetty=rows.reduce((a,r)=>a+r.petty,0),totalBank=rows.reduce((a,r)=>a+r.bank,0),totalDiff=rows.reduce((a,r)=>a+r.diff,0),avg=rows.length?totalSales/rows.length:0,best=rows.reduce((b,r)=>!b||r.total>b.total?r:b,null);
-      const k=document.getElementById('sa-sales-kpis');if(k)k.innerHTML=[['Total Sales',money(totalSales),'bg-emerald-50 text-emerald-900'],['Avg / Recorded Day',money(avg),'bg-slate-50 text-slate-900'],['Cash Sales',money(totalCash),'bg-amber-50 text-amber-900'],['Digital Sales',money(totalDigital),'bg-blue-50 text-blue-900']].map(x=>`<div class="p-3 rounded-2xl border border-slate-200 ${x[2]}"><div class="text-[9px] uppercase tracking-wider font-black opacity-60">${x[0]}</div><div class="text-base font-black mt-1">${x[1]}</div></div>`).join('');
-      const pl=document.getElementById('sa-sales-period-label');if(pl)pl.textContent=`${label} · ${rows.length} recorded day${rows.length===1?'':'s'}`;
-      const pm=document.getElementById('sa-sales-payment-mix');if(pm)pm.innerHTML=[['Cash',totalCash],['Paytm EDC',rows.reduce((a,r)=>a+r.edc,0)],['IDFC Soundbox / UPI',rows.reduce((a,r)=>a+r.upi,0)]].map(x=>`<div><div class="flex justify-between text-[9px] font-bold"><span>${x[0]}</span><span>${money(x[1])}</span></div><div class="h-2 bg-slate-100 rounded-full mt-1 overflow-hidden"><div class="h-full bg-emerald-600 rounded-full" style="width:${totalSales?Math.min(100,(x[1]/totalSales)*100):0}%"></div></div></div>`).join('')||'<div class="text-[10px] text-slate-400">No sales recorded.</div>';
-      const ba=document.getElementById('sa-business-activity');if(ba)ba.innerHTML=[['Petty Cash',money(totalPetty)],['Bank / Safe Transfers',money(totalBank)],['Cash Variance',money(totalDiff)],['Highest Sales Day',best?`${best.date} · ${money(best.total)}`:'—']].map(x=>`<div class="flex justify-between gap-2 p-2 bg-slate-50 border rounded-xl text-[9px]"><span class="text-slate-500">${x[0]}</span><b class="text-right">${x[1]}</b></div>`).join('');
-      const dl=document.getElementById('sa-sales-daily-list');if(dl)dl.innerHTML=rows.slice().reverse().map(r=>`<div class="p-2.5 bg-slate-50 border rounded-2xl"><div class="flex items-center justify-between gap-2"><div><div class="font-black text-[10px] text-slate-900">${r.date}</div><div class="text-[8px] text-slate-400 mt-0.5">Cash ${money(r.cash)} · Digital ${money(r.digital)}</div></div><div class="text-right"><div class="font-black text-[11px] text-emerald-900">${money(r.total)}</div><div class="text-[8px] text-slate-400">Variance ${money(r.diff)}</div></div></div></div>`).join('')||'<div class="p-3 text-center text-[10px] text-slate-400">No recorded sales for this period.</div>';
-      const rd=document.getElementById('sa-sales-recorded-days');if(rd)rd.textContent=`${rows.length} day${rows.length===1?'':'s'}`;
-    }
-
     function renderExtendedSuperAdmin(){
       if(!superAdminOnly())return; appState=loadState();
       const today=getLocalDateString();
@@ -4797,34 +4954,6 @@
     function renderReportsTabUI() {
     }
 
-    async function saveStoreGeofenceCoordinates(lat, lng, source, accuracy = null) {
-      if (!isSuperAdmin()) throw new Error('Super Admin access required.');
-      if (!cloudDb || !cloudStateLoaded) throw new Error('Store database is still connecting to Firebase. Please wait.');
-      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-        throw new Error('Please enter valid latitude and longitude.');
-      }
-
-      const result = await cloudDb.ref('storeState').transaction(state => {
-        const latest = ensureStateArrays(state || {});
-        latest.storeConfig = { ...(latest.storeConfig || {}), lat, lng };
-        return latest;
-      });
-
-      if (!result.committed) throw new Error('Firebase did not commit the GPS update. Please try again.');
-      appState = ensureStateArrays(result.snapshot.val());
-      cloudBaselineState = cloneCloudSafe(appState);
-      saveState(appState, { skipCloud: true });
-
-      addAuditLog('UPDATE_STORE_GEOFENCE', 'CONFIG', JSON.stringify({
-        latitude: lat,
-        longitude: lng,
-        source,
-        accuracy: Number.isFinite(accuracy) ? Math.round(accuracy) : null
-      }));
-      updateGeofenceSettingsUI();
-      return true;
-    }
-
     async function fetchCurrentGPSForAdmin() {
       if (!isSuperAdmin()) return showToast('Super Admin access required.', true);
       const btn = document.getElementById('btn-fetch-current-gps');
@@ -4833,69 +4962,33 @@
       const lngEl = document.getElementById('admin-gps-lng');
       const accuracyEl = document.getElementById('admin-gps-accuracy');
       const timeEl = document.getElementById('admin-gps-time');
-      if (btn) { btn.disabled = true; btn.innerText = '📡 Fetching & Saving GPS...'; }
+      if (btn) { btn.disabled = true; btn.innerText = '📡 Fetching GPS...'; }
       if (status) { status.innerText = 'Fetching...'; status.className = 'text-[9px] font-black text-amber-700 bg-amber-50 px-2 py-1 rounded-lg'; }
       try {
         const coords = await getInstantLocation(true);
-        const lat = Number(coords.lat);
-        const lng = Number(coords.lng);
-        const accuracy = Number(coords.accuracy);
-        if (latEl) latEl.innerText = lat.toFixed(8);
-        if (lngEl) lngEl.innerText = lng.toFixed(8);
-        if (accuracyEl) accuracyEl.innerText = Number.isFinite(accuracy) ? `±${Math.round(accuracy)} m` : '--';
+        if (latEl) latEl.innerText = Number(coords.lat).toFixed(8);
+        if (lngEl) lngEl.innerText = Number(coords.lng).toFixed(8);
+        if (accuracyEl) accuracyEl.innerText = Number.isFinite(coords.accuracy) ? `±${Math.round(coords.accuracy)} m` : '--';
         if (timeEl) timeEl.innerText = new Date(coords.time || Date.now()).toLocaleString('en-IN');
-
-        await saveStoreGeofenceCoordinates(lat, lng, 'CURRENT_PHONE_GPS', accuracy);
-        if (status) { status.innerText = 'Saved to Firebase ✓'; status.className = 'text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg'; }
-        showToast(`Store geofence saved: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        if (status) { status.innerText = 'GPS fetched'; status.className = 'text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg'; }
+        showToast(`GPS fetched: ${Number(coords.lat).toFixed(6)}, ${Number(coords.lng).toFixed(6)}`);
       } catch (err) {
         if (status) { status.innerText = 'Failed'; status.className = 'text-[9px] font-black text-red-700 bg-red-50 px-2 py-1 rounded-lg'; }
-        showToast(err?.message || 'Could not fetch or save GPS location.', true);
+        showToast(err?.message || 'Could not fetch GPS location. Turn Location ON and allow browser permission.', true);
       } finally {
-        if (btn) { btn.disabled = false; btn.innerText = '📍 Fetch & Save Current GPS'; }
+        if (btn) { btn.disabled = false; btn.innerText = '📍 Fetch Current GPS'; }
       }
     }
-
-    async function saveManualStoreCoordinates() {
-      if (!isSuperAdmin()) return showToast('Super Admin access required.', true);
-      const lat = Number(document.getElementById('input-manual-lat')?.value);
-      const lng = Number(document.getElementById('input-manual-lng')?.value);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-        return showToast('Enter a valid latitude (-90 to 90) and longitude (-180 to 180).', true);
-      }
-      const btn = document.querySelector('[onclick="saveManualStoreCoordinates()"]');
-      if (btn) { btn.disabled = true; btn.innerText = 'Saving to Firebase...'; }
-      try {
-        await saveStoreGeofenceCoordinates(lat, lng, 'MANUAL_ENTRY');
-        const status = document.getElementById('gps-fetch-status');
-        if (status) { status.innerText = 'Manual coordinates saved ✓'; status.className = 'text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg'; }
-        showToast(`Store geofence saved: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-      } catch (err) {
-        showToast(err?.message || 'Could not save manual coordinates.', true);
-      } finally {
-        if (btn) { btn.disabled = false; btn.innerText = '💾 Save Manual Coordinates'; }
-      }
-    }
-
 
     function updateGeofenceSettingsUI() {
       appState = loadState();
-      const lat = Number(appState.storeConfig?.lat);
-      const lng = Number(appState.storeConfig?.lng);
-      const latText = Number.isFinite(lat) ? lat.toFixed(6) : '--';
-      const lngText = Number.isFinite(lng) ? lng.toFixed(6) : '--';
-      const cfgLat = document.getElementById('cfg-lat-val');
-      const cfgLng = document.getElementById('cfg-lng-val');
-      if (cfgLat) cfgLat.innerText = latText;
-      if (cfgLng) cfgLng.innerText = lngText;
-
+      document.getElementById('cfg-lat-val').innerText = appState.storeConfig.lat.toFixed(6);
+      document.getElementById('cfg-lng-val').innerText = appState.storeConfig.lng.toFixed(6);
+      
       const manualLat = document.getElementById('input-manual-lat');
       const manualLng = document.getElementById('input-manual-lng');
-      if (manualLat && Number.isFinite(lat)) manualLat.value = lat;
-      if (manualLng && Number.isFinite(lng)) manualLng.value = lng;
-
-      const currentDisplay = document.getElementById('current-store-geofence-display');
-      if (currentDisplay) currentDisplay.innerText = Number.isFinite(lat) && Number.isFinite(lng) ? `${lat.toFixed(8)}, ${lng.toFixed(8)}` : '--';
+      if (manualLat) manualLat.value = appState.storeConfig.lat;
+      if (manualLng) manualLng.value = appState.storeConfig.lng;
 
       const btnCalibrate = document.getElementById('btn-calibrate-gps');
       const boxManual = document.getElementById('box-manual-gps-override');
@@ -4914,7 +5007,7 @@
       (appState.employees || []).forEach(emp => {
         const att = getLatestTodayAttendance(emp.id);
         let badgeHtml = '<span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold">Absent / Off</span>';
-        let subtext = `Off: ${emp.weekOff === 'NONE' ? 'No Weekly Off' : (emp.weekOff || 'Sunday')}`;
+        let subtext = `Off: ${emp.weekOff || 'Sunday'}`;
 
         if (att && att.punchInTime && !att.punchOutTime) {
           badgeHtml = `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> On Duty</span>`;
@@ -5106,7 +5199,7 @@
           if (!latest.usr_super) {
             latest.usr_super = {
               id: 'usr_super', name: 'Samrajya', phone: '8088504219', pin: '1614',
-              role: 'SUPER_ADMIN', weekOff: 'NONE', disabled: false, archived: false, archivedAt: null
+              role: 'SUPER_ADMIN', weekOff: 'Sunday', disabled: false, archived: false, archivedAt: null
             };
           }
           return latest;
@@ -5156,7 +5249,7 @@
         row.innerHTML = `
           <div>
             <div class="font-bold text-slate-900">${emp.name} <span class="text-[9px] uppercase font-black px-1.5 py-0.2 rounded ${roleColor}">${displayRole}</span></div>
-            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • ${emp.designation || getDisplayRole(emp.role)} • Off: ${emp.weekOff === 'NONE' ? 'No Weekly Off' : (emp.weekOff || 'Sunday')}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${emp.phone} • ${emp.designation || getDisplayRole(emp.role)} • Off: ${emp.weekOff || 'Sunday'}</div>
           </div>
           <div class="flex items-center gap-2">
             ${isSuperAdmin() ? `<span class="font-mono text-slate-600 bg-white px-1.5 py-0.5 rounded border text-[10px]">${emp.pin}</span>` : ''}
@@ -5399,7 +5492,7 @@
       if (!n || ph.length !== 10 || !prod) return showToast('Enter customer name, 10-digit phone, and product.', true);
 
       appState = loadState();
-      appState.customerEnquiries.push({ id: 'cust_' + Date.now(), date: getLocalDateString(), createdAt: new Date().toISOString(), name: n, phone: ph, product: prod, status: 'PENDING' });
+      appState.customerEnquiries.push({ id: 'cust_' + Date.now(), date: getLocalDateString(), createdAt: new Date().toISOString(), name: n, phone: ph, product: prod, status: 'PENDING', createdBy: currentAuthUser?.id || '', createdByName: currentAuthUser?.name || '' });
       saveState(appState);
 
       document.getElementById('input-cust-name').value = '';
@@ -5665,34 +5758,6 @@
       return null;
     }
 
-    async function uploadAttendanceSelfie(dataUrl, employeeId, date, attendanceId) {
-      if (typeof firebase === 'undefined' || !firebase.storage) {
-        throw new Error('Firebase Storage is unavailable.');
-      }
-      const match = String(dataUrl || '').match(/^data:([^;]+);base64,(.+)$/);
-      if (!match) throw new Error('Invalid selfie image.');
-
-      const mimeType = match[1] || 'image/jpeg';
-      const base64 = match[2];
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: mimeType });
-
-      const storage = firebase.storage();
-      const safeEmployeeId = String(employeeId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
-      const safeDate = String(date || 'unknown').replace(/[^0-9-]/g, '_');
-      const safeAttendanceId = String(attendanceId || Date.now()).replace(/[^a-zA-Z0-9_-]/g, '_');
-      const path = `attendance-selfies/${safeEmployeeId}/${safeDate}/${safeAttendanceId}.jpg`;
-      const ref = storage.ref(path);
-
-      await ref.put(blob, {
-        contentType: 'image/jpeg',
-        cacheControl: 'private,max-age=31536000'
-      });
-      return await ref.getDownloadURL();
-    }
-
     function renderShiftTabDetails() {
       autoCloseExpiredLunchBreaks();
       const rec = getLatestTodayAttendance(currentAuthUser.id);
@@ -5873,21 +5938,17 @@
       const listEl = document.getElementById('my-leave-history-list');
       const weekOff = currentAuthUser.weekOff || 'Sunday';
 
-      if (weekOffEl) weekOffEl.innerText = weekOff === 'NONE' ? 'No Weekly Off' : weekOff;
+      if (weekOffEl) weekOffEl.innerText = weekOff;
 
       const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       const now = new Date();
       const todayIndex = now.getDay();
       const targetIndex = dayNames.indexOf(weekOff);
-      if (weekOff === 'NONE') {
-        if (nextOffEl) nextOffEl.innerText = 'None';
-      } else {
-        let delta = targetIndex - todayIndex;
-        if (delta <= 0) delta += 7;
-        const nextOff = new Date(now);
-        nextOff.setDate(now.getDate() + delta);
-        if (nextOffEl) nextOffEl.innerText = nextOff.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
-      }
+      let delta = targetIndex - todayIndex;
+      if (delta <= 0) delta += 7;
+      const nextOff = new Date(now);
+      nextOff.setDate(now.getDate() + delta);
+      if (nextOffEl) nextOffEl.innerText = nextOff.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
 
       const today = getLocalDateString();
       const holidays = (appState.holidays || [])
@@ -5977,7 +6038,7 @@
         pin: String(u.pin || ''),
         role: u.role || 'STAFF',
         designation: u.designation || null,
-        weekOff: (String(u?.phone || '') === '8088504219' || String(u?.id || '') === 'usr_super') ? 'NONE' : (u.weekOff || 'Sunday'),
+        weekOff: u.weekOff || 'Sunday',
         employeeCode: u.employeeCode || null,
         disabled: !!u.disabled,
         archived: !!u.archived,
@@ -6017,7 +6078,7 @@
             pin: String(e.pin),
             role: e.role || 'STAFF',
             designation: e.designation || null,
-            weekOff: (String(e.phone || '') === '8088504219' || String(e.id || '') === 'usr_super') ? 'NONE' : (e.weekOff || 'Sunday'),
+            weekOff: e.weekOff || 'Sunday',
             employeeCode: e.employeeCode || null,
             disabled: !!e.disabled,
             archived: !!e.archived,
@@ -6073,7 +6134,7 @@
             pin: '1614',
             role: 'SUPER_ADMIN',
             designation: rootProfile.designation || null,
-            weekOff: 'NONE',
+            weekOff: rootProfile.weekOff || 'Sunday',
             dateOfJoining: rootProfile.dateOfJoining || null,
             employeeCode: 'DV001',
             disabled: false,
@@ -6196,6 +6257,7 @@
           }
           document.getElementById('cloud-sync-status').className = 'w-2 h-2 rounded-full bg-emerald-400';
           refreshActiveScreen();
+          refreshManagementHomeDuty();
         }, (error) => {
           cloudStateLoaded = false;
           document.getElementById('cloud-sync-status').className = 'w-2 h-2 rounded-full bg-red-400';
@@ -6382,8 +6444,8 @@
     }
     function renderMySchedule() {
       if (!currentAuthUser) return; appState=loadState(); const list=document.getElementById('my-schedule-list'), badge=document.getElementById('schedule-weekoff-badge'); if(!list)return;
-      const weekOff=currentAuthUser.weekOff||'Sunday'; if(badge)badge.innerText=`Weekly off: ${weekOff==='NONE'?'No Weekly Off':weekOff}`; const approved=getApprovedLeaveDates(currentAuthUser.id), holidays=new Map((appState.holidays||[]).map(h=>[h.date,h.name||'Store holiday'])), today=new Date(), rows=[];
-      for(let i=0;i<7;i++){const d=new Date(today);d.setHours(0,0,0,0);d.setDate(today.getDate()+i);const date=getLocalDateString(d), day=d.toLocaleDateString('en-IN',{weekday:'short'}), label=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});let type='WORKING',note=`${appState.storeConfig.shiftStart||'08:00'} – ${appState.storeConfig.shiftEnd||'21:00'}`;if(holidays.has(date)){type='HOLIDAY';note=holidays.get(date);}else if(weekOff!=='NONE' && day===weekOff.slice(0,3)){type='WEEK OFF';note='Weekly off';}if(approved.has(date)){type='APPROVED OFF';note='Approved time off';}const tone=type==='WORKING'?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-slate-50';rows.push(`<div class="p-3 rounded-2xl border ${tone} flex items-center justify-between gap-3"><div><div class="text-[9px] font-black uppercase text-slate-400">${day} · ${label}${i===0?' · TODAY':''}</div><div class="text-xs font-black text-slate-900 mt-0.5">${type}</div></div><div class="text-right text-[9px] font-bold text-slate-500">${note}</div></div>`);}list.innerHTML=rows.join('');
+      const weekOff=currentAuthUser.weekOff||'Sunday'; if(badge)badge.innerText=`Weekly off: ${weekOff}`; const approved=getApprovedLeaveDates(currentAuthUser.id), holidays=new Map((appState.holidays||[]).map(h=>[h.date,h.name||'Store holiday'])), today=new Date(), rows=[];
+      for(let i=0;i<7;i++){const d=new Date(today);d.setHours(0,0,0,0);d.setDate(today.getDate()+i);const date=getLocalDateString(d), day=d.toLocaleDateString('en-IN',{weekday:'short'}), label=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});let type='WORKING',note=`${appState.storeConfig.shiftStart||'08:00'} – ${appState.storeConfig.shiftEnd||'21:00'}`;if(holidays.has(date)){type='HOLIDAY';note=holidays.get(date);}else if(day===weekOff.slice(0,3)){type='WEEK OFF';note='Weekly off';}if(approved.has(date)){type='APPROVED OFF';note='Approved time off';}const tone=type==='WORKING'?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-slate-50';rows.push(`<div class="p-3 rounded-2xl border ${tone} flex items-center justify-between gap-3"><div><div class="text-[9px] font-black uppercase text-slate-400">${day} · ${label}${i===0?' · TODAY':''}</div><div class="text-xs font-black text-slate-900 mt-0.5">${type}</div></div><div class="text-right text-[9px] font-bold text-slate-500">${note}</div></div>`);}list.innerHTML=rows.join('');
     }
     function notificationTone(n){const approved=n.type==='LATE_APPROVED'||n.type==='LEAVE_APPROVED',rejected=n.type==='LATE_REJECTED'||n.type==='LEAVE_REJECTED';return approved?'border-emerald-200 bg-emerald-50':rejected?'border-red-200 bg-red-50':n.type==='ATTENDANCE_UPDATED'?'border-blue-200 bg-blue-50':'border-slate-200 bg-white';}
     function renderNotificationCenterPage(){if(!currentAuthUser)return;const list=document.getElementById('notification-center-list'),summary=document.getElementById('notification-center-summary');if(!list)return;const items=getMyNotifications(),unread=items.filter(n=>!n.read);if(summary)summary.innerText=`${items.length} notification${items.length===1?'':'s'} · ${unread.length} unread`;if(!items.length){list.innerHTML='<div class="p-6 text-center text-slate-400 text-xs">No notifications yet.</div>';return;}list.innerHTML=items.map(n=>`<div class="p-3 rounded-2xl border ${notificationTone(n)} ${n.read?'opacity-75':'shadow-sm'}"><div class="flex items-start justify-between gap-2"><div><div class="font-black text-[11px] text-slate-900">${n.title}</div><div class="text-[9px] text-slate-400 mt-0.5">${new Date(n.createdAt).toLocaleString()}</div></div>${n.read?'':'<span class="text-[8px] bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full font-black">NEW</span>'}</div><div class="text-[10px] text-slate-700 mt-2">${n.message}</div>${n.details?.reason?`<div class="mt-2 text-[9px] text-slate-600">Reason: <b>${n.details.reason}</b></div>`:''}${!n.read?`<button onclick="markNotificationRead('${n.id}');renderNotificationCenterPage()" class="mt-2 py-2 px-3 bg-[#05281b] text-white rounded-xl text-[9px] font-black">Mark as Read</button>`:'<div class="mt-2 text-[9px] text-slate-400 font-bold">Read</div>'}</div>`).join('');}
@@ -6423,11 +6485,169 @@
     function renderMyMilestones(){if(!currentAuthUser)return;appState=loadState();const logs=(appState.attendance||[]).filter(a=>a.employeeId===currentAuthUser.id&&a.punchInTime),totalMinutes=logs.reduce((sum,a)=>sum+Number(a.totalMinutes||0),0),present=logs.length,onTime=logs.filter(a=>!a.isLate||a.lateExceptionApproved).length,milestones=[['🌱','First Shift','Complete your first recorded shift.',present>=1,1,present,'shifts'],['⭐','5 Shifts','Complete 5 recorded shifts.',present>=5,5,present,'shifts'],['🏅','10 Shifts','Complete 10 recorded shifts.',present>=10,10,present,'shifts'],['⏱️','50 Hours','Reach 50 total worked hours.',totalMinutes>=3000,3000,totalMinutes,'minutes'],['🎯','10 On-Time Days','Record 10 days without a late mark.',onTime>=10,10,onTime,'days']],earned=milestones.filter(m=>m[3]).length,summary=document.getElementById('my-milestones-summary'),list=document.getElementById('my-milestones-list');if(summary)summary.innerHTML=`<div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200"><div class="text-[9px] uppercase font-black text-emerald-800">Progress</div><div class="text-lg font-black text-emerald-950 mt-1">${earned} of ${milestones.length} milestones reached</div><div class="text-[9px] text-emerald-800 mt-1">${present} shifts · ${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m worked</div></div>`;if(list)list.innerHTML=milestones.map(m=>{const progress=Math.min(100,(m[5]/m[4])*100),value=m[6]==='minutes'?`${Math.floor(m[5]/60)}h ${m[5]%60}m`:`${m[5]} / ${m[4]}`;return `<div class="p-3 rounded-2xl border ${m[3]?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-white'}"><div class="flex items-center gap-3"><div class="text-2xl">${m[0]}</div><div class="flex-1"><div class="text-xs font-black text-slate-900">${m[1]} ${m[3]?'✓':''}</div><div class="text-[9px] text-slate-500 mt-0.5">${m[2]}</div><div class="h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2"><div class="h-full bg-emerald-600 rounded-full" style="width:${progress}%"></div></div></div><div class="text-[9px] font-black text-slate-500">${value}</div></div></div>`;}).join('');}
     async function submitStaffSuggestion(){if(!currentAuthUser)return;const text=(document.getElementById('suggestion-text')?.value||'').trim(),category=document.getElementById('suggestion-category')?.value||'Other';if(text.length<5){showToast('Please write a little more detail.',true);return;}if(!cloudDb||!cloudStateLoaded){showToast('Store data is still connecting to Firebase. Please wait.',true);return;}const item={id:'SUG-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),employeeId:currentAuthUser.id,employeeName:currentAuthUser.name,category,text,status:'NEW',createdAt:new Date().toISOString()};try{const result=await cloudDb.ref('storeState').transaction(state=>{const latest=ensureStateArrays(state||{});latest.staffSuggestions=Array.isArray(latest.staffSuggestions)?latest.staffSuggestions:[];latest.staffSuggestions.unshift(item);latest.staffSuggestions=latest.staffSuggestions.slice(0,500);return latest;});if(!result.committed)throw new Error('Suggestion was not committed.');appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);document.getElementById('suggestion-text').value='';showToast('Suggestion submitted. Thank you!');renderStaffSuggestions();}catch(e){showToast('Could not submit the suggestion. Please try again.',true);console.error('Staff suggestion save failed:',e);}}
     function renderStaffSuggestions(){if(!currentAuthUser)return;appState=loadState();const mine=(appState.staffSuggestions||[]).filter(s=>s.employeeId===currentAuthUser.id),list=document.getElementById('my-suggestions-list'),count=document.getElementById('my-suggestions-count');if(count)count.innerText=`${mine.length} submitted`;if(list)list.innerHTML=mine.length?mine.map(s=>`<div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="flex justify-between gap-2"><span class="text-[9px] font-black uppercase text-emerald-800">${s.category}</span><span class="text-[8px] font-black bg-white border px-1.5 py-0.5 rounded-full">${s.status||'NEW'}</span></div><div class="text-[10px] text-slate-700 mt-2">${s.text}</div><div class="text-[8px] text-slate-400 mt-1">${new Date(s.createdAt).toLocaleString()}</div></div>`).join(''):'<div class="p-5 text-center text-slate-400 text-xs">No suggestions submitted yet.</div>';}
+
+    function renderStoreBrain(){
+      if(!isManagerRole())return;
+      appState=loadState();
+      const today=getLocalDateString();
+      const emps=(appState.employees||[]).filter(e=>!e.archived);
+      const todays=(appState.attendance||[]).filter(a=>a.date===today&&a.punchInTime);
+      const present=todays.length;
+      const onDuty=todays.filter(a=>!a.punchOutTime).length;
+      const late=todays.filter(a=>a.isLate&&!a.lateExceptionApproved);
+      const breaks=todays.filter(a=>(a.breaks||[]).some(b=>!b.end));
+      const cash=(appState.cashDrawerLogs||[]).find(c=>c.date===today);
+      const cashDone=!!(cash&&cash.cashClosingConfirmed===true&&cash.nightPhysicalCash!==null&&cash.nightPhysicalCash!==undefined);
+      const closing=isStoreNightClosingDoneToday();
+      const pendingLeave=(appState.leaveRequests||[]).filter(r=>r.status==='PENDING');
+      const newSuggestions=(appState.staffSuggestions||[]).filter(x=>x.status==='NEW');
+      const enquiries=(appState.customerEnquiries||[]).filter(e=>e.createdAt&&getLocalDateString(new Date(e.createdAt))===today);
+      const attention=[];
+      late.forEach(a=>attention.push({icon:'⏰',title:`Late login: ${a.employeeName||a.employeeId}`,detail:`${Number(a.lateMinutes||0)} minutes late${a.lateExceptionApproved?' · exception approved':''}.`,page:'page-admin-desk'}));
+      if(breaks.length)attention.push({icon:'🍱',title:`${breaks.length} employee${breaks.length===1?'':'s'} currently on break`,detail:'Check active breaks if the store needs full counter coverage.',page:'page-shift'});
+      if(!cashDone)attention.push({icon:'💰',title:'Cash settlement pending',detail:'Today’s cash closing has not been locked yet.',page:'page-cash'});
+      if(!closing)attention.push({icon:'🏁',title:'Night closing pending',detail:'Store closing checklist is not completed for today.',page:'page-punchout'});
+      if(pendingLeave.length)attention.push({icon:'🏖️',title:`${pendingLeave.length} leave request${pendingLeave.length===1?'':'s'} pending`,detail:'Management review is required.',page:'page-admin-desk'});
+      if(newSuggestions.length)attention.push({icon:'💡',title:`${newSuggestions.length} new staff suggestion${newSuggestions.length===1?'':'s'}`,detail:'Review team ideas when available.',page:'page-suggestions'});
+      if(!attention.length)attention.push({icon:'✅',title:'No immediate operational exception',detail:'The currently connected store signals need no management action.',page:'page-daily-snapshot'});
+
+      const health=[
+        ['👥','Attendance',present===0&&emps.length?'Needs attention':(late.length?'Late marks present':'On track'),present===0&&emps.length?'amber':(late.length?'amber':'green')],
+        ['💰','Cash settlement',cashDone?'Completed today':'Pending',cashDone?'green':'amber'],
+        ['🏁','Night closing',closing?'Completed today':'Pending',closing?'green':'amber'],
+        ['💬','Customer enquiries',`${enquiries.length} recorded today`,enquiries.length?'green':'neutral'],
+      ];
+      const statusClass={green:'bg-emerald-50 border-emerald-200 text-emerald-900',amber:'bg-amber-50 border-amber-200 text-amber-900',neutral:'bg-slate-50 border-slate-200 text-slate-700'};
+      const dotClass={green:'bg-emerald-500',amber:'bg-amber-500',neutral:'bg-slate-400'};
+      const dateEl=document.getElementById('store-brain-date');
+      if(dateEl)dateEl.innerText=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      const briefing=document.getElementById('store-brain-briefing');
+      if(briefing)briefing.innerText=`${present} of ${emps.length} active staff have punched in. ${onDuty} currently on duty. ${late.length} late mark${late.length===1?'':'s'} need review. ${enquiries.length} customer ${enquiries.length===1?'enquiry':'enquiries'} recorded today. ${attention.filter(x=>x.title!=='No immediate operational exception').length?`${attention.filter(x=>x.title!=='No immediate operational exception').length} item${attention.filter(x=>x.title!=='No immediate operational exception').length===1?'':'s'} need management attention.`:'No immediate exception is currently detected.'}`;
+      const countEl=document.getElementById('store-brain-attention-count');
+      if(countEl)countEl.innerText=`${attention.length===1&&attention[0].title==='No immediate operational exception'?0:attention.length}`;
+      const att=document.getElementById('store-brain-attention');
+      if(att)att.innerHTML=attention.map(x=>`<div class="p-3 rounded-2xl border ${x.title==='No immediate operational exception'?'bg-emerald-50 border-emerald-200':'bg-amber-50 border-amber-200'}"><div class="flex items-start gap-2"><div class="text-lg">${x.icon}</div><div class="flex-1"><div class="text-[10px] font-black text-slate-900">${x.title}</div><div class="text-[9px] text-slate-600 mt-0.5">${x.detail}</div></div>${x.title==='No immediate operational exception'?'':`<button onclick="navigateTo('${x.page}')" class="shrink-0 px-2 py-1.5 rounded-xl bg-white border border-slate-200 text-[8px] font-black text-slate-700">Open</button>`}</div></div>`).join('');
+      const healthEl=document.getElementById('store-brain-health');
+      if(healthEl)healthEl.innerHTML=health.map(x=>`<div class="p-3 rounded-2xl border ${statusClass[x[3]]}"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full ${dotClass[x[3]]}"></span><div class="text-[10px] font-black flex-1">${x[0]} ${x[1]}</div><div class="text-[9px] font-black">${x[2]}</div></div></div>`).join('');
+      const actionsEl=document.getElementById('store-brain-actions');
+      const actions=attention.filter(x=>x.title!=='No immediate operational exception').slice(0,8);
+      if(actionsEl)actionsEl.innerHTML=actions.length?actions.map((x,i)=>`<div class="p-3 rounded-2xl bg-slate-50 border border-slate-200"><div class="flex items-center gap-2"><div class="text-sm">${x.icon}</div><div class="flex-1"><div class="text-[10px] font-black text-slate-900">${i+1}. ${x.title}</div><div class="text-[8px] text-slate-500 mt-0.5">${x.detail}</div></div><button onclick="navigateTo('${x.page}')" class="px-2 py-1.5 rounded-xl bg-white border border-slate-200 text-[8px] font-black">Open</button></div></div>`).join(''):'<div class="p-5 text-center text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-2xl">No pending operational actions.</div>';
+    }
+
+    function getStoreBrainAttentionItems(){
+      const today=getLocalDateString(), todays=(appState.attendance||[]).filter(a=>a.date===today&&a.punchInTime);
+      const late=todays.filter(a=>a.isLate && !a.lateExceptionApproved), breaks=todays.filter(a=>(a.breaks||[]).some(b=>!b.end));
+      const cash=(appState.cashDrawerLogs||[]).find(c=>c.date===today), cashDone=!!(cash&&cash.cashClosingConfirmed===true&&cash.nightPhysicalCash!==null&&cash.nightPhysicalCash!==undefined);
+      const closing=isStoreNightClosingDoneToday(), pendingLeave=(appState.leaveRequests||[]).filter(r=>r.status==='PENDING'), newSuggestions=(appState.staffSuggestions||[]).filter(s=>s.status==='NEW');
+      const items=[];
+      late.forEach(a=>items.push({sourceKey:`late:${today}:${a.employeeId}`,icon:'⏰',title:`Late login: ${a.employeeName||a.employeeId}`,detail:`${Number(a.lateMinutes||0)} minutes late. Review whether an exception should be recorded.`,page:'page-admin-desk',employeeId:a.employeeId}));
+      if(breaks.length)items.push({sourceKey:`break:${today}`,icon:'🍱',title:'Active break coverage',detail:`${breaks.length} employee${breaks.length===1?' is':'s are'} currently on break.`,page:'page-shift'});
+      if(!cashDone)items.push({sourceKey:`cash:${today}`,icon:'💰',title:'Cash settlement pending',detail:'Today’s cash closing has not been locked yet.',page:'page-cash'});
+      if(!closing)items.push({sourceKey:`closing:${today}`,icon:'🏁',title:'Night closing pending',detail:'Store closing checklist is not completed for today.',page:'page-punchout'});
+      pendingLeave.forEach(r=>items.push({sourceKey:`leave:${r.id||r.employeeId}`,icon:'🏖️',title:`Leave request: ${r.employeeName||r.employeeId||'Employee'}`,detail:'Management review is required.',page:'page-admin-desk',employeeId:r.employeeId}));
+      newSuggestions.forEach(r=>items.push({sourceKey:`suggestion:${r.id||r.employeeId}`,icon:'💡',title:'New staff suggestion',detail:'Review the team suggestion when available.',page:'page-suggestions',employeeId:r.employeeId}));
+      return items;
+    }
+
+    function findDefaultActionOwner(type, item){
+      const employees=(appState.employees||[]).filter(e=>!e.archived);
+      if(type==='customer' && item.createdBy){const creator=employees.find(e=>e.id===item.createdBy);if(creator)return creator.id;}
+      const admin=employees.find(e=>e.role==='SUPER_ADMIN' || e.phone==='8088504219');
+      return admin?.id || '';
+    }
+
+    function getActionCandidates(){
+      const today=getLocalDateString(), candidates=[];
+      getStoreBrainAttentionItems().forEach(x=>{
+        if(x.sourceKey.startsWith('late:')) candidates.push({...x,actionText:'Review and approve/reject the late-login exception.',priority:'HIGH',dueDate:today,ownerType:'MANAGEMENT'});
+        else if(x.sourceKey.startsWith('leave:')) candidates.push({...x,actionText:'Review and approve/reject the leave request.',priority:'HIGH',dueDate:today,ownerType:'MANAGEMENT'});
+        else if(x.sourceKey.startsWith('suggestion:')) candidates.push({...x,actionText:'Review the staff suggestion and decide whether follow-up is required.',priority:'NORMAL',dueDate:today,ownerType:'MANAGEMENT'});
+      });
+      (appState.customerEnquiries||[]).filter(e=>e.status==='PENDING').forEach(e=>candidates.push({
+        sourceKey:`customer:${e.id}`,icon:'💬',title:`Customer follow-up: ${e.name||'Customer'}`,
+        detail:`Interested in ${e.product||'the requested product'}. Follow up with the customer.`,page:'page-enquiries',customerId:e.id,
+        actionText:'Contact the customer and update the enquiry status.',priority:'HIGH',dueDate:today,ownerType:'CREATOR',createdBy:e.createdBy||''
+      }));
+      return candidates;
+    }
+
+    function isActionableStoreAction(a){
+      if(!a)return false;
+      const key=String(a.sourceKey||'');
+      return !key.startsWith('cash:') && !key.startsWith('closing:') && !key.startsWith('break:');
+    }
+
+    function syncActionCenterFromBrain(showMessage=false){
+      if(!isManagerRole())return false;
+      appState=loadState();
+      appState.storeActions=Array.isArray(appState.storeActions)?appState.storeActions:[];
+      const candidates=getActionCandidates(); let changed=false;
+      candidates.forEach(x=>{
+        const existing=appState.storeActions.find(a=>a.sourceKey===x.sourceKey && a.status!=='DONE');
+        if(existing){
+          if(!existing.assignedTo) { existing.assignedTo=findDefaultActionOwner(x.ownerType==='CREATOR'?'customer':'management',x); changed=true; }
+          return;
+        }
+        const owner=findDefaultActionOwner(x.ownerType==='CREATOR'?'customer':'management',x);
+        appState.storeActions.push({id:'ACT-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),sourceKey:x.sourceKey,icon:x.icon,title:x.title,detail:x.detail,actionText:x.actionText,page:x.page,employeeId:x.employeeId||'',customerId:x.customerId||'',assignedTo:owner,status:'PENDING',priority:x.priority||'NORMAL',dueDate:x.dueDate||getLocalDateString(),date:getLocalDateString(),createdAt:new Date().toISOString(),completedAt:'',completedBy:''});
+        changed=true;
+      });
+      if(changed)saveState(appState);
+      if(showMessage)showToast(changed?'Action Center updated with new actionable exceptions.':'No new actionable exceptions found.');
+      return changed;
+    }
+
+    function createStoreActionsFromBrain(){syncActionCenterFromBrain(true);renderActionCenter();}
+
+    function renderActionCenter(){
+      if(!isManagerRole())return;
+      syncActionCenterFromBrain(false);
+      appState=loadState();
+      const today=getLocalDateString(), currentUserId=currentAuthUser?.id||'';
+      const actions=(appState.storeActions||[]).filter(isActionableStoreAction).slice().sort((a,b)=>{if(a.status!==b.status)return a.status==='PENDING'?-1:1;return String(b.createdAt||'').localeCompare(String(a.createdAt||''));});
+      const pending=actions.filter(a=>a.status==='PENDING').length;
+      const mine=actions.filter(a=>a.status==='PENDING'&&a.assignedTo===currentUserId).length;
+      const overdue=actions.filter(a=>a.status==='PENDING'&&a.dueDate&&a.dueDate<today).length;
+      const doneToday=actions.filter(a=>a.status==='DONE'&&a.completedAt&&getLocalDateString(new Date(a.completedAt))===today).length;
+      const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v};
+      set('action-count-pending',pending);set('action-count-mine',mine);set('action-count-overdue',overdue);set('action-count-done',doneToday);
+      const summary=document.getElementById('action-center-summary');if(summary)summary.innerText=pending?`${pending} exception${pending===1?'':'s'} need follow-up · ${mine} assigned to you.`:'No unresolved exceptions need follow-up.';
+      const list=document.getElementById('action-center-list');if(!list)return;
+      if(!actions.length){list.innerHTML='<div class="p-6 text-center bg-white border border-emerald-200 rounded-3xl text-xs text-emerald-700 font-semibold">✅ Nothing currently requires a separate management action. Routine store status remains in Store Brain and Daily Store Snapshot.</div>';return;}
+      const employees=(appState.employees||[]).filter(e=>!e.archived);
+      const employeeName=id=>(employees.find(e=>e.id===id)?.name)||'Unassigned';
+      list.innerHTML=actions.map(a=>{
+        const status=a.status==='DONE', overdue=a.status==='PENDING'&&a.dueDate&&a.dueDate<today, owner=employeeName(a.assignedTo), related=(employees.find(e=>e.id===a.employeeId)?.name)||'';
+        return `<div class="bg-white border ${overdue?'border-red-200':status?'border-emerald-200':'border-slate-200'} rounded-3xl p-4 shadow-sm">
+          <div class="flex items-start gap-3"><div class="text-xl">${a.icon||'🎯'}</div><div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2"><div><div class="text-[11px] font-black text-slate-900">${a.title}</div><div class="text-[9px] text-slate-500 mt-1">${a.actionText||a.detail||''}</div>${related?`<div class="text-[8px] text-slate-400 mt-1">Related employee: ${related}</div>`:''}</div>
+            <span class="shrink-0 text-[8px] font-black px-2 py-1 rounded-full ${status?'bg-emerald-100 text-emerald-800':overdue?'bg-red-100 text-red-800':'bg-amber-100 text-amber-800'}">${status?'DONE':overdue?'OVERDUE':'OPEN'}</span></div>
+            <div class="mt-3 grid grid-cols-2 gap-2"><div class="p-2.5 bg-slate-50 rounded-xl"><div class="text-[7px] uppercase tracking-wider font-black text-slate-400">Owner</div><div class="text-[9px] font-black text-slate-800 mt-1">${owner}</div></div><div class="p-2.5 bg-slate-50 rounded-xl"><div class="text-[7px] uppercase tracking-wider font-black text-slate-400">Due</div><div class="text-[9px] font-black ${overdue?'text-red-700':'text-slate-800'} mt-1">${a.dueDate||'—'}</div></div></div>
+            <div class="mt-3 flex gap-2">${status?`<button onclick="reopenStoreAction('${a.id}'); haptic(8)" class="px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[9px] font-black text-amber-800">Reopen</button>`:`<button onclick="completeStoreAction('${a.id}'); haptic(8)" class="flex-1 py-2.5 bg-[#05281b] text-white rounded-xl text-[9px] font-black">Mark Resolved</button>`}<button onclick="navigateTo('${a.page||'page-store-brain'}'); haptic(8)" class="flex-1 py-2.5 bg-slate-100 rounded-xl text-[9px] font-black text-slate-700">Open Source</button><button onclick="changeStoreActionOwner('${a.id}'); haptic(8)" class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-[9px] font-black text-slate-700">Change Owner</button></div>
+          </div></div></div>`;
+      }).join('');
+    }
+
+    function changeStoreActionOwner(id){
+      if(!isManagerRole())return;
+      const employees=(appState.employees||[]).filter(e=>!e.archived);
+      const a=(appState.storeActions||[]).find(x=>x.id===id); if(!a)return;
+      const names=employees.map((e,i)=>`${i+1}. ${e.name} (${e.id})`).join('\n');
+      const answer=window.prompt(`Choose the new owner by number:\n\n${names}`, '');
+      if(answer===null)return;
+      const idx=Number(answer)-1, chosen=employees[idx]; if(!chosen){showToast('Invalid owner selection.',true);return;}
+      a.assignedTo=chosen.id;a.updatedAt=new Date().toISOString();saveState(appState);showToast(`Action assigned to ${chosen.name}.`);renderActionCenter();
+    }
+
+    function assignStoreAction(id,employeeId){changeStoreActionOwner(id);}
+    function completeStoreAction(id){if(!isManagerRole())return;appState=loadState();const a=(appState.storeActions||[]).find(x=>x.id===id);if(!a)return;a.status='DONE';a.completedAt=new Date().toISOString();a.completedBy=currentAuthUser?.id||'';a.updatedAt=a.completedAt;saveState(appState);showToast('Action marked resolved.');renderActionCenter();}
+    function reopenStoreAction(id){if(!isManagerRole())return;appState=loadState();const a=(appState.storeActions||[]).find(x=>x.id===id);if(!a)return;a.status='PENDING';a.completedAt='';a.completedBy='';a.updatedAt=new Date().toISOString();saveState(appState);showToast('Action reopened.');renderActionCenter();}
+
     function renderManagementDailySnapshot(){if(!isManagerRole())return;appState=loadState();const today=getLocalDateString(),emps=(appState.employees||[]).filter(e=>!e.archived),todays=(appState.attendance||[]).filter(a=>a.date===today&&a.punchInTime),present=todays.length,onDuty=todays.filter(a=>!a.punchOutTime).length,late=todays.filter(a=>a.isLate&&!a.lateExceptionApproved).length,breaks=todays.filter(a=>(a.breaks||[]).some(b=>!b.end)),cash=(appState.cashDrawerLogs||[]).find(c=>c.date===today),cashDone=!!(cash&&cash.cashClosingConfirmed===true&&cash.nightPhysicalCash!==null&&cash.nightPhysicalCash!==undefined),closing=isStoreNightClosingDoneToday(),enquiries=(appState.customerEnquiries||[]).filter(e=>e.createdAt&&getLocalDateString(new Date(e.createdAt))===today).length,pendingLeave=(appState.leaveRequests||[]).filter(r=>r.status==='PENDING').length,suggestions=(appState.staffSuggestions||[]).filter(s=>s.status==='NEW').length,kpis=[['👥','Present',present],['🟢','On Duty',onDuty],['⏰','Late',late],['🍱','On Break',breaks.length],['💰','Cash',cashDone?'DONE':'PENDING'],['🏁','Closing',closing?'DONE':'PENDING'],['💬','Enquiries',enquiries],['💡','Suggestions',suggestions]],dateEl=document.getElementById('daily-snapshot-date');if(dateEl)dateEl.innerText=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});const grid=document.getElementById('daily-snapshot-kpis');if(grid)grid.innerHTML=kpis.map(k=>`<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-lg">${k[0]}</div><div class="text-[8px] uppercase font-black text-slate-400 mt-1">${k[1]}</div><div class="text-sm font-black text-slate-900 mt-0.5">${k[2]}</div></div>`).join('');const att=document.getElementById('daily-snapshot-attendance');if(att)att.innerHTML=`<div>${present} of ${emps.length} active staff have punched in.</div><div class="mt-1">${onDuty} currently on duty · ${breaks.length} on break · ${late} late marks requiring attention.</div>`;const ops=document.getElementById('daily-snapshot-operations');if(ops)ops.innerHTML=`<div>Cash settlement: <b>${cashDone?'Completed':'Pending'}</b>.</div><div class="mt-1">Night closing: <b>${closing?'Completed':'Pending'}</b> · Customer enquiries today: <b>${enquiries}</b>.</div>`;const attention=[];if(late)attention.push(`⏰ ${late} late mark${late===1?'':'s'} need review.`);if(breaks.length)attention.push(`🍱 ${breaks.length} employee${breaks.length===1?' is':'s are'} currently on break.`);if(!cashDone)attention.push('💰 Daily cash settlement is not locked yet.');if(!closing)attention.push('🏁 Store night closing is not completed.');if(pendingLeave)attention.push(`🏖️ ${pendingLeave} time-off request${pendingLeave===1?'':'s'} pending.`);if(!attention.length)attention.push('✅ No immediate operational items require attention.');const at=document.getElementById('daily-snapshot-attention');if(at)at.innerHTML=attention.map(x=>`<div>${x}</div>`).join('');}
 
     function refreshActiveScreen() {
       if (!currentAuthUser) return;
-      if (currentActivePage === 'page-dashboard') renderEmployeePersonalData();
+      if (currentActivePage === 'page-dashboard') { renderEmployeePersonalData(); renderEmployeeMyDay(); }
       else if (currentActivePage === 'page-history') renderPersonalLedgerView();
       else if (currentActivePage === 'page-salary-slips') renderMySalarySlips();
       else if (currentActivePage === 'page-leaves') renderPersonalLeaveHistory();
@@ -6441,9 +6661,21 @@
       else if (currentActivePage === 'page-enquiries') renderCounterDeskView();
       else if (currentActivePage === 'page-suggestions') renderStaffSuggestions();
       else if (currentActivePage === 'page-daily-snapshot') renderManagementDailySnapshot();
+      else if (currentActivePage === 'page-store-brain') renderStoreBrain();
+      else if (currentActivePage === 'page-action-center') renderActionCenter();
       else if (currentActivePage === 'page-admin-desk') { renderSuperAdminControl(); renderExtendedSuperAdmin(); renderAdminSalarySlips(); }
       updateLockPills();
     }
   </script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function (err) {
+        console.warn('Wellwith PWA service worker registration failed:', err);
+      });
+    });
+  }
+</script>
 </body>
 </html>
