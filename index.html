@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.4.9 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.20 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -712,15 +712,9 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="block text-[9px] font-black text-slate-500 uppercase mb-1">Paytm EDC</label>
-      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 font-bold">₹</span><input id="sale-edc" type="number" min="0" inputmode="decimal" placeholder="0" oninput="calculateSettlement()" class="w-full pl-7 pr-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono outline-none"/></div>
-    </div>
-    <div>
-      <label class="block text-[9px] font-black text-slate-500 uppercase mb-1">IDFC Soundbox / UPI</label>
-      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 font-bold">₹</span><input id="sale-soundbox" type="number" min="0" inputmode="decimal" placeholder="0" oninput="calculateSettlement()" class="w-full pl-7 pr-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono outline-none"/></div>
-    </div>
+  <div>
+    <label class="block text-[9px] font-black text-slate-500 uppercase mb-1">Paytm EDC Machine</label>
+    <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 font-bold">₹</span><input id="sale-edc" type="number" min="0" inputmode="decimal" placeholder="0" oninput="calculateSettlement()" class="w-full pl-7 pr-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono outline-none"/></div>
   </div>
 
   <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5">
@@ -1366,7 +1360,7 @@
           This permanently removes all test users and operational/testing records across cloud and terminals. The Root Super Admin and store configuration are retained.
         </p>
 <div class="space-y-1 pt-1">
-<label class="block text-[10px] font-black uppercase text-slate-500">Confirm with Super Admin PIN</label>
+<label class="block text-[10px] font-black uppercase text-slate-500">Confirm with Management PIN</label>
 <input class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-center text-lg tracking-widest font-black outline-none focus:ring-2 focus:ring-red-600" id="input-reset-pin" maxlength="4" placeholder="Enter PIN" type="password"/>
 </div>
 </div>
@@ -1511,7 +1505,7 @@
         <textarea id="admin-edit-att-reason" rows="2" placeholder="Why are you correcting this attendance?" class="w-full px-3 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 outline-none resize-none focus:ring-2 focus:ring-emerald-700"></textarea>
       </label>
       <label class="space-y-1.5 block">
-        <span class="text-[10px] uppercase tracking-wider font-black text-slate-500">Super Admin PIN</span>
+        <span class="text-[10px] uppercase tracking-wider font-black text-slate-500">Owner / Super Admin PIN</span>
         <input id="admin-edit-att-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full px-3 py-3 bg-white border border-slate-200 rounded-2xl font-black tracking-[0.35em] text-center text-lg outline-none focus:ring-2 focus:ring-emerald-700">
       </label>
       <button id="admin-edit-att-reopen" type="button" onclick="removePunchOutFromEdit()" class="hidden w-full py-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl font-black text-[11px] hover:bg-amber-100">↶ Remove Punch Out &amp; Reopen Shift</button>
@@ -1862,6 +1856,26 @@
       return !!(currentAuthUser && (isSuperAdmin() || currentAuthUser.role === 'OWNER'));
     }
 
+    // v1.4.13: Owners receive a small, explicit subset of administrative tools.
+    // Root Super Admin remains the only role with full Administration Console control.
+    function ownerAdminAccess(category) {
+      if (isSuperAdmin()) return true;
+      if (!currentAuthUser || currentAuthUser.role !== 'OWNER') return false;
+      return ['attendance', 'finance', 'announcements'].includes(category);
+    }
+
+    function ownerOrSuperAdminOnly(message = 'Owner or Super Admin access required.') {
+      if (!isOwnerRole()) { showToast(message, true); return false; }
+      return true;
+    }
+
+    // v1.4.13: Attendance administration is fully available to Owners.
+    // This does NOT grant Owners access to the rest of the protected admin console.
+    function attendanceAdminOnly(message = 'Owner or Super Admin attendance access required.') {
+      if (!isOwnerRole()) { showToast(message, true); return false; }
+      return true;
+    }
+
     function isManagerRole() {
       return !!(currentAuthUser && (isOwnerRole() || currentAuthUser.role === 'MANAGER' || currentAuthUser.role === 'ADMIN'));
     }
@@ -2066,12 +2080,15 @@
       else if (pageId === 'page-daily-snapshot') renderManagementDailySnapshot();
       else if (pageId === 'page-store-brain') renderStoreBrain();
       else if (pageId === 'page-action-center') renderActionCenter();
-      else if (pageId === 'page-admin-desk') { switchAdminTab('simple-people'); }
+      else if (pageId === 'page-admin-desk') { switchAdminTab(isSuperAdmin() ? 'simple-people' : 'simple-attendance'); }
     }
 
 
     function showSuperAdminCategory(category) {
-      if (!superAdminOnly()) return;
+      if (!ownerAdminAccess(category)) {
+        showToast('This administrative control is available only to Samrajya.', true);
+        return;
+      }
       const titles = {
         people: ['People & Access','Employees, roles, account lifecycle and sessions'],
         attendance: ['Attendance & Breaks','Attendance corrections, breaks and approvals'],
@@ -2130,10 +2147,28 @@
         const h = [...document.querySelectorAll('#view-admin-control h3')].find(x => x.textContent.trim() === '👥 Account & Session Controls');
         if (h) { const card = h.closest('div.bg-white'); if (card) card.classList.remove('hidden'); }
       }
-      renderSuperAdminControl();
+      if (isSuperAdmin()) renderSuperAdminControl();
+      else if (category === 'attendance' && isOwnerRole()) renderOwnerAttendanceControl();
       renderExtendedSuperAdmin();
       if (category === 'people') renderAdminSalarySlips();
       window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function renderOwnerAttendanceControl() {
+      if (!attendanceAdminOnly()) return;
+      appState = loadState();
+      const today = getLocalDateString();
+      const list = document.getElementById('sa-attendance-list');
+      if (!list) return;
+      const todays = (appState.attendance || []).filter(a => a.date === today);
+      const employees = appState.employees || [];
+      list.innerHTML = employees.map(emp => {
+        const a = todays.filter(x => x.employeeId === emp.id).slice(-1)[0];
+        if (!a) return `<div class="p-2.5 bg-slate-50 rounded-xl"><b>${emp.name}</b><span class="float-right text-slate-400">No attendance</span></div>`;
+        const open = (a.breaks || []).find(b => !b.end);
+        const breakText = open ? `🍱 Break since ${new Date(open.start).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : 'Duty';
+        return `<div class="p-2.5 bg-slate-50 border rounded-xl"><div class="flex justify-between"><b>${emp.name}</b><span>${a.punchOutTime?'Completed':open?'On Break':'On Duty'}</span></div><div class="text-[9px] text-slate-500">In ${a.punchInTime?new Date(a.punchInTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'--'} · ${breakText}${a.isLate?` · Late +${a.lateMinutes}m`:''}</div><div class="flex gap-1 mt-2"><button onclick="adminCorrectAttendance('${a.id}')" class="px-2 py-1 bg-white border rounded-lg font-bold">Correct</button>${open?`<button onclick="adminCloseBreak('${a.id}')" class="px-2 py-1 bg-amber-100 text-amber-900 rounded-lg font-bold">Close Break</button>`:''}</div></div>`;
+      }).join('');
     }
 
     function openSuperAdminSection(tab, focus) {
@@ -2224,7 +2259,7 @@
             name: u?.name || '',
             phone: String(u?.phone || ''),
             pin: String(u?.pin || ''),
-            role: u?.role || 'STAFF',
+            role: String(u?.role || 'STAFF').trim().toUpperCase(),
             weekOff: u?.weekOff || 'Sunday',
             employeeCode: u?.employeeCode || null,
             disabled: !!u?.disabled,
@@ -2313,7 +2348,22 @@
       currentAuthUser = { ...user, sessionId };
       phoneInput.value = '';
       pinInput.value = '';
+
+      // Re-read the authoritative storeState after creating the session so the
+      // first dashboard render cannot use a pre-login/stale attendance snapshot.
+      try {
+        const freshStore = await cloudDb.ref('storeState').once('value');
+        if (freshStore.exists()) {
+          appState = ensureStateArrays(freshStore.val());
+          cloudBaselineState = JSON.parse(JSON.stringify(appState));
+          cloudStateLoaded = true;
+        }
+      } catch (e) {
+        console.warn('Post-login storeState refresh failed:', e);
+      }
+
       setupSession();
+      renderEmployeePersonalData();
       showToast(`Welcome back, ${user.name}!`);
     }
 
@@ -3314,8 +3364,7 @@
 
       const cashSales = parseFloat(document.getElementById('sale-cash')?.value) || 0;
       const edcSales = parseFloat(document.getElementById('sale-edc')?.value) || 0;
-      const soundboxSales = parseFloat(document.getElementById('sale-soundbox')?.value) || 0;
-      const digitalSales = Math.round((edcSales + soundboxSales) * 100) / 100;
+      const digitalSales = Math.round(edcSales * 100) / 100;
       const grandTotalSales = Math.round((cashSales + digitalSales) * 100) / 100;
 
       document.getElementById('sub-digital-sales').innerText = `₹${digitalSales.toLocaleString('en-IN')}`;
@@ -3412,7 +3461,6 @@
               morningTimestamp: null,
               nightPhysicalCash: null,
               nightVyaparCash: null,
-              idfcSoundbox: 0,
               paytmEDC: 0,
               nightDifference: null,
               cashClosingConfirmed: false,
@@ -3442,7 +3490,6 @@
           rec.nightVyaparCash = cashSales;
           rec.nightDifference = diff;
           rec.cashClosingConfirmed = true;
-          rec.idfcSoundbox = Number(document.getElementById('sale-soundbox')?.value) || 0;
           rec.paytmEDC = Number(document.getElementById('sale-edc')?.value) || 0;
           rec.nightBy = cashBy;
           rec.nightTimestamp = timestamp;
@@ -3954,7 +4001,7 @@
           latest.nightClosingChecklists = Array.isArray(latest.nightClosingChecklists)
             ? latest.nightClosingChecklists : [];
           const existingClosingClaim = latest.nightClosingChecklists.find(c => c && c.date === today);
-          if (!existingClosingClaim && firstCloserNeedsClaim) {
+          if (!existingClosingClaim) {
             const committedCash = (latest.cashDrawerLogs || []).find(r => r && r.date === today);
             latest.nightClosingChecklists.push({
               date: today,
@@ -3963,6 +4010,42 @@
               timestamp: nowIso,
               cashAmount: committedCash?.nightPhysicalCash ?? null,
               cashConfirmed: committedCash?.cashClosingConfirmed === true
+            });
+
+            // Store is now officially closed. Automatically punch out every
+            // other employee who forgot to punch out. This is done inside the
+            // same Firebase transaction so the closing event and auto-punch-outs
+            // are atomic and cannot leave the store in a half-closed state.
+            logs.forEach(otherLog => {
+              if (!otherLog || otherLog.date !== today || !otherLog.punchInTime || otherLog.punchOutTime) return;
+              if (otherLog.id === log.id) return; // current closer was already punched out above
+
+              if (!Array.isArray(otherLog.breaks)) otherLog.breaks = [];
+              const openOtherBreak = otherLog.breaks.slice().reverse().find(b => b && !b.end);
+              if (openOtherBreak) openOtherBreak.end = nowIso;
+
+              let otherBreakMins = 0;
+              otherLog.breaks.forEach(b => {
+                if (!b || !b.start) return;
+                const end = b.end ? new Date(b.end) : now;
+                otherBreakMins += Math.max(0, Math.floor((end - new Date(b.start)) / 60000));
+              });
+
+              const otherGrossMinutes = Math.max(0, Math.floor((now - new Date(otherLog.punchInTime)) / 60000));
+              const otherExcessBreak = Math.max(0, otherBreakMins - 60);
+              const otherNetMinutes = Math.max(0, otherGrossMinutes - otherExcessBreak);
+
+              otherLog.punchOutTime = nowIso;
+              otherLog.punchOutLat = null;
+              otherLog.punchOutLng = null;
+              otherLog.totalMinutes = otherNetMinutes;
+              otherLog.totalBreakMins = otherBreakMins;
+              otherLog.overtimeMinutes = 0;
+              otherLog.overtimeReason = null;
+              otherLog.autoPunchedOut = true;
+              otherLog.punchOutReason = 'STORE_CLOSED_AUTO';
+              otherLog.autoPunchOutAt = nowIso;
+              otherLog.autoPunchOutBy = currentAuthUser.id;
             });
           }
 
@@ -3983,6 +4066,22 @@
 
         const completedLog = getLatestTodayAttendance(currentAuthUser.id);
         const completedMinutes = completedLog?.totalMinutes || 0;
+
+        // Inform anyone whose open shift was automatically closed with the store.
+        const autoClosedLogs = (appState.attendance || []).filter(a =>
+          a && a.date === today && a.autoPunchedOut === true && a.autoPunchOutBy === currentAuthUser.id
+        );
+        autoClosedLogs.forEach(a => {
+          if (a.employeeId === currentAuthUser.id) return;
+          createStaffNotification(
+            a.employeeId,
+            'AUTO_PUNCH_OUT_STORE_CLOSED',
+            '🏁 Shift Auto-Closed',
+            `Your shift was automatically punched out at ${new Date(a.autoPunchOutAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} because the store was closed.`,
+            {date: today, punchOut: a.autoPunchOutAt, reason: 'Store closed before manual punch-out.'}
+          );
+        });
+
         showToast(`Punched out! Worked: ${Math.floor(completedMinutes/60)}h ${completedMinutes%60}m.`);
         updateLockPills();
         navigateTo('page-dashboard');
@@ -4215,7 +4314,7 @@
     const adminConfirm = (message, title='Confirm Action') => openAdminActionModal({title,message,mode:'confirm'});
 
     function renderAdminAttendanceLogs() {
-      if (!isSuperAdmin()) return;
+      if (!attendanceAdminOnly()) return;
       appState = loadState();
       const list = document.getElementById('admin-attendance-log-list');
       if (!list) return;
@@ -4253,7 +4352,7 @@
     }
 
     async function deleteAttendanceLog(logId) {
-      if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
+      if (!attendanceAdminOnly('Attendance administration access required.') ) return;
       appState = loadState();
       const index = (appState.attendance || []).findIndex(a => a.id === logId);
       if (index < 0) return showToast('Attendance record not found.', true);
@@ -4280,7 +4379,12 @@
         'simple-geofence': 'geofence'
       };
       if (simpleTabs[tabId]) {
-        if (!isSuperAdmin()) { showToast('Super Admin access required.', true); return; }
+        const category = simpleTabs[tabId];
+        if (!isOwnerRole()) { showToast('Management access required.', true); return; }
+        if (!ownerAdminAccess(category) && !(category === 'geofence' && isOwnerRole())) {
+          showToast(isSuperAdmin() ? 'This control is protected.' : 'This administrative control is available only to Samrajya.', true);
+          return;
+        }
         ['roster','staff','attendance','leaves','reports','late','control','geofence'].forEach(id => {
           document.getElementById(`view-admin-${id}`)?.classList.add('hidden');
         });
@@ -4298,8 +4402,10 @@
         }
         showSuperAdminCategory(simpleTabs[tabId]);
         if (simpleTabs[tabId] === 'attendance') {
+          renderAdminAttendanceLogs();
           renderAdminLeavesList();
           renderLateExceptions();
+          renderExtendedSuperAdmin();
         }
         return;
       }
@@ -4322,7 +4428,7 @@
     }
 
     function addAuditLog(action, category, details, targetId = null) {
-      if (!isSuperAdmin() && category !== 'SECURITY') return;
+      if (!isSuperAdmin() && currentAuthUser?.role !== 'OWNER' && category !== 'SECURITY') return;
       appState = loadState();
       if (!Array.isArray(appState.auditLog)) appState.auditLog = [];
       appState.auditLog.unshift({
@@ -4373,13 +4479,13 @@
       const lockBtn=document.getElementById('sa-emergency-lock-btn'); if(lockBtn) lockBtn.innerText=appState.emergencyLock?'🔓 Unlock Store':'🚨 Emergency Lock';
     }
 
-    async function adminCloseBreak(attendanceId) { if(!superAdminOnly()) return; appState=loadState(); const a=appState.attendance.find(x=>x.id===attendanceId); if(!a) return; const b=(a.breaks||[]).find(x=>!x.end); if(!b) return; const reason=await adminAsk('Why are you closing this break?',{title:'Close Lunch Break',fieldLabel:'Reason',value:'Employee forgot to resume'}); if(reason===null)return; b.end=new Date().toISOString(); saveState(appState); addAuditLog('CLOSE_BREAK','BREAK',reason,attendanceId);
+    async function adminCloseBreak(attendanceId) { if(!attendanceAdminOnly()) return; appState=loadState(); const a=appState.attendance.find(x=>x.id===attendanceId); if(!a) return; const b=(a.breaks||[]).find(x=>!x.end); if(!b) return; const reason=await adminAsk('Why are you closing this break?',{title:'Close Lunch Break',fieldLabel:'Reason',value:'Employee forgot to resume'}); if(reason===null)return; b.end=new Date().toISOString(); saveState(appState); addAuditLog('CLOSE_BREAK','BREAK',reason,attendanceId);
       createStaffNotification(a.employeeId,'BREAK_UPDATED','🍱 Break Updated','Your active lunch break was closed by Super Admin.',{date:a.date,reason,decidedBy:currentAuthUser.name||'Super Admin'});
       renderSuperAdminControl(); showToast('Break closed by Super Admin.'); }
     let adminEditingAttendanceId = null;
 
     function adminCorrectAttendance(attendanceId) {
-      if(!superAdminOnly()) return;
+      if(!attendanceAdminOnly()) return;
       appState=loadState();
       const a=appState.attendance.find(x=>x.id===attendanceId);
       if(!a) return;
@@ -4406,7 +4512,7 @@
     }
 
     async function adminReopenPunchOut(attendanceId){
-      if(!superAdminOnly()) return;
+      if(!attendanceAdminOnly()) return;
       if(!attendanceId) return;
       appState=loadState();
       const a=appState.attendance.find(x=>x.id===attendanceId);
@@ -4417,7 +4523,7 @@
     }
 
     async function removePunchOutFromEdit(){
-      if(!superAdminOnly() || !adminEditingAttendanceId) return;
+      if(!attendanceAdminOnly() || !adminEditingAttendanceId) return;
       if(!cloudDb || !cloudStateLoaded || !firebaseConnectionOnline){showToast('Firebase connection is required to reopen the shift.',true);return;}
       appState=loadState();
       const attendanceId=adminEditingAttendanceId;
@@ -4425,7 +4531,7 @@
       if(!a) return;
       if(!a.punchOutTime) return showToast('This shift is already open.',true);
       const pin=document.getElementById('admin-edit-att-pin')?.value||'';
-      if(pin!==currentAuthUser.pin){showToast('Enter the correct Super Admin PIN.',true);return;}
+      if(pin!==currentAuthUser.pin){showToast('Enter the correct Owner / Super Admin PIN.',true);return;}
       const reason=(document.getElementById('admin-edit-att-reason')?.value||'').trim();
       if(!reason){showToast('Please enter a reason for reopening the shift.',true);return;}
 
@@ -4525,12 +4631,12 @@
     }
 
     function saveAdminAttendanceEdit(){
-      if(!superAdminOnly() || !adminEditingAttendanceId) return;
+      if(!attendanceAdminOnly() || !adminEditingAttendanceId) return;
       appState=loadState();
       const a=appState.attendance.find(x=>x.id===adminEditingAttendanceId);
       if(!a){closeAdminAttendanceEdit();return;}
       const pin=document.getElementById('admin-edit-att-pin')?.value||'';
-      if(pin!==currentAuthUser.pin){showToast('Incorrect Super Admin PIN.',true);return;}
+      if(pin!==currentAuthUser.pin){showToast('Incorrect Owner / Super Admin PIN.',true);return;}
       const reason=(document.getElementById('admin-edit-att-reason')?.value||'').trim();
       if(!reason){showToast('Please enter a reason for the correction.',true);return;}
       const newIn=document.getElementById('admin-edit-att-in')?.value||'';
@@ -4668,15 +4774,15 @@
     }
 
     function saForceLogoutSelected(){if(!superAdminOnly())return;appState=loadState();const id=document.getElementById('sa-role-employee')?.value;const e=appState.employees.find(x=>x.id===id);if(!e)return;appState.storeSessions=(appState.storeSessions||[]).filter(s=>s.userId!==e.id);saveState(appState);addAuditLog('FORCE_LOGOUT_USER','SECURITY',e.name,e.id);renderExtendedSuperAdmin();showToast(`${e.name} session(s) invalidated.`);}
-    async function saSetAttendanceStatus(status){if(!superAdminOnly())return;const date=document.getElementById('sa-att-date')?.value||getLocalDateString();const empId=document.getElementById('sa-att-employee')?.value;const emp=loadState().employees.find(e=>e.id===empId);if(!emp)return;appState=loadState();let a=appState.attendance.find(x=>x.employeeId===empId&&x.date===date);const reason=await adminAsk(`Why are you marking this employee ${status.toLowerCase()}?`,{title:status==='ABSENT'?'Mark Absent':'Mark Present',fieldLabel:'Reason'});if(!reason)return;if(status==='ABSENT'){if(a){a.status='ABSENT';a.punchInTime=null;a.punchOutTime=null;a.totalMinutes=0;}else{a={id:'ATT-'+Date.now(),employeeId:empId,date,punchInTime:null,punchOutTime:null,totalMinutes:0,breaks:[],status:'ABSENT',manual:true};appState.attendance.push(a);}}else{if(!a){a={id:'ATT-'+Date.now(),employeeId:empId,date,punchInTime:new Date(date+'T08:00:00').toISOString(),punchOutTime:null,totalMinutes:0,breaks:[],status:'PRESENT',manual:true};appState.attendance.push(a);}a.status='PRESENT';}saveState(appState);addAuditLog('ATTENDANCE_STATUS_CHANGE','ATTENDANCE',JSON.stringify({employee:emp.name,date,status,reason}),a.id);createStaffNotification(empId,'ATTENDANCE_UPDATED','📅 Attendance Updated',`Your attendance for ${date} was marked ${status} by Super Admin.`,{reason,date,status});renderExtendedSuperAdmin();}
+    async function saSetAttendanceStatus(status){if(!attendanceAdminOnly())return;const date=document.getElementById('sa-att-date')?.value||getLocalDateString();const empId=document.getElementById('sa-att-employee')?.value;const emp=loadState().employees.find(e=>e.id===empId);if(!emp)return;appState=loadState();let a=appState.attendance.find(x=>x.employeeId===empId&&x.date===date);const reason=await adminAsk(`Why are you marking this employee ${status.toLowerCase()}?`,{title:status==='ABSENT'?'Mark Absent':'Mark Present',fieldLabel:'Reason'});if(!reason)return;if(status==='ABSENT'){if(a){a.status='ABSENT';a.punchInTime=null;a.punchOutTime=null;a.totalMinutes=0;}else{a={id:'ATT-'+Date.now(),employeeId:empId,date,punchInTime:null,punchOutTime:null,totalMinutes:0,breaks:[],status:'ABSENT',manual:true};appState.attendance.push(a);}}else{if(!a){a={id:'ATT-'+Date.now(),employeeId:empId,date,punchInTime:new Date(date+'T08:00:00').toISOString(),punchOutTime:null,totalMinutes:0,breaks:[],status:'PRESENT',manual:true};appState.attendance.push(a);}a.status='PRESENT';}saveState(appState);addAuditLog('ATTENDANCE_STATUS_CHANGE','ATTENDANCE',JSON.stringify({employee:emp.name,date,status,reason}),a.id);createStaffNotification(empId,'ATTENDANCE_UPDATED','📅 Attendance Updated',`Your attendance for ${date} was marked ${status} by ${currentAuthUser.name||'Management'}.`,{reason,date,status});renderExtendedSuperAdmin();}
 
 
-    function saPublishAnnouncement(){if(!superAdminOnly())return;appState=loadState();const title=document.getElementById('sa-ann-title')?.value.trim(),message=document.getElementById('sa-ann-message')?.value.trim(),target=document.getElementById('sa-ann-target')?.value||'ALL',priority=document.getElementById('sa-ann-priority')?.value||'NORMAL';if(!title||!message)return showToast('Title and message are required.',true);const a={id:'ANN-'+Date.now(),title,message,target,priority,createdAt:new Date().toISOString(),createdBy:currentAuthUser.id,active:true};appState.announcements.unshift(a);saveState(appState);const targets=target==='ALL'?appState.employees.filter(e=>e.id!==currentAuthUser.id&&!e.disabled):appState.employees.filter(e=>e.id===target);targets.forEach(e=>createStaffNotification(e.id,'ADMIN_ANNOUNCEMENT','📢 '+title,message,{priority,announcementId:a.id}));saveState(appState);addAuditLog('PUBLISH_ANNOUNCEMENT','ANNOUNCEMENT',JSON.stringify({title,target,priority}));document.getElementById('sa-ann-title').value='';document.getElementById('sa-ann-message').value='';renderExtendedSuperAdmin();showToast('Announcement published.');}
+    function saPublishAnnouncement(){if(!ownerOrSuperAdminOnly('Management access required.'))return;appState=loadState();const title=document.getElementById('sa-ann-title')?.value.trim(),message=document.getElementById('sa-ann-message')?.value.trim(),target=document.getElementById('sa-ann-target')?.value||'ALL',priority=document.getElementById('sa-ann-priority')?.value||'NORMAL';if(!title||!message)return showToast('Title and message are required.',true);const a={id:'ANN-'+Date.now(),title,message,target,priority,createdAt:new Date().toISOString(),createdBy:currentAuthUser.id,active:true};appState.announcements.unshift(a);saveState(appState);const targets=target==='ALL'?appState.employees.filter(e=>e.id!==currentAuthUser.id&&!e.disabled):appState.employees.filter(e=>e.id===target);targets.forEach(e=>createStaffNotification(e.id,'ADMIN_ANNOUNCEMENT','📢 '+title,message,{priority,announcementId:a.id}));saveState(appState);addAuditLog('PUBLISH_ANNOUNCEMENT','ANNOUNCEMENT',JSON.stringify({title,target,priority}));document.getElementById('sa-ann-title').value='';document.getElementById('sa-ann-message').value='';renderExtendedSuperAdmin();showToast('Announcement published.');}
     function saToggleAnnouncement(id){if(!superAdminOnly())return;appState=loadState();const a=appState.announcements.find(x=>x.id===id);if(!a)return;a.active=!a.active;saveState(appState);addAuditLog(a.active?'ACTIVATE_ANNOUNCEMENT':'DEACTIVATE_ANNOUNCEMENT','ANNOUNCEMENT',a.title,id);renderExtendedSuperAdmin();}
-    function saSaveFinanceControl(){if(!superAdminOnly())return;appState=loadState();const date=document.getElementById('sa-fin-date')?.value||getLocalDateString();const float=Number(document.getElementById('sa-fin-float')?.value||0),cashSales=Number(document.getElementById('sa-fin-cash')?.value||0),digital=Number(document.getElementById('sa-fin-digital')?.value||0),actual=Number(document.getElementById('sa-fin-actual')?.value||0),expected=float+cashSales,reason=document.getElementById('sa-fin-reason')?.value.trim()||'';const diff=actual-expected;if(diff!==0&&!reason)return showToast('Explanation is required for a cash difference.',true);let r=appState.cashDrawerLogs.find(x=>x.date===date);if(!r){r={date};appState.cashDrawerLogs.push(r);}Object.assign(r,{morningCash:float,adminCashSales:cashSales,adminDigitalSales:digital,adminExpectedCash:expected,adminActualCash:actual,adminDifference:diff,adminReconciliationReason:reason,adminReconciledBy:currentAuthUser.id,adminReconciledAt:new Date().toISOString()});saveState(appState);addAuditLog('FINANCE_RECONCILIATION','FINANCE',JSON.stringify({date,float,cashSales,digital,actual,expected,diff,reason}));renderExtendedSuperAdmin();showToast('Finance control saved.');}
+    function saSaveFinanceControl(){if(!ownerOrSuperAdminOnly('Management access required.'))return;appState=loadState();const date=document.getElementById('sa-fin-date')?.value||getLocalDateString();const float=Number(document.getElementById('sa-fin-float')?.value||0),cashSales=Number(document.getElementById('sa-fin-cash')?.value||0),digital=Number(document.getElementById('sa-fin-digital')?.value||0),actual=Number(document.getElementById('sa-fin-actual')?.value||0),expected=float+cashSales,reason=document.getElementById('sa-fin-reason')?.value.trim()||'';const diff=actual-expected;if(diff!==0&&!reason)return showToast('Explanation is required for a cash difference.',true);let r=appState.cashDrawerLogs.find(x=>x.date===date);if(!r){r={date};appState.cashDrawerLogs.push(r);}Object.assign(r,{morningCash:float,adminCashSales:cashSales,adminDigitalSales:digital,adminExpectedCash:expected,adminActualCash:actual,adminDifference:diff,adminReconciliationReason:reason,adminReconciledBy:currentAuthUser.id,adminReconciledAt:new Date().toISOString()});saveState(appState);addAuditLog('FINANCE_RECONCILIATION','FINANCE',JSON.stringify({date,float,cashSales,digital,actual,expected,diff,reason}));renderExtendedSuperAdmin();showToast('Finance control saved.');}
     function renderStaffAnnouncements(){appState=loadState();const panel=document.getElementById('staff-announcements-panel'),list=document.getElementById('staff-announcements-list');if(!panel||!list)return;const items=(appState.announcements||[]).filter(a=>a.active&&(a.target==='ALL'||a.target===currentAuthUser?.id)).slice(0,10);panel.classList.toggle('hidden',!items.length);list.innerHTML=items.map(a=>`<div class="p-2.5 bg-white border border-blue-100 rounded-2xl"><div class="flex justify-between gap-2"><b class="text-[10px] text-blue-950">${a.title}</b><span class="text-[8px] font-black">${a.priority}</span></div><div class="text-[10px] text-slate-600 mt-1">${a.message}</div><div class="text-[8px] text-slate-400 mt-1">${new Date(a.createdAt).toLocaleString()}</div></div>`).join('');}
     function renderExtendedSuperAdmin(){
-      if(!superAdminOnly())return; appState=loadState();
+      if(!isOwnerRole())return; appState=loadState();
       const today=getLocalDateString();
       const employees=appState.employees||[];
       const sel=document.getElementById('sa-role-employee'); if(sel){ const previous=sel.value; sel.innerHTML=employees.filter(e=>!e.archived).map(e=>`<option value="${e.id}">${e.name}</option>`).join(''); if(previous&&employees.some(e=>e.id===previous)) sel.value=previous; }
@@ -4729,9 +4835,12 @@
       if(ot2) ot2.innerHTML=overtime.length?overtime.map(x=>`<div class="p-2 bg-slate-50 border rounded-xl text-[9px]"><b>${x.employeeName}</b> · ${x.date} · <b>${x.minutes}m</b><div>${x.reason}</div></div>`).join('') : '';
       if(needs) needs.innerHTML=(pending.length?`<div class="text-[9px] font-black uppercase tracking-wider text-amber-800">Needs attention · ${pending.length}</div>${ap2.innerHTML}`:'')+(overtime.length?`<details class="bg-slate-50 border rounded-xl p-2"><summary class="text-[9px] font-black cursor-pointer">Recorded overtime · ${overtime.length}</summary><div class="space-y-1 mt-2">${ot2.innerHTML}</div></details>`:'');
       const annSel=document.getElementById('sa-ann-target'); if(annSel) annSel.innerHTML='<option value="ALL">All Staff</option>'+employees.filter(e=>e.id!==currentAuthUser?.id&&!e.disabled).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-      const annList=document.getElementById('sa-announcement-list'); if(annList) annList.innerHTML=(appState.announcements||[]).map(a=>`<div class="p-2 bg-slate-50 border rounded-xl"><div class="flex justify-between"><b class="text-[10px]">${a.title}</b><span class="text-[8px]">${a.active?'ACTIVE':'OFF'}</span></div><div class="text-[9px] text-slate-500">${a.message}</div><button onclick="saToggleAnnouncement('${a.id}')" class="mt-1 px-2 py-1 bg-white border rounded-lg text-[9px] font-bold">${a.active?'Deactivate':'Activate'}</button></div>`).join('')||'<div class="text-[10px] text-slate-400">No announcements.</div>';
+      const annList=document.getElementById('sa-announcement-list'); if(annList) annList.innerHTML=(appState.announcements||[]).map(a=>`<div class="p-2 bg-slate-50 border rounded-xl"><div class="flex justify-between"><b class="text-[10px]">${a.title}</b><span class="text-[8px]">${a.active?'ACTIVE':'OFF'}</span></div><div class="text-[9px] text-slate-500">${a.message}</div>${isSuperAdmin()?`<button onclick="saToggleAnnouncement('${a.id}')" class="mt-1 px-2 py-1 bg-white border rounded-lg text-[9px] font-bold">${a.active?'Deactivate':'Activate'}</button>`:''}</div>`).join('')||'<div class="text-[10px] text-slate-400">No announcements.</div>';
       const sessions=document.getElementById('sa-session-list'); if(sessions) sessions.innerHTML=(appState.storeSessions||[]).map(x=>`<div class="p-2 bg-slate-50 border rounded-xl"><div class="flex justify-between"><b class="text-[10px]">${x.userName||x.userId}</b><span class="text-[8px]">${x.active?'ACTIVE':'ENDED'}</span></div><div class="text-[8px] text-slate-500">Started ${new Date(x.startedAt).toLocaleString()} · Last seen ${new Date(x.lastSeen||x.startedAt).toLocaleString()}</div><button onclick="saForceLogoutSession('${x.id}')" class="mt-1 px-2 py-1 bg-red-50 text-red-800 rounded-lg text-[9px] font-bold">Force Logout</button></div>`).join('')||'<div class="text-[10px] text-slate-400">No active sessions.</div>';
       const ot=document.getElementById('sa-overtime-list'); if(ot) ot.innerHTML=(appState.overtimeRecords||[]).slice().reverse().slice(0,50).map(x=>`<div class="p-2 bg-slate-50 border rounded-xl text-[9px]"><b>${x.employeeName}</b> · ${x.date} · <b>${x.minutes}m</b><div>${x.reason}</div></div>`).join('')||'<div class="text-[10px] text-slate-400">No recorded overtime.</div>';
+      // Owners have full Attendance & Break administration, including
+      // attendance corrections, status changes, reopen and break controls.
+      // People & Access remains protected for Root Super Admin only.
     }
 
     function saDeleteHoliday(id){if(!superAdminOnly())return;appState=loadState();appState.holidays=appState.holidays.filter(x=>x.id!==id);saveState(appState);addAuditLog('DELETE_HOLIDAY','CONFIG',id);renderExtendedSuperAdmin();}
@@ -4822,7 +4931,7 @@
     function saForceLogoutAll(){if(!superAdminOnly())return;appState=loadState();appState.storeSessions=[];saveState(appState);addAuditLog('FORCE_LOGOUT_ALL','SECURITY','All remote sessions invalidated');showToast('All sessions invalidated.');}
     function saResolveApproval(id,approved){if(!superAdminOnly())return;appState=loadState();const x=appState.approvalRequests.find(a=>a.id===id);if(!x)return;x.status=approved?'APPROVED':'REJECTED';x.resolvedAt=new Date().toISOString();x.resolvedBy=currentAuthUser?.id;saveState(appState);addAuditLog(approved?'APPROVE_REQUEST':'REJECT_REQUEST','SECURITY',x.type,x.id);renderExtendedSuperAdmin();}
     async function saPrimaryAttendanceAction(){
-      if(!superAdminOnly())return;
+      if(!attendanceAdminOnly())return;
       const empId=document.getElementById('sa-att-employee')?.value;
       const date=document.getElementById('sa-att-date')?.value||getLocalDateString();
       if(!empId)return showToast('Select an employee first.',true);
@@ -4837,10 +4946,10 @@
       const mk=(v)=>{const [h,m]=v.split(':').map(Number);const d=new Date(now);d.setHours(h,m,0,0);return d.toISOString();};
       const inIso=mk(inT); const outIso=outT?mk(outT):null;
       const rec={id:'ATT-'+Date.now(),employeeId:empId,date,punchInTime:inIso,punchOutTime:outIso,totalMinutes:outIso?Math.max(0,Math.floor((new Date(outIso)-new Date(inIso))/60000)):0,manual:true,breaks:[],status:'PRESENT'};
-      appState.attendance.push(rec); saveState(appState); addAuditLog('MANUAL_ATTENDANCE','ATTENDANCE',`Created for ${emp?.name||empId}`,rec.id); createStaffNotification(empId,'ATTENDANCE_UPDATED','📅 Attendance Added',`Your attendance for ${date} was added by Super Admin.`,{date,punchIn:inIso,punchOut:outIso}); renderExtendedSuperAdmin(); showToast('Attendance added.');
+      appState.attendance.push(rec); saveState(appState); addAuditLog('MANUAL_ATTENDANCE','ATTENDANCE',`Created for ${emp?.name||empId}`,rec.id); createStaffNotification(empId,'ATTENDANCE_UPDATED','📅 Attendance Added',`Your attendance for ${date} was added by ${currentAuthUser.name||'Management'}.`,{date,punchIn:inIso,punchOut:outIso}); renderExtendedSuperAdmin(); showToast('Attendance added.');
     }
 
-    function adminForceCloseAllBreaks(){if(!superAdminOnly())return;appState=loadState();let count=0;const now=new Date().toISOString();appState.attendance.forEach(a=>(a.breaks||[]).forEach(b=>{if(!b.end){b.end=now;count++;}}));saveState(appState);addAuditLog('FORCE_CLOSE_BREAKS','BREAK',`${count} breaks closed`);renderExtendedSuperAdmin();showToast(`${count} open break(s) closed.`);}
+    function adminForceCloseAllBreaks(){if(!attendanceAdminOnly())return;appState=loadState();let count=0;const now=new Date().toISOString();appState.attendance.forEach(a=>(a.breaks||[]).forEach(b=>{if(!b.end){b.end=now;count++;}}));saveState(appState);addAuditLog('FORCE_CLOSE_BREAKS','BREAK',`${count} breaks closed`);renderExtendedSuperAdmin();showToast(`${count} open break(s) closed.`);}
     function saRecordSecurityCheck(){if(!superAdminOnly())return;appState=loadState();appState.securityEvents.unshift({id:'SEC-'+Date.now(),at:new Date().toISOString(),type:'MANUAL_SECURITY_CHECK',by:currentAuthUser?.id,status:'RECORDED'});saveState(appState);addAuditLog('SECURITY_CHECK','SECURITY','Manual security check recorded');renderExtendedSuperAdmin();}
 
 
@@ -4850,8 +4959,8 @@
     function renderLateExceptions() {
       const container = document.getElementById('admin-late-exceptions-list');
       if (!container) return;
-      if (!isSuperAdmin()) {
-        container.innerHTML = '<div class="p-4 text-center text-[10px] font-bold text-red-600">Super Admin access required.</div>';
+      if (!isOwnerRole()) {
+        container.innerHTML = '<div class="p-4 text-center text-[10px] font-bold text-red-600">Owner or Super Admin access required.</div>';
         return;
       }
 
@@ -4905,17 +5014,17 @@
           </div>
 
           ${status === 'PENDING' ? `
-            <div class="grid grid-cols-2 gap-2 pt-0.5">
+            ${isOwnerRole() ? `<div class="grid grid-cols-2 gap-2 pt-0.5">
               <button onclick="decideLateException('${log.id}','APPROVED')" class="py-2.5 rounded-xl bg-emerald-700 text-white text-[10px] font-black">✓ Approve</button>
               <button onclick="decideLateException('${log.id}','REJECTED')" class="py-2.5 rounded-xl bg-white border border-red-200 text-red-600 text-[10px] font-black">Reject</button>
-            </div>
+            </div>` : `<div class="text-[9px] text-slate-500 pt-1">Owner management access · decision can be recorded here.</div>`}
           ` : `
             <div class="flex items-center justify-between gap-2 pt-0.5">
               <div class="min-w-0 text-[9px] text-slate-500 truncate">
                 ${status === 'APPROVED' ? 'Late penalty waived' : 'Late mark remains'}
                 ${log.lateExceptionReason ? ` · ${log.lateExceptionReason}` : ''}
               </div>
-              <button onclick="reopenLateException('${log.id}')" class="shrink-0 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-[9px] font-bold">Reopen</button>
+              ${isOwnerRole() ? `<button onclick="reopenLateException('${log.id}')" class="shrink-0 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-[9px] font-bold">Reopen</button>` : ''}
             </div>
           `}
         `;
@@ -4923,7 +5032,7 @@
       });
     }
     async function decideLateException(attendanceId, decision) {
-      if (!isSuperAdmin()) return showToast('Permission Denied: Super Admin only.', true);
+      if (!attendanceAdminOnly()) return;
       if (!['APPROVED','REJECTED'].includes(decision)) return;
       appState=loadState(); const log=(appState.attendance||[]).find(a=>a.id===attendanceId);
       if (!log||!log.isLate) return showToast('Late attendance record not found.',true);
@@ -4943,7 +5052,7 @@
 
 
     async function reopenLateException(attendanceId) {
-      if(!isSuperAdmin())return showToast('Permission Denied: Super Admin only.',true); appState=loadState(); const log=(appState.attendance||[]).find(a=>a.id===attendanceId); if(!log||!log.isLate)return showToast('Attendance record not found.',true);
+      if(!attendanceAdminOnly())return; appState=loadState(); const log=(appState.attendance||[]).find(a=>a.id===attendanceId); if(!log||!log.isLate)return showToast('Attendance record not found.',true);
       const reason=await adminAsk('Why are you reopening this late exception?',{title:'Reopen Late Exception',fieldLabel:'Reason'}); if(reason===null)return; if(!reason.trim())return showToast('A reason is required.',true);
       const previous=log.lateExceptionStatus||(log.lateExceptionApproved?'APPROVED':'PENDING'); log.lateExceptionStatus='PENDING'; log.lateExceptionApproved=false; log.lateExceptionBy=null; log.lateExceptionAt=null; log.lateExceptionReason=null; saveState(appState);
       addAuditLog('REOPEN_LATE_EXCEPTION','ATTENDANCE',JSON.stringify({attendanceId,previousStatus:previous,reason:reason.trim()}),attendanceId); renderLateExceptions(); showToast('Late exception reopened for review.');
@@ -4955,7 +5064,7 @@
     }
 
     async function fetchCurrentGPSForAdmin() {
-      if (!isSuperAdmin()) return showToast('Super Admin access required.', true);
+      if (!isOwnerRole()) return showToast('Management access required.', true);
       const btn = document.getElementById('btn-fetch-current-gps');
       const status = document.getElementById('gps-fetch-status');
       const latEl = document.getElementById('admin-gps-lat');
@@ -5020,12 +5129,12 @@
         const card = document.createElement('div');
         card.className = 'p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between shadow-2xs';
         const initials = (emp.name || '?').split(/\s+/).map(x => x[0]).join('').slice(0,2).toUpperCase();
-        const photoAction = isSuperAdmin()
+        const photoAction = isOwnerRole()
           ? `onclick="openRosterPunchEdit('${emp.id}')" title="Edit punch in / out"`
           : '';
         card.innerHTML = `
           <div class="flex items-center gap-3 min-w-0">
-            <button type="button" ${photoAction} class="w-11 h-11 shrink-0 rounded-full bg-emerald-950 text-white flex items-center justify-center font-black text-xs border-2 border-emerald-100 ${isSuperAdmin() ? 'cursor-pointer hover:scale-105 transition' : 'cursor-default'}" aria-label="${isSuperAdmin() ? 'Edit punch in and punch out for ' + emp.name : emp.name}">${initials}</button>
+            <button type="button" ${photoAction} class="w-11 h-11 shrink-0 rounded-full bg-emerald-950 text-white flex items-center justify-center font-black text-xs border-2 border-emerald-100 ${isOwnerRole() ? 'cursor-pointer hover:scale-105 transition' : 'cursor-default'}" aria-label="${isOwnerRole() ? 'Edit punch in and punch out for ' + emp.name : emp.name}">${initials}</button>
             <div class="min-w-0">
               <div class="font-bold text-slate-900 text-xs truncate">${emp.name} <span class="text-[9px] text-slate-400">(${getDisplayRole(emp.role)})</span></div>
               <div class="text-[10px] text-slate-400 font-mono truncate">${emp.phone} • ${subtext}</div>
@@ -5038,7 +5147,7 @@
     }
 
     function openRosterPunchEdit(employeeId) {
-      if (!isSuperAdmin()) return;
+      if (!attendanceAdminOnly()) return;
       appState = loadState();
       const emp = (appState.employees || []).find(e => e.id === employeeId);
       if (!emp) return;
@@ -5096,7 +5205,7 @@
     }
 
     function saveRosterPunchEdit(attendanceId) {
-      if (!isSuperAdmin()) return;
+      if (!attendanceAdminOnly()) return;
       appState = loadState();
       const a = (appState.attendance || []).find(x => x.id === attendanceId);
       if (!a) return;
@@ -5645,10 +5754,22 @@
       return rec;
     }
 
+    // Attendance status must never depend on Firebase array order.
+    // If more than one same-day record exists (for example after an admin
+    // correction), an active punched-in record must take precedence so the
+    // dashboard cannot incorrectly show "Clock In for Today" again.
     function getLatestTodayAttendance(empId) {
       const today = getLocalDateString();
-      const logs = (appState.attendance || []).filter(a => a.employeeId === empId && a.date === today);
-      return logs.length ? logs[logs.length - 1] : null;
+      const logs = (appState.attendance || [])
+        .filter(a => a.employeeId === empId && a.date === today && a.punchInTime)
+        .slice()
+        .sort((a, b) => new Date(b.punchInTime).getTime() - new Date(a.punchInTime).getTime());
+
+      if (!logs.length) return null;
+
+      // One active shift always wins for today's status.
+      const active = logs.find(a => !a.punchOutTime);
+      return active || logs[0];
     }
 
     function isPunchedInToday() {
@@ -6036,7 +6157,7 @@
         name: u.name || '',
         phone: String(u.phone || ''),
         pin: String(u.pin || ''),
-        role: u.role || 'STAFF',
+        role: String(u.role || 'STAFF').trim().toUpperCase(),
         designation: u.designation || null,
         weekOff: u.weekOff || 'Sunday',
         employeeCode: u.employeeCode || null,
