@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.4.20 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.21 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -118,6 +118,7 @@
 <span>🏠</span> <span>Dashboard Overview</span>
 </button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-profile')"><span>👤</span> <span>My Profile</span></button>
+<button id="nav-item-b2b" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b')"><span>🏢</span> <span>B2B Leads</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-salary-slips')"><span>💳</span> <span>My Salary Slips</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-history')">
 <span>📜</span> <span>Shift &amp; Attendance Logs</span>
@@ -1057,6 +1058,62 @@
 <!-- ================= MODULE 10E: MANAGEMENT DAILY SNAPSHOT ================= -->
 <section class="hidden space-y-4" id="page-daily-snapshot"><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="flex items-start justify-between gap-3"><div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Management View</div><h2 class="text-xl font-black text-slate-900 mt-1">Daily Store Snapshot</h2><p id="daily-snapshot-date" class="text-[10px] text-slate-500 mt-1">--</p></div><button onclick="renderManagementDailySnapshot()" class="text-[9px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-2 rounded-xl">Refresh</button></div><div id="daily-snapshot-kpis" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4"></div><div class="grid md:grid-cols-2 gap-3 mt-3"><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-slate-400">Today</div><div id="daily-snapshot-attendance" class="text-xs font-bold text-slate-800 mt-2"></div></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-slate-400">Operations</div><div id="daily-snapshot-operations" class="text-xs font-bold text-slate-800 mt-2"></div></div></div><div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-amber-800">Needs Attention</div><div id="daily-snapshot-attention" class="space-y-1 mt-2 text-[10px] font-semibold text-amber-950"></div></div></div></section>
 
+<!-- ================= MODULE 4B: B2B LEAD MANAGEMENT (SUPER ADMIN ONLY) ================= -->
+<section class="hidden space-y-4" id="page-b2b">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-[9px] font-black uppercase tracking-widest text-amber-700">Super Admin Only</div>
+        <h2 class="text-xl font-black text-slate-900 mt-1">B2B Leads</h2>
+        <p class="text-[10px] text-slate-500 mt-1">Private B2B prospect and conversion database.</p>
+      </div>
+      <button onclick="renderB2BLeads(); haptic(8)" class="text-[9px] font-black text-amber-800 bg-amber-50 px-2.5 py-2 rounded-xl">Refresh</button>
+    </div>
+    <div id="b2b-kpis" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4"></div>
+  </div>
+
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+    <div>
+      <div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">New B2B Lead</div>
+      <h3 class="text-sm font-black text-slate-900 mt-1">Add Business</h3>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <input id="b2b-shop-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Shop / Business Name *" />
+      <input id="b2b-place" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Place / Area *" />
+      <input id="b2b-contact-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Contact Person Name" />
+      <input id="b2b-mobile" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" maxlength="10" inputmode="numeric" placeholder="Mobile Number" />
+      <input id="b2b-gst" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs uppercase" placeholder="GST Number (Optional)" />
+      <select id="b2b-business-type" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs bg-white">
+        <option value="">Business Type</option><option>Retail Shop</option><option>Pharmacy</option><option>Supermarket</option><option>Hotel / Restaurant</option><option>Distributor</option><option>Wholesaler</option><option>Other</option>
+      </select>
+      <input id="b2b-address" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs sm:col-span-2" placeholder="Full Address" />
+      <select id="b2b-status" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs bg-white">
+        <option value="LEAD">Lead</option><option value="VISITED">Visited</option><option value="TIE_UP">Tie-Up Done</option><option value="STOCK_PLACED">Stock Placed</option><option value="REPEAT_ORDER">Repeat Order</option>
+      </select>
+      <select id="b2b-potential" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs bg-white">
+        <option value="">Potential</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option>
+      </select>
+      <input id="b2b-next-followup" type="date" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" />
+      <input id="b2b-current-supplier" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Current Supplier / Brand (Optional)" />
+      <input id="b2b-products" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs sm:col-span-2" placeholder="Products Interested In" />
+      <select id="b2b-source" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs bg-white">
+        <option value="">Lead Source</option><option>Walk-in</option><option>Field Visit</option><option>Referral</option><option>Instagram</option><option>WhatsApp</option><option>Phone Call</option><option>Existing Network</option><option>Other</option>
+      </select>
+      <input id="b2b-monthly-potential" type="number" min="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Expected Monthly Requirement" />
+      <textarea id="b2b-notes" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs resize-none sm:col-span-2" placeholder="Visit / Follow-up Notes"></textarea>
+    </div>
+    <button type="button" onclick="saveB2BLead(); haptic(10)" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-3 rounded-2xl text-xs">Save B2B Lead</button>
+  </div>
+
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+    <div class="flex items-center justify-between gap-2">
+      <div><h3 class="text-[10px] font-black uppercase tracking-wider text-slate-900">Saved B2B Leads</h3><p class="text-[10px] text-slate-400 mt-0.5">Latest records first.</p></div>
+      <input id="b2b-search" oninput="renderB2BLeads()" class="w-40 px-2.5 py-2 border border-slate-200 rounded-xl outline-none text-[10px] font-semibold" placeholder="Search shop / place" />
+    </div>
+    <div id="b2b-leads-list" class="space-y-2"></div>
+  </div>
+</section>
+
 <!-- ================= MODULE 5: ADMIN MANAGEMENT CONSOLE ================= -->
 <section class="hidden space-y-4" id="page-admin-desk">
   <div class="bg-white border border-slate-200 rounded-2xl p-2 shadow-2xs">
@@ -1584,7 +1641,8 @@
       systemConfig: { lunchMaxMins: 60, shortBreakMaxMins: 15, maxShortBreaks: 2 },
       deletedEmployeeIds: [],
       deletedEmployeeCodes: [],
-      salarySlips: []
+      salarySlips: [],
+      b2bLeads: []
     };
 
     // Employee identity integrity: one account per phone, one account per employee code.
@@ -1774,6 +1832,7 @@
       if (!parsed.systemConfig || typeof parsed.systemConfig !== 'object') parsed.systemConfig = JSON.parse(JSON.stringify(defaultState.systemConfig));
       if (!Array.isArray(parsed.deletedEmployeeIds)) parsed.deletedEmployeeIds = [];
       if (!Array.isArray(parsed.salarySlips)) parsed.salarySlips = [];
+      if (!Array.isArray(parsed.b2bLeads)) parsed.b2bLeads = [];
       reconcileEmployeeRecords(parsed);
       ensureEmployeeCodes(parsed);
       if (!Array.isArray(parsed.securityEvents)) parsed.securityEvents = [];
@@ -1990,7 +2049,7 @@
 
       const allPages = [
         'page-welcome', 'page-login', 'page-dashboard', 'page-profile', 'page-salary-slips', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones', 'page-knowledge',
-        'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
+        'page-b2b', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
       ];
       allPages.forEach(id => {
         const el = document.getElementById(id);
@@ -2029,6 +2088,7 @@
 
         if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
         else if (pageId === 'page-profile') { titleEl.innerText = 'My Profile'; subtitleEl.innerText = 'Employee Details'; }
+        else if (pageId === 'page-b2b') { titleEl.innerText = 'B2B Leads'; subtitleEl.innerText = 'Private B2B Database'; }
         else if (pageId === 'page-salary-slips') { titleEl.innerText = 'My Salary Slips'; subtitleEl.innerText = 'Salary Records'; }
         else if (pageId === 'page-history') { titleEl.innerText = 'Attendance Logs'; subtitleEl.innerText = 'Transparency Ledger'; }
         else if (pageId === 'page-leaves') { titleEl.innerText = 'Holidays & Offs'; subtitleEl.innerText = 'Requests & Status'; }
@@ -2060,6 +2120,7 @@
       });
 
       if (pageId === 'page-dashboard') renderEmployeePersonalData();
+      else if (pageId === 'page-b2b') renderB2BLeads();
       else if (pageId === 'page-profile') renderProfilePage();
       else if (pageId === 'page-salary-slips') renderMySalarySlips();
       else if (pageId === 'page-history') renderPersonalLedgerView();
@@ -2573,6 +2634,8 @@
       document.getElementById('side-cat-admin').classList.toggle('hidden', !isLead);
       const superCat = document.getElementById('side-cat-superadmin');
       if (superCat) superCat.classList.toggle('hidden', !isSuperAdmin());
+      const b2bNav = document.getElementById('nav-item-b2b');
+      if (b2bNav) b2bNav.classList.toggle('hidden', !isSuperAdmin());
 
       updateLockPills();
       renderStaffNotifications();
@@ -6763,6 +6826,67 @@
     function assignStoreAction(id,employeeId){changeStoreActionOwner(id);}
     function completeStoreAction(id){if(!isManagerRole())return;appState=loadState();const a=(appState.storeActions||[]).find(x=>x.id===id);if(!a)return;a.status='DONE';a.completedAt=new Date().toISOString();a.completedBy=currentAuthUser?.id||'';a.updatedAt=a.completedAt;saveState(appState);showToast('Action marked resolved.');renderActionCenter();}
     function reopenStoreAction(id){if(!isManagerRole())return;appState=loadState();const a=(appState.storeActions||[]).find(x=>x.id===id);if(!a)return;a.status='PENDING';a.completedAt='';a.completedBy='';a.updatedAt=new Date().toISOString();saveState(appState);showToast('Action reopened.');renderActionCenter();}
+
+    const B2B_STATUS_LABELS = { LEAD:'Lead', VISITED:'Visited', TIE_UP:'Tie-Up Done', STOCK_PLACED:'Stock Placed', REPEAT_ORDER:'Repeat Order' };
+    const B2B_STATUS_CLASSES = { LEAD:'bg-slate-100 text-slate-700', VISITED:'bg-blue-100 text-blue-800', TIE_UP:'bg-amber-100 text-amber-800', STOCK_PLACED:'bg-emerald-100 text-emerald-800', REPEAT_ORDER:'bg-purple-100 text-purple-800' };
+
+    function b2bStatusLabel(status){ return B2B_STATUS_LABELS[status] || status || 'Lead'; }
+    function b2bStatusClass(status){ return B2B_STATUS_CLASSES[status] || 'bg-slate-100 text-slate-700'; }
+
+    function renderB2BLeads(){
+      if(!isSuperAdmin()) return;
+      appState=loadState();
+      const leads=Array.isArray(appState.b2bLeads)?appState.b2bLeads:[];
+      const q=(document.getElementById('b2b-search')?.value||'').trim().toLowerCase();
+      const filtered=leads.filter(l=>!q||[l.shopName,l.place,l.contactName,l.mobile,l.gstNumber].some(v=>String(v||'').toLowerCase().includes(q)));
+      const counts={total:leads.length,visited:leads.filter(l=>l.status==='VISITED').length,tie:leads.filter(l=>l.status==='TIE_UP').length,stock:leads.filter(l=>l.status==='STOCK_PLACED'||l.status==='REPEAT_ORDER').length,follow:leads.filter(l=>l.nextFollowUp && l.nextFollowUp<=getLocalDateString()).length};
+      const k=document.getElementById('b2b-kpis');
+      if(k) k.innerHTML=[['Total Leads',counts.total,'text-slate-900'],['Visited',counts.visited,'text-blue-900'],['Tie-Ups',counts.tie,'text-amber-900'],['Stock Placed',counts.stock,'text-emerald-900'],['Follow-up Due',counts.follow,'text-red-900']].map(x=>`<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-[8px] uppercase font-black text-slate-400">${x[0]}</div><div class="text-lg font-black ${x[2]} mt-1">${x[1]}</div></div>`).join('');
+      const list=document.getElementById('b2b-leads-list');
+      if(!list)return;
+      if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No B2B leads found.</div>';return;}
+      list.innerHTML=filtered.map(l=>{
+        const due=l.nextFollowUp && l.nextFollowUp<=getLocalDateString();
+        return `<div class="p-3 rounded-2xl border border-slate-200 bg-white">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(l.shopName)}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${escapeHtml(l.place)}${l.businessType?' · '+escapeHtml(l.businessType):''}</div></div>
+            <span class="shrink-0 text-[8px] font-black px-2 py-1 rounded-full ${b2bStatusClass(l.status)}">${b2bStatusLabel(l.status)}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-3 text-[9px]">
+            <div><span class="text-slate-400">Contact:</span> <b>${escapeHtml(l.contactName||'—')}</b></div>
+            <div><span class="text-slate-400">Mobile:</span> <b>${escapeHtml(l.mobile||'—')}</b></div>
+            <div><span class="text-slate-400">GST:</span> <b>${escapeHtml(l.gstNumber||'—')}</b></div>
+            <div><span class="text-slate-400">Potential:</span> <b>${escapeHtml(l.potential||'—')}</b></div>
+            <div><span class="text-slate-400">Source:</span> <b>${escapeHtml(l.source||'—')}</b></div>
+            <div><span class="text-slate-400">Follow-up:</span> <b class="${due?'text-red-700':''}">${escapeHtml(l.nextFollowUp||'—')}</b></div>
+          </div>
+          ${l.products||l.notes?`<div class="mt-2 p-2.5 rounded-xl bg-slate-50 text-[9px] text-slate-600">${l.products?`<div><b>Products:</b> ${escapeHtml(l.products)}</div>`:''}${l.notes?`<div class="mt-1"><b>Notes:</b> ${escapeHtml(l.notes)}</div>`:''}</div>`:''}
+          <div class="flex gap-2 mt-3"><select onchange="updateB2BLeadStatus('${l.id}',this.value)" class="flex-1 px-2 py-2 border border-slate-200 rounded-xl text-[9px] font-black bg-white"><option value="LEAD" ${l.status==='LEAD'?'selected':''}>Lead</option><option value="VISITED" ${l.status==='VISITED'?'selected':''}>Visited</option><option value="TIE_UP" ${l.status==='TIE_UP'?'selected':''}>Tie-Up Done</option><option value="STOCK_PLACED" ${l.status==='STOCK_PLACED'?'selected':''}>Stock Placed</option><option value="REPEAT_ORDER" ${l.status==='REPEAT_ORDER'?'selected':''}>Repeat Order</option></select><button onclick="deleteB2BLead('${l.id}')" class="px-3 py-2 bg-red-50 text-red-700 rounded-xl text-[9px] font-black">Delete</button></div>
+        </div>`;
+      }).join('');
+    }
+
+    function saveB2BLead(){
+      if(!superAdminOnly())return;
+      appState=loadState();
+      const shopName=document.getElementById('b2b-shop-name')?.value.trim(), place=document.getElementById('b2b-place')?.value.trim();
+      if(!shopName||!place){showToast('Shop name and place are required.',true);return;}
+      const now=new Date().toISOString();
+      const lead={id:'B2B-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),shopName,place,contactName:document.getElementById('b2b-contact-name')?.value.trim()||'',mobile:document.getElementById('b2b-mobile')?.value.trim()||'',gstNumber:document.getElementById('b2b-gst')?.value.trim().toUpperCase()||'',businessType:document.getElementById('b2b-business-type')?.value||'',address:document.getElementById('b2b-address')?.value.trim()||'',status:document.getElementById('b2b-status')?.value||'LEAD',potential:document.getElementById('b2b-potential')?.value||'',nextFollowUp:document.getElementById('b2b-next-followup')?.value||'',currentSupplier:document.getElementById('b2b-current-supplier')?.value.trim()||'',products:document.getElementById('b2b-products')?.value.trim()||'',source:document.getElementById('b2b-source')?.value||'',monthlyPotential:Number(document.getElementById('b2b-monthly-potential')?.value||0)||0,notes:document.getElementById('b2b-notes')?.value.trim()||'',createdAt:now,createdBy:currentAuthUser.id,updatedAt:now};
+      appState.b2bLeads.unshift(lead); saveState(appState); addAuditLog('CREATE_B2B_LEAD','B2B',JSON.stringify({shopName,place,status:lead.status}),lead.id);
+      ['b2b-shop-name','b2b-place','b2b-contact-name','b2b-mobile','b2b-gst','b2b-address','b2b-current-supplier','b2b-products','b2b-monthly-potential','b2b-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+      ['b2b-business-type','b2b-potential','b2b-source'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+      const st=document.getElementById('b2b-status');if(st)st.value='LEAD'; const nf=document.getElementById('b2b-next-followup');if(nf)nf.value='';
+      renderB2BLeads(); showToast('B2B lead saved online.');
+    }
+
+    function updateB2BLeadStatus(id,status){
+      if(!superAdminOnly())return; appState=loadState(); const l=appState.b2bLeads.find(x=>x.id===id); if(!l)return; const old=l.status; l.status=status; l.updatedAt=new Date().toISOString(); if(status==='VISITED'&&!l.visitedDate)l.visitedDate=getLocalDateString(); if(status==='TIE_UP'&&!l.tieUpDate)l.tieUpDate=getLocalDateString(); if((status==='STOCK_PLACED'||status==='REPEAT_ORDER')&&!l.stockPlacedDate)l.stockPlacedDate=getLocalDateString(); saveState(appState); addAuditLog('UPDATE_B2B_STATUS','B2B',`${old} → ${status}`,id); renderB2BLeads(); showToast('B2B status updated.');
+    }
+
+    function deleteB2BLead(id){
+      if(!superAdminOnly())return; const l=loadState().b2bLeads.find(x=>x.id===id); if(!l)return; if(!confirm(`Delete B2B lead for ${l.shopName}?`))return; appState=loadState(); appState.b2bLeads=appState.b2bLeads.filter(x=>x.id!==id); saveState(appState); addAuditLog('DELETE_B2B_LEAD','B2B',l.shopName,id); renderB2BLeads(); showToast('B2B lead deleted.');
+    }
 
     function renderManagementDailySnapshot(){if(!isManagerRole())return;appState=loadState();const today=getLocalDateString(),emps=(appState.employees||[]).filter(e=>!e.archived),todays=(appState.attendance||[]).filter(a=>a.date===today&&a.punchInTime),present=todays.length,onDuty=todays.filter(a=>!a.punchOutTime).length,late=todays.filter(a=>a.isLate&&!a.lateExceptionApproved).length,breaks=todays.filter(a=>(a.breaks||[]).some(b=>!b.end)),cash=(appState.cashDrawerLogs||[]).find(c=>c.date===today),cashDone=!!(cash&&cash.cashClosingConfirmed===true&&cash.nightPhysicalCash!==null&&cash.nightPhysicalCash!==undefined),closing=isStoreNightClosingDoneToday(),enquiries=(appState.customerEnquiries||[]).filter(e=>e.createdAt&&getLocalDateString(new Date(e.createdAt))===today).length,pendingLeave=(appState.leaveRequests||[]).filter(r=>r.status==='PENDING').length,suggestions=(appState.staffSuggestions||[]).filter(s=>s.status==='NEW').length,kpis=[['👥','Present',present],['🟢','On Duty',onDuty],['⏰','Late',late],['🍱','On Break',breaks.length],['💰','Cash',cashDone?'DONE':'PENDING'],['🏁','Closing',closing?'DONE':'PENDING'],['💬','Enquiries',enquiries],['💡','Suggestions',suggestions]],dateEl=document.getElementById('daily-snapshot-date');if(dateEl)dateEl.innerText=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});const grid=document.getElementById('daily-snapshot-kpis');if(grid)grid.innerHTML=kpis.map(k=>`<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-lg">${k[0]}</div><div class="text-[8px] uppercase font-black text-slate-400 mt-1">${k[1]}</div><div class="text-sm font-black text-slate-900 mt-0.5">${k[2]}</div></div>`).join('');const att=document.getElementById('daily-snapshot-attendance');if(att)att.innerHTML=`<div>${present} of ${emps.length} active staff have punched in.</div><div class="mt-1">${onDuty} currently on duty · ${breaks.length} on break · ${late} late marks requiring attention.</div>`;const ops=document.getElementById('daily-snapshot-operations');if(ops)ops.innerHTML=`<div>Cash settlement: <b>${cashDone?'Completed':'Pending'}</b>.</div><div class="mt-1">Night closing: <b>${closing?'Completed':'Pending'}</b> · Customer enquiries today: <b>${enquiries}</b>.</div>`;const attention=[];if(late)attention.push(`⏰ ${late} late mark${late===1?'':'s'} need review.`);if(breaks.length)attention.push(`🍱 ${breaks.length} employee${breaks.length===1?' is':'s are'} currently on break.`);if(!cashDone)attention.push('💰 Daily cash settlement is not locked yet.');if(!closing)attention.push('🏁 Store night closing is not completed.');if(pendingLeave)attention.push(`🏖️ ${pendingLeave} time-off request${pendingLeave===1?'':'s'} pending.`);if(!attention.length)attention.push('✅ No immediate operational items require attention.');const at=document.getElementById('daily-snapshot-attention');if(at)at.innerHTML=attention.map(x=>`<div>${x}</div>`).join('');}
 
