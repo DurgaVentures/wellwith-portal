@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.4.21 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.25 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -1074,8 +1074,9 @@
 
   <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
     <div>
-      <div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">New B2B Lead</div>
-      <h3 class="text-sm font-black text-slate-900 mt-1">Add Business</h3>
+      <div id="b2b-form-mode" class="text-[9px] font-black uppercase tracking-widest text-emerald-700">New B2B Lead</div>
+      <h3 id="b2b-form-title" class="text-sm font-black text-slate-900 mt-1">Add Business</h3>
+      <input type="hidden" id="b2b-edit-id" value="" />
     </div>
     <div class="grid sm:grid-cols-2 gap-2">
       <input id="b2b-shop-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Shop / Business Name *" />
@@ -1102,7 +1103,10 @@
       <input id="b2b-monthly-potential" type="number" min="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Expected Monthly Requirement" />
       <textarea id="b2b-notes" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs resize-none sm:col-span-2" placeholder="Visit / Follow-up Notes"></textarea>
     </div>
-    <button type="button" onclick="saveB2BLead(); haptic(10)" class="w-full bg-[#05281b] hover:bg-[#073624] text-white font-black py-3 rounded-2xl text-xs">Save B2B Lead</button>
+    <div class="flex gap-2">
+      <button id="b2b-save-btn" type="button" onclick="saveB2BLead(); haptic(10)" class="flex-1 bg-[#05281b] hover:bg-[#073624] text-white font-black py-3 rounded-2xl text-xs">Save B2B Lead</button>
+      <button id="b2b-cancel-edit-btn" type="button" onclick="cancelB2BEdit(); haptic(6)" class="hidden px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-3 rounded-2xl text-xs">Cancel</button>
+    </div>
   </div>
 
   <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
@@ -6827,6 +6831,18 @@
     function completeStoreAction(id){if(!isManagerRole())return;appState=loadState();const a=(appState.storeActions||[]).find(x=>x.id===id);if(!a)return;a.status='DONE';a.completedAt=new Date().toISOString();a.completedBy=currentAuthUser?.id||'';a.updatedAt=a.completedAt;saveState(appState);showToast('Action marked resolved.');renderActionCenter();}
     function reopenStoreAction(id){if(!isManagerRole())return;appState=loadState();const a=(appState.storeActions||[]).find(x=>x.id===id);if(!a)return;a.status='PENDING';a.completedAt='';a.completedBy='';a.updatedAt=new Date().toISOString();saveState(appState);showToast('Action reopened.');renderActionCenter();}
 
+    // Small HTML escaping helper used by the B2B list renderer.
+    // B2B data is stored as plain values in Firebase and only escaped when
+    // it is rendered back into the page.
+    function escapeHtml(value){
+      return String(value ?? '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/\"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+    }
+
     const B2B_STATUS_LABELS = { LEAD:'Lead', VISITED:'Visited', TIE_UP:'Tie-Up Done', STOCK_PLACED:'Stock Placed', REPEAT_ORDER:'Repeat Order' };
     const B2B_STATUS_CLASSES = { LEAD:'bg-slate-100 text-slate-700', VISITED:'bg-blue-100 text-blue-800', TIE_UP:'bg-amber-100 text-amber-800', STOCK_PLACED:'bg-emerald-100 text-emerald-800', REPEAT_ORDER:'bg-purple-100 text-purple-800' };
 
@@ -6861,23 +6877,148 @@
             <div><span class="text-slate-400">Follow-up:</span> <b class="${due?'text-red-700':''}">${escapeHtml(l.nextFollowUp||'—')}</b></div>
           </div>
           ${l.products||l.notes?`<div class="mt-2 p-2.5 rounded-xl bg-slate-50 text-[9px] text-slate-600">${l.products?`<div><b>Products:</b> ${escapeHtml(l.products)}</div>`:''}${l.notes?`<div class="mt-1"><b>Notes:</b> ${escapeHtml(l.notes)}</div>`:''}</div>`:''}
-          <div class="flex gap-2 mt-3"><select onchange="updateB2BLeadStatus('${l.id}',this.value)" class="flex-1 px-2 py-2 border border-slate-200 rounded-xl text-[9px] font-black bg-white"><option value="LEAD" ${l.status==='LEAD'?'selected':''}>Lead</option><option value="VISITED" ${l.status==='VISITED'?'selected':''}>Visited</option><option value="TIE_UP" ${l.status==='TIE_UP'?'selected':''}>Tie-Up Done</option><option value="STOCK_PLACED" ${l.status==='STOCK_PLACED'?'selected':''}>Stock Placed</option><option value="REPEAT_ORDER" ${l.status==='REPEAT_ORDER'?'selected':''}>Repeat Order</option></select><button onclick="deleteB2BLead('${l.id}')" class="px-3 py-2 bg-red-50 text-red-700 rounded-xl text-[9px] font-black">Delete</button></div>
+          <div class="flex gap-2 mt-3"><select onchange="updateB2BLeadStatus('${l.id}',this.value)" class="flex-1 px-2 py-2 border border-slate-200 rounded-xl text-[9px] font-black bg-white"><option value="LEAD" ${l.status==='LEAD'?'selected':''}>Lead</option><option value="VISITED" ${l.status==='VISITED'?'selected':''}>Visited</option><option value="TIE_UP" ${l.status==='TIE_UP'?'selected':''}>Tie-Up Done</option><option value="STOCK_PLACED" ${l.status==='STOCK_PLACED'?'selected':''}>Stock Placed</option><option value="REPEAT_ORDER" ${l.status==='REPEAT_ORDER'?'selected':''}>Repeat Order</option></select><button onclick="editB2BLead('${l.id}')" class="px-3 py-2 bg-amber-50 text-amber-800 rounded-xl text-[9px] font-black">Edit</button><button onclick="deleteB2BLead('${l.id}')" class="px-3 py-2 bg-red-50 text-red-700 rounded-xl text-[9px] font-black">Delete</button></div>
         </div>`;
       }).join('');
     }
 
-    function saveB2BLead(){
-      if(!superAdminOnly())return;
-      appState=loadState();
-      const shopName=document.getElementById('b2b-shop-name')?.value.trim(), place=document.getElementById('b2b-place')?.value.trim();
-      if(!shopName||!place){showToast('Shop name and place are required.',true);return;}
-      const now=new Date().toISOString();
-      const lead={id:'B2B-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),shopName,place,contactName:document.getElementById('b2b-contact-name')?.value.trim()||'',mobile:document.getElementById('b2b-mobile')?.value.trim()||'',gstNumber:document.getElementById('b2b-gst')?.value.trim().toUpperCase()||'',businessType:document.getElementById('b2b-business-type')?.value||'',address:document.getElementById('b2b-address')?.value.trim()||'',status:document.getElementById('b2b-status')?.value||'LEAD',potential:document.getElementById('b2b-potential')?.value||'',nextFollowUp:document.getElementById('b2b-next-followup')?.value||'',currentSupplier:document.getElementById('b2b-current-supplier')?.value.trim()||'',products:document.getElementById('b2b-products')?.value.trim()||'',source:document.getElementById('b2b-source')?.value||'',monthlyPotential:Number(document.getElementById('b2b-monthly-potential')?.value||0)||0,notes:document.getElementById('b2b-notes')?.value.trim()||'',createdAt:now,createdBy:currentAuthUser.id,updatedAt:now};
-      appState.b2bLeads.unshift(lead); saveState(appState); addAuditLog('CREATE_B2B_LEAD','B2B',JSON.stringify({shopName,place,status:lead.status}),lead.id);
+    function getB2BFormValues(){
+      return {
+        shopName:document.getElementById('b2b-shop-name')?.value.trim()||'',
+        place:document.getElementById('b2b-place')?.value.trim()||'',
+        contactName:document.getElementById('b2b-contact-name')?.value.trim()||'',
+        mobile:document.getElementById('b2b-mobile')?.value.trim()||'',
+        gstNumber:document.getElementById('b2b-gst')?.value.trim().toUpperCase()||'',
+        businessType:document.getElementById('b2b-business-type')?.value||'',
+        address:document.getElementById('b2b-address')?.value.trim()||'',
+        status:document.getElementById('b2b-status')?.value||'LEAD',
+        potential:document.getElementById('b2b-potential')?.value||'',
+        nextFollowUp:document.getElementById('b2b-next-followup')?.value||'',
+        currentSupplier:document.getElementById('b2b-current-supplier')?.value.trim()||'',
+        products:document.getElementById('b2b-products')?.value.trim()||'',
+        source:document.getElementById('b2b-source')?.value||'',
+        monthlyPotential:Number(document.getElementById('b2b-monthly-potential')?.value||0)||0,
+        notes:document.getElementById('b2b-notes')?.value.trim()||''
+      };
+    }
+
+    function resetB2BForm(){
       ['b2b-shop-name','b2b-place','b2b-contact-name','b2b-mobile','b2b-gst','b2b-address','b2b-current-supplier','b2b-products','b2b-monthly-potential','b2b-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
       ['b2b-business-type','b2b-potential','b2b-source'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-      const st=document.getElementById('b2b-status');if(st)st.value='LEAD'; const nf=document.getElementById('b2b-next-followup');if(nf)nf.value='';
-      renderB2BLeads(); showToast('B2B lead saved online.');
+      const st=document.getElementById('b2b-status');if(st)st.value='LEAD';
+      const nf=document.getElementById('b2b-next-followup');if(nf)nf.value='';
+      const edit=document.getElementById('b2b-edit-id');if(edit)edit.value='';
+      const mode=document.getElementById('b2b-form-mode');if(mode)mode.innerText='New B2B Lead';
+      const title=document.getElementById('b2b-form-title');if(title)title.innerText='Add Business';
+      const save=document.getElementById('b2b-save-btn');if(save)save.innerText='Save B2B Lead';
+      const cancel=document.getElementById('b2b-cancel-edit-btn');if(cancel)cancel.classList.add('hidden');
+    }
+
+    function editB2BLead(id){
+      if(!superAdminOnly())return;
+      appState=loadState();
+      const l=(appState.b2bLeads||[]).find(x=>x.id===id);
+      if(!l){showToast('B2B lead not found.',true);return;}
+      const values={
+        'b2b-shop-name':l.shopName||'', 'b2b-place':l.place||'', 'b2b-contact-name':l.contactName||'',
+        'b2b-mobile':l.mobile||'', 'b2b-gst':l.gstNumber||'', 'b2b-business-type':l.businessType||'',
+        'b2b-address':l.address||'', 'b2b-status':l.status||'LEAD', 'b2b-potential':l.potential||'',
+        'b2b-next-followup':l.nextFollowUp||'', 'b2b-current-supplier':l.currentSupplier||'',
+        'b2b-products':l.products||'', 'b2b-source':l.source||'', 'b2b-monthly-potential':l.monthlyPotential||'',
+        'b2b-notes':l.notes||''
+      };
+      Object.entries(values).forEach(([id,value])=>{const e=document.getElementById(id);if(e)e.value=value;});
+      const edit=document.getElementById('b2b-edit-id');if(edit)edit.value=l.id;
+      const mode=document.getElementById('b2b-form-mode');if(mode)mode.innerText='Editing B2B Lead';
+      const title=document.getElementById('b2b-form-title');if(title)title.innerText='Edit Business';
+      const save=document.getElementById('b2b-save-btn');if(save)save.innerText='Update B2B Lead';
+      const cancel=document.getElementById('b2b-cancel-edit-btn');if(cancel)cancel.classList.remove('hidden');
+      document.getElementById('page-b2b')?.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function cancelB2BEdit(){
+      resetB2BForm();
+      showToast('B2B edit cancelled.');
+    }
+
+    async function saveB2BLead(){
+      if(!superAdminOnly())return;
+      if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline){
+        showToast('Firebase connection is required to save B2B leads.',true);
+        return;
+      }
+      const values=getB2BFormValues();
+      if(!values.shopName||!values.place){showToast('Shop name and place are required.',true);return;}
+
+      const now=new Date().toISOString();
+      const editId=document.getElementById('b2b-edit-id')?.value||'';
+      const auditId='AUD-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+      const leadId=editId||('B2B-'+Date.now()+'-'+Math.random().toString(36).slice(2,7));
+
+      try{
+        // B2B writes are kept separate from the large storeState transaction.
+        // This makes lead create/edit reliable even when other store data is being
+        // changed at the same time on another device.
+        const leadsRef=cloudDb.ref('storeState/b2bLeads');
+        const result=await leadsRef.transaction(leads=>{
+          const list=Array.isArray(leads)?leads:[];
+          if(editId){
+            const idx=list.findIndex(x=>String(x?.id)===String(editId));
+            if(idx<0)return list;
+            const existing=list[idx]||{};
+            const updated={...existing,...values,updatedAt:now,updatedBy:currentAuthUser.id};
+            if(values.status==='VISITED'&&!updated.visitedDate)updated.visitedDate=getLocalDateString();
+            if(values.status==='TIE_UP'&&!updated.tieUpDate)updated.tieUpDate=getLocalDateString();
+            if((values.status==='STOCK_PLACED'||values.status==='REPEAT_ORDER')&&!updated.stockPlacedDate)updated.stockPlacedDate=getLocalDateString();
+            list[idx]=updated;
+          }else{
+            const lead={id:leadId,...values,createdAt:now,createdBy:currentAuthUser.id,updatedAt:now,updatedBy:currentAuthUser.id};
+            if(values.status==='VISITED')lead.visitedDate=getLocalDateString();
+            if(values.status==='TIE_UP')lead.tieUpDate=getLocalDateString();
+            if(values.status==='STOCK_PLACED'||values.status==='REPEAT_ORDER')lead.stockPlacedDate=getLocalDateString();
+            list.unshift(lead);
+          }
+          return list;
+        });
+
+        if(!result.committed){
+          showToast(editId?'B2B lead could not be updated. Please try again.':'B2B lead could not be saved. Please try again.',true);
+          return;
+        }
+
+        // Keep the audit trail, but never let an audit-write issue make a
+        // successfully saved B2B lead look like it failed.
+        try{
+          const auditRef=cloudDb.ref('storeState/auditLog');
+          await auditRef.transaction(log=>{
+            const list=Array.isArray(log)?log:[];
+            list.unshift({
+              id:auditId,
+              at:now,
+              byId:currentAuthUser.id,
+              byName:currentAuthUser.name||'Samrajya',
+              action:editId?'EDIT_B2B_LEAD':'CREATE_B2B_LEAD',
+              category:'B2B',
+              details:JSON.stringify({shopName:values.shopName,place:values.place,status:values.status}),
+              targetId:editId||leadId
+            });
+            return list.slice(0,2000);
+          });
+        }catch(auditError){
+          console.warn('B2B audit write failed after lead save:',auditError);
+        }
+
+        appState=loadState();
+        appState.b2bLeads=Array.isArray(result.snapshot.val())?result.snapshot.val():[];
+        cloudBaselineState=cloneCloudSafe(appState);
+        resetB2BForm();
+        renderB2BLeads();
+        showToast(editId?'B2B lead updated and saved online.':'B2B lead saved online.');
+      }catch(e){
+        console.error('B2B lead save failed:',e);
+        const detail=e?.code||e?.message||'unknown Firebase error';
+        showToast(`B2B save failed: ${detail}`,true);
+      }
     }
 
     function updateB2BLeadStatus(id,status){
