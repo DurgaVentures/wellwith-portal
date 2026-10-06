@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.4.25 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.33 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -1058,18 +1058,19 @@
 <!-- ================= MODULE 10E: MANAGEMENT DAILY SNAPSHOT ================= -->
 <section class="hidden space-y-4" id="page-daily-snapshot"><div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><div class="flex items-start justify-between gap-3"><div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Management View</div><h2 class="text-xl font-black text-slate-900 mt-1">Daily Store Snapshot</h2><p id="daily-snapshot-date" class="text-[10px] text-slate-500 mt-1">--</p></div><button onclick="renderManagementDailySnapshot()" class="text-[9px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-2 rounded-xl">Refresh</button></div><div id="daily-snapshot-kpis" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4"></div><div class="grid md:grid-cols-2 gap-3 mt-3"><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-slate-400">Today</div><div id="daily-snapshot-attendance" class="text-xs font-bold text-slate-800 mt-2"></div></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-slate-400">Operations</div><div id="daily-snapshot-operations" class="text-xs font-bold text-slate-800 mt-2"></div></div></div><div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl"><div class="text-[9px] uppercase font-black text-amber-800">Needs Attention</div><div id="daily-snapshot-attention" class="space-y-1 mt-2 text-[10px] font-semibold text-amber-950"></div></div></div></section>
 
-<!-- ================= MODULE 4B: B2B LEAD MANAGEMENT (SUPER ADMIN ONLY) ================= -->
+<!-- ================= MODULE 4B: B2B LEAD MANAGEMENT (OWNER ONLY) ================= -->
 <section class="hidden space-y-4" id="page-b2b">
   <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
     <div class="flex items-start justify-between gap-3">
       <div>
-        <div class="text-[9px] font-black uppercase tracking-widest text-amber-700">Super Admin Only</div>
+        <div class="text-[9px] font-black uppercase tracking-widest text-amber-700">Super Admin + Owner</div>
         <h2 class="text-xl font-black text-slate-900 mt-1">B2B Leads</h2>
         <p class="text-[10px] text-slate-500 mt-1">Private B2B prospect and conversion database.</p>
       </div>
       <button onclick="renderB2BLeads(); haptic(8)" class="text-[9px] font-black text-amber-800 bg-amber-50 px-2.5 py-2 rounded-xl">Refresh</button>
     </div>
-    <div id="b2b-kpis" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4"></div>
+    <div id="b2b-city-tabs" class="flex gap-2 overflow-x-auto mt-4 pb-1"></div>
+    <div id="b2b-kpis" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2"></div>
   </div>
 
   <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
@@ -1080,6 +1081,9 @@
     </div>
     <div class="grid sm:grid-cols-2 gap-2">
       <input id="b2b-shop-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Shop / Business Name *" />
+      <select id="b2b-city" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs bg-white">
+        <option value="Mangalore">Mangalore</option><option value="Mysore">Mysore</option><option value="Udupi">Udupi</option><option value="Bangalore">Bangalore</option>
+      </select>
       <input id="b2b-place" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Place / Area *" />
       <input id="b2b-contact-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Contact Person Name" />
       <input id="b2b-mobile" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" maxlength="10" inputmode="numeric" placeholder="Mobile Number" />
@@ -1110,9 +1114,12 @@
   </div>
 
   <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
-    <div class="flex items-center justify-between gap-2">
+    <div class="flex items-center justify-between gap-2 flex-wrap">
       <div><h3 class="text-[10px] font-black uppercase tracking-wider text-slate-900">Saved B2B Leads</h3><p class="text-[10px] text-slate-400 mt-0.5">Latest records first.</p></div>
-      <input id="b2b-search" oninput="renderB2BLeads()" class="w-40 px-2.5 py-2 border border-slate-200 rounded-xl outline-none text-[10px] font-semibold" placeholder="Search shop / place" />
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="exportB2BToCSV(); haptic(8)" class="text-[9px] font-black text-emerald-900 bg-emerald-50 px-2.5 py-2 rounded-xl border border-emerald-100">📊 Export to Sheets</button>
+        <input id="b2b-search" oninput="renderB2BLeads()" class="w-40 px-2.5 py-2 border border-slate-200 rounded-xl outline-none text-[10px] font-semibold" placeholder="Search shop / place" />
+      </div>
     </div>
     <div id="b2b-leads-list" class="space-y-2"></div>
   </div>
@@ -1915,6 +1922,12 @@
       return !!(currentAuthUser && (currentAuthUser.phone === '8088504219' || currentAuthUser.role === 'SUPER_ADMIN'));
     }
 
+    // v1.4.33: B2B Leads is available to Root Super Admin and OWNER accounts.
+    // STAFF accounts do not get the B2B option.
+    function isB2BOwner() {
+      return !!(currentAuthUser && (isSuperAdmin() || String(currentAuthUser.role || '').trim().toUpperCase() === 'OWNER'));
+    }
+
     function isOwnerRole() {
       return !!(currentAuthUser && (isSuperAdmin() || currentAuthUser.role === 'OWNER'));
     }
@@ -2292,8 +2305,8 @@
       const pinInput = document.getElementById('input-pin');
       if (!phoneInput || !pinInput) return;
 
-      const phone = phoneInput.value.trim();
-      const pin = pinInput.value.trim();
+      const phone = phoneInput.value.replace(/\D/g, '');
+      const pin = pinInput.value.trim().padStart(4, '0');
 
       if (!phone || !pin) {
         showToast('Please enter both Phone number and 4-digit PIN.', true);
@@ -2322,8 +2335,11 @@
           const matchingAccounts = Object.entries(rawUsers).map(([id, u]) => ({
             id: u?.id || id,
             name: u?.name || '',
-            phone: String(u?.phone || ''),
-            pin: String(u?.pin || ''),
+            // Normalize phone/PIN because older Firebase account records may have
+            // been stored as numbers (e.g. PIN 0205 becomes 205). Authentication
+            // must still accept the employee's registered 4-digit PIN.
+            phone: String(u?.phone || '').replace(/\D/g, ''),
+            pin: String(u?.pin ?? '').trim().padStart(4, '0'),
             role: String(u?.role || 'STAFF').trim().toUpperCase(),
             weekOff: u?.weekOff || 'Sunday',
             employeeCode: u?.employeeCode || null,
@@ -2362,7 +2378,7 @@
       }
 
       if (!user) {
-        showToast('Invalid Phone or PIN.', true);
+        showToast('Invalid Phone or PIN. Please verify the registered mobile number and 4-digit PIN.', true);
         return;
       }
 
@@ -2639,7 +2655,7 @@
       const superCat = document.getElementById('side-cat-superadmin');
       if (superCat) superCat.classList.toggle('hidden', !isSuperAdmin());
       const b2bNav = document.getElementById('nav-item-b2b');
-      if (b2bNav) b2bNav.classList.toggle('hidden', !isSuperAdmin());
+      if (b2bNav) b2bNav.classList.toggle('hidden', !isB2BOwner());
 
       updateLockPills();
       renderStaffNotifications();
@@ -6850,14 +6866,34 @@
     function b2bStatusClass(status){ return B2B_STATUS_CLASSES[status] || 'bg-slate-100 text-slate-700'; }
 
     function renderB2BLeads(){
-      if(!isSuperAdmin()) return;
+      if(!isB2BOwner()) return;
       appState=loadState();
       const leads=Array.isArray(appState.b2bLeads)?appState.b2bLeads:[];
       const q=(document.getElementById('b2b-search')?.value||'').trim().toLowerCase();
-      const filtered=leads.filter(l=>!q||[l.shopName,l.place,l.contactName,l.mobile,l.gstNumber].some(v=>String(v||'').toLowerCase().includes(q)));
-      const counts={total:leads.length,visited:leads.filter(l=>l.status==='VISITED').length,tie:leads.filter(l=>l.status==='TIE_UP').length,stock:leads.filter(l=>l.status==='STOCK_PLACED'||l.status==='REPEAT_ORDER').length,follow:leads.filter(l=>l.nextFollowUp && l.nextFollowUp<=getLocalDateString()).length};
+      const cityFilter=window.b2bCityFilter||'ALL';
+      const cityOf=l=>String(l.city||'Mangalore');
+      const cityLeads=leads.filter(l=>cityFilter==='ALL'||cityOf(l)===cityFilter);
+      const counts={total:cityLeads.length,visited:cityLeads.filter(l=>l.status==='VISITED').length,tie:cityLeads.filter(l=>l.status==='TIE_UP').length,stock:cityLeads.filter(l=>l.status==='STOCK_PLACED'||l.status==='REPEAT_ORDER').length,follow:cityLeads.filter(l=>l.nextFollowUp && l.nextFollowUp<=getLocalDateString()).length};
+      const activeFilter=window.b2bActiveFilter||'ALL';
+      const filtered=leads.filter(l=>{
+        const matchesCity=cityFilter==='ALL'||cityOf(l)===cityFilter;
+        if(!matchesCity)return false;
+        const matchesSearch=!q||[l.shopName,l.city,l.place,l.contactName,l.mobile,l.gstNumber,l.businessType].some(v=>String(v||'').toLowerCase().includes(q));
+        if(!matchesSearch)return false;
+        if(activeFilter==='ALL')return true;
+        if(activeFilter==='VISITED')return l.status==='VISITED';
+        if(activeFilter==='TIE_UP')return l.status==='TIE_UP';
+        if(activeFilter==='STOCK_PLACED')return l.status==='STOCK_PLACED'||l.status==='REPEAT_ORDER';
+        if(activeFilter==='FOLLOW_UP')return !!(l.nextFollowUp && l.nextFollowUp<=getLocalDateString());
+        return true;
+      });
+      const cityTabs=document.getElementById('b2b-city-tabs');
+      if(cityTabs){
+        const cities=[['ALL','All Cities'],['Mangalore','Mangalore'],['Mysore','Mysore'],['Udupi','Udupi'],['Bangalore','Bangalore']];
+        cityTabs.innerHTML=cities.map(([value,label])=>`<button type="button" onclick="filterB2BCity('${value}'); haptic(6)" class="shrink-0 px-3 py-2 rounded-xl border text-[9px] font-black transition ${cityFilter===value?'bg-[#05281b] text-white border-[#05281b]':'bg-white text-slate-600 border-slate-200'}">${label}</button>`).join('');
+      }
       const k=document.getElementById('b2b-kpis');
-      if(k) k.innerHTML=[['Total Leads',counts.total,'text-slate-900'],['Visited',counts.visited,'text-blue-900'],['Tie-Ups',counts.tie,'text-amber-900'],['Stock Placed',counts.stock,'text-emerald-900'],['Follow-up Due',counts.follow,'text-red-900']].map(x=>`<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-[8px] uppercase font-black text-slate-400">${x[0]}</div><div class="text-lg font-black ${x[2]} mt-1">${x[1]}</div></div>`).join('');
+      if(k) k.innerHTML=[['Total Leads',counts.total,'text-slate-900','ALL'],['Visited',counts.visited,'text-blue-900','VISITED'],['Tie-Ups',counts.tie,'text-amber-900','TIE_UP'],['Stock Placed',counts.stock,'text-emerald-900','STOCK_PLACED'],['Follow-up Due',counts.follow,'text-red-900','FOLLOW_UP']].map(x=>`<button type="button" onclick="filterB2BKPI('${x[3]}'); haptic(6)" aria-label="Show ${x[0]}" class="text-left p-3 rounded-2xl border ${activeFilter===x[3]?'border-emerald-400 ring-2 ring-emerald-100 bg-emerald-50':'border-slate-200 bg-slate-50'} hover:border-emerald-300 active:scale-[.98] transition"><div class="flex items-center justify-between gap-1"><div class="text-[8px] uppercase font-black text-slate-400">${x[0]}</div><span class="text-[9px] text-slate-400">↗</span></div><div class="text-lg font-black ${x[2]} mt-1">${x[1]}</div><div class="text-[8px] font-bold ${activeFilter===x[3]?'text-emerald-700':'text-slate-400'} mt-0.5">Tap to view</div></button>`).join('');
       const list=document.getElementById('b2b-leads-list');
       if(!list)return;
       if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No B2B leads found.</div>';return;}
@@ -6865,7 +6901,7 @@
         const due=l.nextFollowUp && l.nextFollowUp<=getLocalDateString();
         return `<div class="p-3 rounded-2xl border border-slate-200 bg-white">
           <div class="flex items-start justify-between gap-2">
-            <div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(l.shopName)}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${escapeHtml(l.place)}${l.businessType?' · '+escapeHtml(l.businessType):''}</div></div>
+            <div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(l.shopName)}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${escapeHtml(l.city||'Mangalore')} · ${escapeHtml(l.place)}${l.businessType?' · '+escapeHtml(l.businessType):''}</div></div>
             <span class="shrink-0 text-[8px] font-black px-2 py-1 rounded-full ${b2bStatusClass(l.status)}">${b2bStatusLabel(l.status)}</span>
           </div>
           <div class="grid grid-cols-2 gap-2 mt-3 text-[9px]">
@@ -6882,9 +6918,23 @@
       }).join('');
     }
 
+    function filterB2BKPI(filter){
+      window.b2bActiveFilter=filter||'ALL';
+      const list=document.getElementById('b2b-leads-list');
+      if(list) list.scrollIntoView({behavior:'smooth',block:'start'});
+      renderB2BLeads();
+    }
+
+    function filterB2BCity(city){
+      window.b2bCityFilter=city||'ALL';
+      window.b2bActiveFilter='ALL';
+      renderB2BLeads();
+    }
+
     function getB2BFormValues(){
       return {
         shopName:document.getElementById('b2b-shop-name')?.value.trim()||'',
+        city:document.getElementById('b2b-city')?.value||'Mangalore',
         place:document.getElementById('b2b-place')?.value.trim()||'',
         contactName:document.getElementById('b2b-contact-name')?.value.trim()||'',
         mobile:document.getElementById('b2b-mobile')?.value.trim()||'',
@@ -6904,6 +6954,7 @@
 
     function resetB2BForm(){
       ['b2b-shop-name','b2b-place','b2b-contact-name','b2b-mobile','b2b-gst','b2b-address','b2b-current-supplier','b2b-products','b2b-monthly-potential','b2b-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+      const city=document.getElementById('b2b-city');if(city)city.value='Mangalore';
       ['b2b-business-type','b2b-potential','b2b-source'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
       const st=document.getElementById('b2b-status');if(st)st.value='LEAD';
       const nf=document.getElementById('b2b-next-followup');if(nf)nf.value='';
@@ -6915,12 +6966,12 @@
     }
 
     function editB2BLead(id){
-      if(!superAdminOnly())return;
+      if(!isB2BOwner()){showToast('B2B access required.',true);return;}
       appState=loadState();
       const l=(appState.b2bLeads||[]).find(x=>x.id===id);
       if(!l){showToast('B2B lead not found.',true);return;}
       const values={
-        'b2b-shop-name':l.shopName||'', 'b2b-place':l.place||'', 'b2b-contact-name':l.contactName||'',
+        'b2b-shop-name':l.shopName||'', 'b2b-city':l.city||'Mangalore', 'b2b-place':l.place||'', 'b2b-contact-name':l.contactName||'',
         'b2b-mobile':l.mobile||'', 'b2b-gst':l.gstNumber||'', 'b2b-business-type':l.businessType||'',
         'b2b-address':l.address||'', 'b2b-status':l.status||'LEAD', 'b2b-potential':l.potential||'',
         'b2b-next-followup':l.nextFollowUp||'', 'b2b-current-supplier':l.currentSupplier||'',
@@ -6942,7 +6993,7 @@
     }
 
     async function saveB2BLead(){
-      if(!superAdminOnly())return;
+      if(!isB2BOwner()){showToast('B2B access required.',true);return;}
       if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline){
         showToast('Firebase connection is required to save B2B leads.',true);
         return;
@@ -7021,12 +7072,47 @@
       }
     }
 
+    function exportB2BToCSV(){
+      if(!isB2BOwner()){showToast('B2B access required.',true);return;}
+      appState=loadState();
+      const leads=Array.isArray(appState.b2bLeads)?appState.b2bLeads:[];
+      if(!leads.length){showToast('No B2B data available to export.',true);return;}
+      const headers=[
+        'B2B ID','Shop / Business Name','City','Place / Area','Contact Person Name','Mobile Number','GST Number',
+        'Business Type','Full Address','Status','Potential','Next Follow-up','Current Supplier / Brand',
+        'Products Interested In','Lead Source','Expected Monthly Requirement','Visit / Follow-up Notes',
+        'Visited Date','Tie-Up Date','Stock Placed Date','Created At','Created By','Updated At','Updated By'
+      ];
+      const csvEscape=value=>{
+        const text=String(value??'');
+        return '"'+text.replace(/"/g,'""')+'"';
+      };
+      const rows=leads.map(l=>[
+        l.id,l.shopName,l.city||'Mangalore',l.place,l.contactName,l.mobile,l.gstNumber,l.businessType,l.address,
+        b2bStatusLabel(l.status),l.potential,l.nextFollowUp,l.currentSupplier,l.products,l.source,
+        l.monthlyPotential,l.notes,l.visitedDate,l.tieUpDate,l.stockPlacedDate,l.createdAt,
+        l.createdBy,l.updatedAt,l.updatedBy
+      ].map(csvEscape).join(','));
+      const csv='\ufeff'+[headers.map(csvEscape).join(','),...rows].join('\r\n');
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      const stamp=new Date().toISOString().slice(0,10);
+      a.href=url;
+      a.download=`Wellwith_B2B_Leads_${stamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      showToast(`Exported ${leads.length} B2B lead${leads.length===1?'':'s'} to CSV for Google Sheets / Excel.`);
+    }
+
     function updateB2BLeadStatus(id,status){
-      if(!superAdminOnly())return; appState=loadState(); const l=appState.b2bLeads.find(x=>x.id===id); if(!l)return; const old=l.status; l.status=status; l.updatedAt=new Date().toISOString(); if(status==='VISITED'&&!l.visitedDate)l.visitedDate=getLocalDateString(); if(status==='TIE_UP'&&!l.tieUpDate)l.tieUpDate=getLocalDateString(); if((status==='STOCK_PLACED'||status==='REPEAT_ORDER')&&!l.stockPlacedDate)l.stockPlacedDate=getLocalDateString(); saveState(appState); addAuditLog('UPDATE_B2B_STATUS','B2B',`${old} → ${status}`,id); renderB2BLeads(); showToast('B2B status updated.');
+      if(!isB2BOwner())return; appState=loadState(); const l=appState.b2bLeads.find(x=>x.id===id); if(!l)return; const old=l.status; l.status=status; l.updatedAt=new Date().toISOString(); if(status==='VISITED'&&!l.visitedDate)l.visitedDate=getLocalDateString(); if(status==='TIE_UP'&&!l.tieUpDate)l.tieUpDate=getLocalDateString(); if((status==='STOCK_PLACED'||status==='REPEAT_ORDER')&&!l.stockPlacedDate)l.stockPlacedDate=getLocalDateString(); saveState(appState); addAuditLog('UPDATE_B2B_STATUS','B2B',`${old} → ${status}`,id); renderB2BLeads(); showToast('B2B status updated.');
     }
 
     function deleteB2BLead(id){
-      if(!superAdminOnly())return; const l=loadState().b2bLeads.find(x=>x.id===id); if(!l)return; if(!confirm(`Delete B2B lead for ${l.shopName}?`))return; appState=loadState(); appState.b2bLeads=appState.b2bLeads.filter(x=>x.id!==id); saveState(appState); addAuditLog('DELETE_B2B_LEAD','B2B',l.shopName,id); renderB2BLeads(); showToast('B2B lead deleted.');
+      if(!isB2BOwner())return; const l=loadState().b2bLeads.find(x=>x.id===id); if(!l)return; if(!confirm(`Delete B2B lead for ${l.shopName}?`))return; appState=loadState(); appState.b2bLeads=appState.b2bLeads.filter(x=>x.id!==id); saveState(appState); addAuditLog('DELETE_B2B_LEAD','B2B',l.shopName,id); renderB2BLeads(); showToast('B2B lead deleted.');
     }
 
     function renderManagementDailySnapshot(){if(!isManagerRole())return;appState=loadState();const today=getLocalDateString(),emps=(appState.employees||[]).filter(e=>!e.archived),todays=(appState.attendance||[]).filter(a=>a.date===today&&a.punchInTime),present=todays.length,onDuty=todays.filter(a=>!a.punchOutTime).length,late=todays.filter(a=>a.isLate&&!a.lateExceptionApproved).length,breaks=todays.filter(a=>(a.breaks||[]).some(b=>!b.end)),cash=(appState.cashDrawerLogs||[]).find(c=>c.date===today),cashDone=!!(cash&&cash.cashClosingConfirmed===true&&cash.nightPhysicalCash!==null&&cash.nightPhysicalCash!==undefined),closing=isStoreNightClosingDoneToday(),enquiries=(appState.customerEnquiries||[]).filter(e=>e.createdAt&&getLocalDateString(new Date(e.createdAt))===today).length,pendingLeave=(appState.leaveRequests||[]).filter(r=>r.status==='PENDING').length,suggestions=(appState.staffSuggestions||[]).filter(s=>s.status==='NEW').length,kpis=[['👥','Present',present],['🟢','On Duty',onDuty],['⏰','Late',late],['🍱','On Break',breaks.length],['💰','Cash',cashDone?'DONE':'PENDING'],['🏁','Closing',closing?'DONE':'PENDING'],['💬','Enquiries',enquiries],['💡','Suggestions',suggestions]],dateEl=document.getElementById('daily-snapshot-date');if(dateEl)dateEl.innerText=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});const grid=document.getElementById('daily-snapshot-kpis');if(grid)grid.innerHTML=kpis.map(k=>`<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-lg">${k[0]}</div><div class="text-[8px] uppercase font-black text-slate-400 mt-1">${k[1]}</div><div class="text-sm font-black text-slate-900 mt-0.5">${k[2]}</div></div>`).join('');const att=document.getElementById('daily-snapshot-attendance');if(att)att.innerHTML=`<div>${present} of ${emps.length} active staff have punched in.</div><div class="mt-1">${onDuty} currently on duty · ${breaks.length} on break · ${late} late marks requiring attention.</div>`;const ops=document.getElementById('daily-snapshot-operations');if(ops)ops.innerHTML=`<div>Cash settlement: <b>${cashDone?'Completed':'Pending'}</b>.</div><div class="mt-1">Night closing: <b>${closing?'Completed':'Pending'}</b> · Customer enquiries today: <b>${enquiries}</b>.</div>`;const attention=[];if(late)attention.push(`⏰ ${late} late mark${late===1?'':'s'} need review.`);if(breaks.length)attention.push(`🍱 ${breaks.length} employee${breaks.length===1?' is':'s are'} currently on break.`);if(!cashDone)attention.push('💰 Daily cash settlement is not locked yet.');if(!closing)attention.push('🏁 Store night closing is not completed.');if(pendingLeave)attention.push(`🏖️ ${pendingLeave} time-off request${pendingLeave===1?'':'s'} pending.`);if(!attention.length)attention.push('✅ No immediate operational items require attention.');const at=document.getElementById('daily-snapshot-attention');if(at)at.innerHTML=attention.map(x=>`<div>${x}</div>`).join('');}
