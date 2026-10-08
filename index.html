@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.4.35 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.36 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -118,7 +118,7 @@
 <span>🏠</span> <span>Dashboard Overview</span>
 </button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-profile')"><span>👤</span> <span>My Profile</span></button>
-<button id="nav-item-b2b" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b')"><span>🏢</span> <span>B2B Leads</span></button>
+<button id="nav-item-b2b" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b')"><span>🏢</span> <span>B2B Leads</span></button><button id="nav-item-b2b-stock-overview" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b-stock-overview')"><span>📋</span> <span>Store Stock Overview</span></button><button id="nav-item-b2b-product-master" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b-product-master')"><span>🧾</span> <span>Product Master</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-salary-slips')"><span>💳</span> <span>My Salary Slips</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-history')">
 <span>📜</span> <span>Shift &amp; Attendance Logs</span>
@@ -1067,7 +1067,10 @@
         <h2 class="text-xl font-black text-slate-900 mt-1">B2B Leads</h2>
         <p class="text-[10px] text-slate-500 mt-1">Private B2B prospect and conversion database.</p>
       </div>
-      <button onclick="renderB2BLeads(); haptic(8)" class="text-[9px] font-black text-amber-800 bg-amber-50 px-2.5 py-2 rounded-xl">Refresh</button>
+      <div class="flex gap-2 shrink-0">
+        <button type="button" onclick="openB2BBusinessForm(); haptic(8)" class="text-[9px] font-black text-white bg-[#05281b] px-2.5 py-2 rounded-xl">＋ Add Business</button>
+        <button onclick="renderB2BLeads(); haptic(8)" class="text-[9px] font-black text-amber-800 bg-amber-50 px-2.5 py-2 rounded-xl">Refresh</button>
+      </div>
     </div>
     <div id="b2b-city-tabs" class="flex gap-2 overflow-x-auto mt-4 pb-1"></div>
     <div id="b2b-kpis" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2"></div>
@@ -1075,12 +1078,14 @@
 
   <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
     <div>
-      <div id="b2b-form-mode" class="text-[9px] font-black uppercase tracking-widest text-emerald-700">New B2B Lead</div>
+      <div id="b2b-form-mode" class="text-[9px] font-black uppercase tracking-widest text-emerald-700">New B2B Business</div>
       <h3 id="b2b-form-title" class="text-sm font-black text-slate-900 mt-1">Add Business</h3>
+      <p class="text-[9px] text-slate-500 mt-1">Create the business / chain account here. Add physical outlets later from Store Stock Overview.</p>
       <input type="hidden" id="b2b-edit-id" value="" />
     </div>
-    <div class="grid sm:grid-cols-2 gap-2">
-      <input id="b2b-shop-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Shop / Business Name *" />
+    <div id="b2b-business-form-grid" class="grid sm:grid-cols-2 gap-2" style="display:grid !important;">
+      <input id="b2b-shop-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Business / Chain Name *" />
+      <input id="b2b-outlet-name" style="display:none" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs" placeholder="Outlet Name / Branch (e.g. Kadri Outlet)" />
       <select id="b2b-city" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs bg-white">
         <option value="Mangalore">Mangalore</option><option value="Mysore">Mysore</option><option value="Udupi">Udupi</option><option value="Bangalore">Bangalore</option>
       </select>
@@ -1125,6 +1130,66 @@
   </div>
 </section>
 
+<!-- ================= B2B STORE STOCK OVERVIEW ================= -->
+<section class="hidden space-y-4" id="page-b2b-stock-overview">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">B2B Stock Management</div>
+        <h2 class="text-xl font-black text-slate-900 mt-1">Store Stock Overview</h2>
+        <p class="text-[10px] text-slate-500 mt-1">All B2B stores with their latest product-wise stock count.</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button type="button" onclick="openB2BOutletAdder(); haptic(8)" class="text-[9px] font-black text-white bg-[#05281b] px-3 py-2 rounded-xl">＋ Add Outlet</button>
+        <button type="button" onclick="renderB2BStockOverview(); haptic(8)" class="text-[9px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-2 rounded-xl">Refresh</button>
+      </div>
+    </div>
+    <div id="b2b-stock-city-tabs" class="flex gap-2 overflow-x-auto mt-4 pb-1"></div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+      <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200"><div class="text-[8px] uppercase font-black text-slate-400">Stores</div><div id="b2b-stock-store-count" class="text-lg font-black text-slate-900 mt-1">0</div></div>
+      <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100"><div class="text-[8px] uppercase font-black text-emerald-700">Products</div><div id="b2b-stock-product-count" class="text-lg font-black text-emerald-900 mt-1">0</div></div>
+      <div class="p-3 rounded-2xl bg-blue-50 border border-blue-100"><div class="text-[8px] uppercase font-black text-blue-700">Units Counted</div><div id="b2b-stock-unit-count" class="text-lg font-black text-blue-900 mt-1">0</div></div>
+      <div class="p-3 rounded-2xl bg-amber-50 border border-amber-100"><div class="text-[8px] uppercase font-black text-amber-700">Last Count</div><div id="b2b-stock-last-count" class="text-xs font-black text-amber-900 mt-2">—</div></div>
+    </div>
+  </div>
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-center justify-between gap-2 flex-wrap">
+      <div><h3 class="text-[10px] font-black uppercase tracking-wider text-slate-900">Store-wise Product Stock</h3><p class="text-[10px] text-slate-400 mt-0.5">Latest physical count for each store.</p></div>
+      <input id="b2b-stock-overview-search" oninput="renderB2BStockOverview()" class="w-40 px-2.5 py-2 border border-slate-200 rounded-xl outline-none text-[10px] font-semibold" placeholder="Search store / product" />
+    </div>
+    <div id="b2b-stock-overview-list" class="mt-3 space-y-2"></div>
+  </div>
+</section>
+
+<!-- ================= B2B ADD OUTLET MODAL ================= -->
+<div id="b2b-outlet-adder" class="hidden fixed inset-0 z-[97] bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl">
+    <div class="p-4 border-b border-slate-100 flex items-start justify-between">
+      <div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">B2B Chain Management</div><h3 class="text-base font-black text-slate-900 mt-1">Add Outlet</h3><p class="text-[9px] text-slate-500 mt-1">Create another outlet under an existing business.</p></div>
+      <button onclick="closeB2BOutletAdder()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 font-black">×</button>
+    </div>
+    <div class="p-4 space-y-3">
+      <select id="b2b-outlet-parent" class="w-full px-3 py-3 border border-slate-200 rounded-xl outline-none text-xs font-semibold bg-white"></select>
+      <input id="b2b-outlet-adder-name" class="w-full px-3 py-3 border border-slate-200 rounded-xl outline-none text-xs font-semibold" placeholder="New outlet / branch name * (e.g. Kottara Outlet)">
+      <div class="grid grid-cols-2 gap-2">
+        <select id="b2b-outlet-adder-city" class="w-full px-3 py-3 border border-slate-200 rounded-xl outline-none text-xs font-semibold bg-white"><option value="Mangalore">Mangalore</option><option value="Mysore">Mysore</option><option value="Udupi">Udupi</option><option value="Bangalore">Bangalore</option></select>
+        <input id="b2b-outlet-adder-place" class="w-full px-3 py-3 border border-slate-200 rounded-xl outline-none text-xs font-semibold" placeholder="Place / Area *">
+      </div>
+      <div class="flex gap-2 pt-1"><button onclick="closeB2BOutletAdder()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-2xl text-xs font-black">Cancel</button><button onclick="createB2BOutletFromAdder()" class="flex-1 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">Create Outlet</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= B2B PRODUCT MASTER ================= -->
+<section class="hidden space-y-4" id="page-b2b-product-master">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+    <div class="flex items-start justify-between gap-3"><div><div class="text-[9px] font-black uppercase tracking-widest text-blue-700">B2B Product Master</div><h2 class="text-xl font-black text-slate-900 mt-1">Products</h2><p class="text-[10px] text-slate-500 mt-1">Add a product once. It will appear in the stock-count dropdown for every B2B store.</p></div><button onclick="openB2BProductEditor()" class="shrink-0 px-3 py-2 rounded-xl bg-[#05281b] text-white text-[9px] font-black">＋ Add Product</button></div>
+    <div class="mt-3 p-3 rounded-2xl bg-blue-50 border border-blue-100 text-[9px] font-semibold text-blue-900">🔄 Synced through Firebase · Active products appear automatically across all B2B stock-count forms.</div>
+  </div>
+  <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm"><input id="b2b-product-master-search" oninput="renderB2BProductMaster()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none text-xs font-semibold" placeholder="Search products"><div id="b2b-product-master-list" class="mt-3 space-y-2"></div></div>
+</section>
+<div id="b2b-product-editor" class="hidden fixed inset-0 z-[98] bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"><div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl"><div class="p-4 border-b border-slate-100 flex items-start justify-between"><div><div class="text-[9px] font-black uppercase tracking-widest text-blue-700">Product Master</div><h3 id="b2b-product-editor-title" class="text-base font-black text-slate-900 mt-1">Add Product</h3></div><button onclick="closeB2BProductEditor()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 font-black">×</button></div><div class="p-4 space-y-3"><input type="hidden" id="b2b-product-edit-id"><input id="b2b-product-edit-name" class="w-full px-3 py-3 border border-slate-200 rounded-xl outline-none text-xs font-semibold" placeholder="Product name"><div class="flex gap-2"><button onclick="closeB2BProductEditor()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-2xl text-xs font-black">Cancel</button><button onclick="saveB2BProductMaster()" class="flex-1 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">Save Product</button></div></div></div></div>
+
 <!-- ================= B2B STOCK COUNT MODAL ================= -->
 <div id="b2b-stock-modal" class="hidden fixed inset-0 z-[96] bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
   <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto">
@@ -1137,7 +1202,7 @@
       <button type="button" onclick="closeB2BStockModal()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 font-black">×</button>
     </div>
     <div class="p-4 space-y-3">
-      <input type="hidden" id="b2b-stock-lead-id" value="">
+      <input type="hidden" id="b2b-stock-lead-id" value=""><input type="hidden" id="b2b-stock-visit-id" value="">
       <div class="grid grid-cols-2 gap-2">
         <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><div class="text-[8px] uppercase font-black text-slate-400">Visit Date</div><input id="b2b-stock-date" type="date" class="w-full mt-1 bg-transparent text-xs font-black outline-none"></div>
         <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><div class="text-[8px] uppercase font-black text-slate-400">Visited By</div><div id="b2b-stock-rep" class="text-xs font-black text-slate-800 mt-1">—</div></div>
@@ -1145,7 +1210,21 @@
       <div class="flex items-center justify-between"><div><h4 class="text-xs font-black text-slate-900">Products & Quantity</h4><p class="text-[9px] text-slate-400">Enter the physical stock counted at the store.</p></div><button type="button" onclick="addB2BStockRow()" class="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 text-[9px] font-black">＋ Add Product</button></div>
       <div id="b2b-stock-rows" class="space-y-2"></div>
       <textarea id="b2b-stock-notes" rows="2" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl outline-none font-semibold text-xs resize-none" placeholder="Visit / stock notes (optional)"></textarea>
-      <div class="flex gap-2 pt-1"><button type="button" onclick="closeB2BStockModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-2xl text-xs font-black">Cancel</button><button type="button" onclick="saveB2BStockCount(); haptic(10)" class="flex-1 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black">Save Stock Count</button></div>
+      <div class="flex gap-2 pt-1"><button type="button" onclick="closeB2BStockModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-2xl text-xs font-black">Cancel</button><button type="button" onclick="saveB2BStockCount(); haptic(10)" class="flex-1 py-3 bg-[#05281b] text-white rounded-2xl text-xs font-black"><span id="b2b-stock-save-label">Save Stock Count</span></button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= B2B STOCK VIEW MODAL ================= -->
+<div id="b2b-stock-view-modal" class="hidden fixed inset-0 z-[97] bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto">
+    <div class="p-4 border-b border-slate-100 flex items-start justify-between gap-3">
+      <div><div class="text-[9px] font-black uppercase tracking-widest text-emerald-700">B2B · Stock History</div><h3 id="b2b-stock-view-title" class="text-base font-black text-slate-900 mt-1">Product Stock</h3><p id="b2b-stock-view-subtitle" class="text-[10px] text-slate-500 mt-1"></p></div>
+      <button type="button" onclick="closeB2BStockView()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 font-black">×</button>
+    </div>
+    <div class="p-4 space-y-3">
+      <div class="flex items-center justify-between"><div><h4 class="text-xs font-black text-slate-900">Product Stock Counts</h4><p class="text-[9px] text-slate-400">Separate view for clean stock monitoring.</p></div><button type="button" id="b2b-stock-view-add" class="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 text-[9px] font-black">＋ New Count</button></div>
+      <div id="b2b-stock-history-list" class="space-y-2"></div>
     </div>
   </div>
 </div>
@@ -1678,7 +1757,12 @@
       deletedEmployeeIds: [],
       deletedEmployeeCodes: [],
       salarySlips: [],
-      b2bLeads: []
+      b2bLeads: [],
+      b2bProducts: [
+        { id: 'B2BPROD-JUICE', name: 'Wellwith Sea Buckthorn Juice — 300 ml', active: true, createdAt: '2026-01-01T00:00:00.000Z' },
+        { id: 'B2BPROD-CAPSULES', name: 'Wellwith Sea Buckthorn Oil Capsules', active: true, createdAt: '2026-01-01T00:00:00.000Z' },
+        { id: 'B2BPROD-OIL', name: 'Wellwith Sea Buckthorn Nourishing Oil', active: true, createdAt: '2026-01-01T00:00:00.000Z' }
+      ]
     };
 
     // Employee identity integrity: one account per phone, one account per employee code.
@@ -1869,6 +1953,8 @@
       if (!Array.isArray(parsed.deletedEmployeeIds)) parsed.deletedEmployeeIds = [];
       if (!Array.isArray(parsed.salarySlips)) parsed.salarySlips = [];
       if (!Array.isArray(parsed.b2bLeads)) parsed.b2bLeads = [];
+      parsed.b2bLeads.forEach(l=>{ if(l && !l.parentAccountName) l.parentAccountName=l.shopName||''; if(l && !l.outletName) l.outletName=l.place||'Main Outlet'; });
+      if(!Array.isArray(parsed.b2bProducts)) parsed.b2bProducts=[{id:'B2BPROD-JUICE',name:'Wellwith Sea Buckthorn Juice — 300 ml',active:true},{id:'B2BPROD-CAPSULES',name:'Wellwith Sea Buckthorn Oil Capsules',active:true},{id:'B2BPROD-OIL',name:'Wellwith Sea Buckthorn Nourishing Oil',active:true}];
       reconcileEmployeeRecords(parsed);
       ensureEmployeeCodes(parsed);
       if (!Array.isArray(parsed.securityEvents)) parsed.securityEvents = [];
@@ -1878,7 +1964,6 @@
       parsed.storeConfig = { ...defaultState.storeConfig, ...parsed.storeConfig };
       return parsed;
     }
-
     function getLocalDateString(date = new Date()) {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -1947,7 +2032,7 @@
       return !!(currentAuthUser && (currentAuthUser.phone === '8088504219' || currentAuthUser.role === 'SUPER_ADMIN'));
     }
 
-    // v1.4.35: B2B includes mobile stock-count visits with product/quantity entries.
+    // v1.4.42: B2B supports chain accounts with outlet-wise stock tracking. v1.4.36: B2B includes mobile stock-count visits with product/quantity entries.
     // v1.4.33: B2B Leads is available to Root Super Admin and OWNER accounts.
     // STAFF accounts do not get the B2B option.
     function isB2BOwner() {
@@ -2092,7 +2177,7 @@
 
       const allPages = [
         'page-welcome', 'page-login', 'page-dashboard', 'page-profile', 'page-salary-slips', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones', 'page-knowledge',
-        'page-b2b', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
+        'page-b2b', 'page-b2b-stock-overview', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
       ];
       allPages.forEach(id => {
         const el = document.getElementById(id);
@@ -2131,7 +2216,7 @@
 
         if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
         else if (pageId === 'page-profile') { titleEl.innerText = 'My Profile'; subtitleEl.innerText = 'Employee Details'; }
-        else if (pageId === 'page-b2b') { titleEl.innerText = 'B2B Leads'; subtitleEl.innerText = 'Private B2B Database'; }
+        else if (pageId === 'page-b2b') { titleEl.innerText = 'B2B Leads'; subtitleEl.innerText = 'Private B2B Database'; } else if (pageId === 'page-b2b-stock-overview') { titleEl.innerText = 'Store Stock Overview'; subtitleEl.innerText = 'B2B Product Stock'; }
         else if (pageId === 'page-salary-slips') { titleEl.innerText = 'My Salary Slips'; subtitleEl.innerText = 'Salary Records'; }
         else if (pageId === 'page-history') { titleEl.innerText = 'Attendance Logs'; subtitleEl.innerText = 'Transparency Ledger'; }
         else if (pageId === 'page-leaves') { titleEl.innerText = 'Holidays & Offs'; subtitleEl.innerText = 'Requests & Status'; }
@@ -2163,7 +2248,7 @@
       });
 
       if (pageId === 'page-dashboard') renderEmployeePersonalData();
-      else if (pageId === 'page-b2b') renderB2BLeads();
+      else if (pageId === 'page-b2b') renderB2BLeads(); else if (pageId === 'page-b2b-stock-overview') renderB2BStockOverview();
       else if (pageId === 'page-profile') renderProfilePage();
       else if (pageId === 'page-salary-slips') renderMySalarySlips();
       else if (pageId === 'page-history') renderPersonalLedgerView();
@@ -2184,6 +2269,7 @@
       else if (pageId === 'page-daily-snapshot') renderManagementDailySnapshot();
       else if (pageId === 'page-store-brain') renderStoreBrain();
       else if (pageId === 'page-action-center') renderActionCenter();
+      else if (pageId === 'page-b2b-product-master') renderB2BProductMaster();
       else if (pageId === 'page-admin-desk') { switchAdminTab(isSuperAdmin() ? 'simple-people' : 'simple-attendance'); }
     }
 
@@ -2680,8 +2766,13 @@
       document.getElementById('side-cat-admin').classList.toggle('hidden', !isLead);
       const superCat = document.getElementById('side-cat-superadmin');
       if (superCat) superCat.classList.toggle('hidden', !isSuperAdmin());
+      const b2bAccess = isB2BOwner();
       const b2bNav = document.getElementById('nav-item-b2b');
-      if (b2bNav) b2bNav.classList.toggle('hidden', !isB2BOwner());
+      if (b2bNav) b2bNav.classList.toggle('hidden', !b2bAccess);
+      const b2bStockNav = document.getElementById('nav-item-b2b-stock-overview');
+      if (b2bStockNav) b2bStockNav.classList.toggle('hidden', !b2bAccess);
+      const b2bProductNav = document.getElementById('nav-item-b2b-product-master');
+      if (b2bProductNav) b2bProductNav.classList.toggle('hidden', !b2bAccess);
 
       updateLockPills();
       renderStaffNotifications();
@@ -6891,6 +6982,92 @@
     function b2bStatusLabel(status){ return B2B_STATUS_LABELS[status] || status || 'Lead'; }
     function b2bStatusClass(status){ return B2B_STATUS_CLASSES[status] || 'bg-slate-100 text-slate-700'; }
 
+    function renderB2BStockOverview(){
+      if(!isB2BOwner()) return;
+      appState=loadState();
+      const leads=Array.isArray(appState.b2bLeads)?appState.b2bLeads:[];
+      const cityFilter=window.b2bStockOverviewCityFilter||'ALL';
+      const q=(document.getElementById('b2b-stock-overview-search')?.value||'').trim().toLowerCase();
+      const cityOf=l=>String(l.city||'Mangalore');
+      const cityLeads=leads.filter(l=>cityFilter==='ALL'||cityOf(l)===cityFilter);
+      const filtered=cityLeads.filter(l=>{
+        if(!q)return true;
+        const latest=(Array.isArray(l.stockVisits)?l.stockVisits:[]).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
+        const items=Array.isArray(latest?.items)?latest.items:[];
+        return [l.parentAccountName,l.shopName,l.outletName,l.city,l.place,...items.map(i=>i.product)].some(v=>String(v||'').toLowerCase().includes(q));
+      });
+      const tabs=document.getElementById('b2b-stock-city-tabs');
+      if(tabs){const cities=[['ALL','All Cities'],['Mangalore','Mangalore'],['Mysore','Mysore'],['Udupi','Udupi'],['Bangalore','Bangalore']];tabs.innerHTML=cities.map(([v,label])=>`<button type="button" onclick="filterB2BStockOverviewCity('${v}'); haptic(6)" class="shrink-0 px-3 py-2 rounded-xl border text-[9px] font-black ${cityFilter===v?'bg-[#05281b] text-white border-[#05281b]':'bg-white text-slate-600 border-slate-200'}">${label}</button>`).join('');}
+      let productSet=new Set(), totalUnits=0, lastCount='—';
+      filtered.forEach(l=>{const visits=Array.isArray(l.stockVisits)?l.stockVisits:[];const latest=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];if(latest){if(String(latest.date||'')>String(lastCount))lastCount=latest.date||'—';(latest.items||[]).forEach(i=>{productSet.add(String(i.product||'').trim());totalUnits+=Number(i.quantity)||0;});}});
+      const setText=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;}; setText('b2b-stock-store-count',filtered.length);setText('b2b-stock-product-count',productSet.size);setText('b2b-stock-unit-count',totalUnits);setText('b2b-stock-last-count',lastCount);
+      const list=document.getElementById('b2b-stock-overview-list'); if(!list)return;
+      if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No B2B stores found.</div>';return;}
+      list.innerHTML=filtered.map(l=>{
+        const visits=Array.isArray(l.stockVisits)?l.stockVisits:[];const latest=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];const items=Array.isArray(latest?.items)?latest.items:[];const total=items.reduce((sum,i)=>sum+(Number(i.quantity)||0),0);
+        return `<div class="p-3 rounded-2xl border border-slate-200 bg-white hover:border-emerald-200 transition"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(l.parentAccountName||l.shopName||'Unnamed Account')}</div><div class="text-[9px] font-black text-emerald-800 mt-0.5">🏪 ${escapeHtml(l.outletName||l.place||'Main Outlet')}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${escapeHtml(l.city||'Mangalore')} · ${escapeHtml(l.place||'—')}</div></div><div class="flex gap-1.5 shrink-0"><button type="button" onclick="openB2BStockView('${l.id}')" class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-800 text-[9px] font-black">View Stock</button><button type="button" onclick="deleteB2BStockLocation('${l.id}')" class="px-2.5 py-2 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-[9px] font-black">Delete</button></div></div>${items.length?`<div class="mt-3 overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="text-[8px] uppercase tracking-wide text-slate-400"><th class="pb-2 pr-3">Product</th><th class="pb-2 text-right">Qty</th></tr></thead><tbody>${items.map(i=>`<tr class="border-t border-slate-100"><td class="py-2 pr-3 text-[10px] font-bold text-slate-700">${escapeHtml(i.product||'—')}</td><td class="py-2 text-right text-sm font-black text-emerald-800">${Number(i.quantity)||0}</td></tr>`).join('')}</tbody></table></div><div class="mt-2 text-[8px] text-slate-400 flex justify-between"><span>Last count: ${escapeHtml(latest?.date||'—')}</span><span>${items.length} products · ${total} units</span></div>`:`<div class="mt-3 p-3 rounded-xl bg-slate-50 text-[9px] text-slate-400">No stock count recorded yet.</div>`}</div>`;
+      }).join('');
+    }
+    function filterB2BStockOverviewCity(city){window.b2bStockOverviewCityFilter=city||'ALL';renderB2BStockOverview();}
+    async function deleteB2BStockLocation(id){
+      if(!isB2BOwner()) return showToast('B2B access required.',true);
+      if(!cloudDb || !cloudStateLoaded) return showToast('Firebase connection is required.',true);
+      appState=loadState();
+      const outletsRaw=appState.b2bOutlets;
+      const outletList=Array.isArray(outletsRaw)?outletsRaw:(outletsRaw&&typeof outletsRaw==='object'?Object.values(outletsRaw):[]);
+      const outlet=outletList.find(x=>String(x?.id||'')===String(id));
+      const lead=(appState.b2bLeads||[]).find(x=>String(x?.id||'')===String(id));
+      const target=outlet||lead;
+      if(!target) return showToast('Stock location not found.',true);
+      const label=target.outletName||target.place||'this outlet';
+      if(!confirm(`Delete ${label}? This removes this stock location and its stock history. This cannot be undone.`)) return;
+      try{
+        if(outlet){
+          await cloudDb.ref(`storeState/b2bOutlets/${outlet.id}`).remove();
+        }else if(lead){
+          await cloudDb.ref(`storeState/b2bLeads/${lead.id}`).remove();
+        }
+        addAuditLog('DELETE_B2B_STOCK_LOCATION','B2B',`${target.parentAccountName||target.shopName||''} · ${label}`);
+        await new Promise(r=>setTimeout(r,150));
+        appState=loadState();
+        renderB2BStockOverview();
+        showToast(`${label} deleted.`);
+      }catch(e){ console.error('Delete B2B stock location failed:',e); showToast('Could not delete the stock location.',true); }
+    }
+
+    function openB2BOutletAdder(){
+      if(!isB2BOwner()){showToast('B2B access required.',true);return;}
+      appState=loadState();
+      const parents=[...new Set((appState.b2bLeads||[]).map(l=>String(l.parentAccountName||l.shopName||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      const sel=document.getElementById('b2b-outlet-parent');
+      if(sel){
+        sel.innerHTML=parents.length?parents.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join(''):'<option value="">No existing business found</option>';
+      }
+      const name=document.getElementById('b2b-outlet-adder-name'); if(name)name.value='';
+      const place=document.getElementById('b2b-outlet-adder-place'); if(place)place.value='';
+      document.getElementById('b2b-outlet-adder')?.classList.remove('hidden');
+    }
+    function closeB2BOutletAdder(){document.getElementById('b2b-outlet-adder')?.classList.add('hidden');}
+    function createB2BOutletFromAdder(){
+      if(!isB2BOwner()){showToast('B2B access required.',true);return;}
+      const parent=document.getElementById('b2b-outlet-parent')?.value.trim()||'';
+      const outlet=document.getElementById('b2b-outlet-adder-name')?.value.trim()||'';
+      const city=document.getElementById('b2b-outlet-adder-city')?.value||'Mangalore';
+      const place=document.getElementById('b2b-outlet-adder-place')?.value.trim()||'';
+      if(!parent)return showToast('Select an existing business first.',true);
+      if(!outlet||!place)return showToast('Enter outlet name and place/area.',true);
+      closeB2BOutletAdder();
+      resetB2BForm();
+      document.getElementById('b2b-shop-name').value=parent;
+      document.getElementById('b2b-outlet-name').value=outlet;
+      document.getElementById('b2b-city').value=city;
+      document.getElementById('b2b-place').value=place;
+      document.getElementById('b2b-form-mode').innerText='New Outlet';
+      document.getElementById('b2b-form-title').innerText=`Add Outlet under ${parent}`;
+      document.getElementById('b2b-form-title').scrollIntoView({behavior:'smooth',block:'center'});
+      showToast(`Outlet ready to add under ${parent}. Fill the remaining details and save.`);
+    }
+
     function renderB2BLeads(){
       if(!isB2BOwner()) return;
       appState=loadState();
@@ -6927,7 +7104,7 @@
         const due=l.nextFollowUp && l.nextFollowUp<=getLocalDateString();
         return `<div class="p-3 rounded-2xl border border-slate-200 bg-white">
           <div class="flex items-start justify-between gap-2">
-            <div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(l.shopName)}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${escapeHtml(l.city||'Mangalore')} · ${escapeHtml(l.place)}${l.businessType?' · '+escapeHtml(l.businessType):''}</div></div>
+            <div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(l.parentAccountName||l.shopName)}</div><div class="text-[9px] text-slate-500 mt-0.5">🏪 ${escapeHtml(l.outletName||l.place||'Main Outlet')} · 📍 ${escapeHtml(l.city||'Mangalore')} · ${escapeHtml(l.place)}${l.businessType?' · '+escapeHtml(l.businessType):''}</div></div>
             <span class="shrink-0 text-[8px] font-black px-2 py-1 rounded-full ${b2bStatusClass(l.status)}">${b2bStatusLabel(l.status)}</span>
           </div>
           <div class="grid grid-cols-2 gap-2 mt-3 text-[9px]">
@@ -6940,7 +7117,7 @@
           </div>
           ${l.products||l.notes?`<div class="mt-2 p-2.5 rounded-xl bg-slate-50 text-[9px] text-slate-600">${l.products?`<div><b>Products:</b> ${escapeHtml(l.products)}</div>`:''}${l.notes?`<div class="mt-1"><b>Notes:</b> ${escapeHtml(l.notes)}</div>`:''}</div>`:''}
           ${b2bStockSummaryHtml(l)}
-          <div class="flex gap-2 mt-3 flex-wrap"><button type="button" onclick="openB2BStockModal('${l.id}')" class="flex-1 min-w-[120px] px-3 py-2 bg-emerald-50 text-emerald-800 rounded-xl text-[9px] font-black border border-emerald-100">📦 Stock Count</button><select onchange="updateB2BLeadStatus('${l.id}',this.value)" class="flex-1 px-2 py-2 border border-slate-200 rounded-xl text-[9px] font-black bg-white"><option value="LEAD" ${l.status==='LEAD'?'selected':''}>Lead</option><option value="VISITED" ${l.status==='VISITED'?'selected':''}>Visited</option><option value="TIE_UP" ${l.status==='TIE_UP'?'selected':''}>Tie-Up Done</option><option value="STOCK_PLACED" ${l.status==='STOCK_PLACED'?'selected':''}>Stock Placed</option><option value="REPEAT_ORDER" ${l.status==='REPEAT_ORDER'?'selected':''}>Repeat Order</option></select><button onclick="editB2BLead('${l.id}')" class="px-3 py-2 bg-amber-50 text-amber-800 rounded-xl text-[9px] font-black">Edit</button><button onclick="deleteB2BLead('${l.id}')" class="px-3 py-2 bg-red-50 text-red-700 rounded-xl text-[9px] font-black">Delete</button></div>
+          <div class="flex gap-2 mt-3 flex-wrap"><button type="button" onclick="openB2BStockModal('${l.id}')" class="flex-1 min-w-[105px] px-3 py-2 bg-emerald-50 text-emerald-800 rounded-xl text-[9px] font-black border border-emerald-100">＋ Stock Count</button><button type="button" onclick="openB2BStockView('${l.id}')" class="flex-1 min-w-[105px] px-3 py-2 bg-slate-50 text-slate-700 rounded-xl text-[9px] font-black border border-slate-200">📦 View Stock</button><select onchange="updateB2BLeadStatus('${l.id}',this.value)" class="flex-1 px-2 py-2 border border-slate-200 rounded-xl text-[9px] font-black bg-white"><option value="LEAD" ${l.status==='LEAD'?'selected':''}>Lead</option><option value="VISITED" ${l.status==='VISITED'?'selected':''}>Visited</option><option value="TIE_UP" ${l.status==='TIE_UP'?'selected':''}>Tie-Up Done</option><option value="STOCK_PLACED" ${l.status==='STOCK_PLACED'?'selected':''}>Stock Placed</option><option value="REPEAT_ORDER" ${l.status==='REPEAT_ORDER'?'selected':''}>Repeat Order</option></select><button onclick="editB2BLead('${l.id}')" class="px-3 py-2 bg-amber-50 text-amber-800 rounded-xl text-[9px] font-black">Edit</button><button onclick="deleteB2BLead('${l.id}')" class="px-3 py-2 bg-red-50 text-red-700 rounded-xl text-[9px] font-black">Delete</button></div>
         </div>`;
       }).join('');
     }
@@ -6960,16 +7137,50 @@
 
     function b2bStockSummaryHtml(lead){
       const visits=Array.isArray(lead?.stockVisits)?lead.stockVisits:[];
-      if(!visits.length) return '<div class="mt-2 p-2.5 rounded-xl border border-dashed border-slate-200 text-[9px] text-slate-400">📦 No stock count recorded yet.</div>';
+      if(!visits.length) return '<div class="mt-2 text-[9px] text-slate-400">📦 No stock count recorded yet.</div>';
       const latest=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
       const items=Array.isArray(latest?.items)?latest.items:[];
       const total=items.reduce((sum,i)=>sum+(Number(i.quantity)||0),0);
-      return `<div class="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-[9px] text-emerald-900"><div class="flex items-center justify-between gap-2"><b>📦 Latest Stock Count</b><span>${escapeHtml(latest.date||'—')}</span></div><div class="mt-1 font-semibold">${items.length} product${items.length===1?'':'s'} · ${total} total units</div><div class="mt-1 text-emerald-800">${items.slice(0,4).map(i=>`${escapeHtml(i.product)}: <b>${Number(i.quantity)||0}</b>`).join(' · ')}${items.length>4?' · …':''}</div></div>`;
+      return `<div class="mt-2 flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200"><div><div class="text-[9px] font-black text-slate-700">📦 ${escapeHtml(lead.outletName||lead.place||'Main Outlet')} · Stock available</div><div class="text-[9px] text-slate-400 mt-0.5">Last count ${escapeHtml(latest?.date||'—')} · ${items.length} products · ${total} units</div></div><button type="button" onclick="openB2BStockView('${lead.id}')" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-emerald-800 text-[9px] font-black">View Stock</button></div>`;
     }
 
+    function openB2BStockView(id){
+      if(!isB2BOwner()){showToast('B2B access required.',true);return;}
+      appState=loadState(); const lead=(appState.b2bLeads||[]).find(x=>String(x.id)===String(id)); if(!lead){showToast('B2B lead not found.',true);return;}
+      const modal=document.getElementById('b2b-stock-view-modal'); if(!modal)return;
+      document.getElementById('b2b-stock-view-title').innerText=`Product Stock · ${lead.parentAccountName||lead.shopName||'Store'}`;
+      document.getElementById('b2b-stock-view-subtitle').innerText=`🏪 ${lead.outletName||lead.place||'Main Outlet'} · ${lead.city||'Mangalore'} · ${lead.place||''}`;
+      document.getElementById('b2b-stock-view-subtitle').innerText=`${lead.city||'Mangalore'} · ${lead.place||''}`;
+      document.getElementById('b2b-stock-view-add').onclick=()=>{closeB2BStockView();openB2BStockModal(lead.id);};
+      const visits=Array.isArray(lead.stockVisits)?lead.stockVisits:[]; const list=document.getElementById('b2b-stock-history-list');
+      if(!visits.length){list.innerHTML='<div class="p-5 rounded-2xl border border-dashed border-slate-200 text-center text-[10px] text-slate-400">No stock count recorded for this store yet.</div>';}
+      else {
+        const sorted=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')));
+        list.innerHTML=sorted.map((v,idx)=>{const items=Array.isArray(v.items)?v.items:[]; const total=items.reduce((sum,i)=>sum+(Number(i.quantity)||0),0); return `<div class="p-3 rounded-2xl border ${idx===0?'border-emerald-200 bg-emerald-50/60':'border-slate-200 bg-white'}"><div class="flex items-center justify-between gap-2"><div class="text-[10px] font-black text-slate-800">${escapeHtml(v.date||'—')}</div><div class="flex items-center gap-1"><span class="text-[9px] font-black text-slate-400 mr-1">${items.length} products · ${total} units</span><button type="button" onclick="editB2BStockEntry('${lead.id}','${v.id}')" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-black">Edit</button><button type="button" onclick="deleteB2BStockEntry('${lead.id}','${v.id}')" class="px-2 py-1 rounded-lg bg-red-50 text-red-700 border border-red-100 text-[8px] font-black">Delete</button></div></div><div class="mt-2 grid grid-cols-2 gap-2">${items.map(i=>`<div class="p-2 rounded-xl bg-white border border-slate-100"><div class="text-[9px] font-black text-slate-700 truncate">${escapeHtml(i.product||'—')}</div><div class="text-base font-black text-emerald-800 mt-0.5">${Number(i.quantity)||0}</div><div class="text-[8px] text-slate-400">units</div></div>`).join('')}</div>${v.repName?`<div class="mt-2 text-[8px] text-slate-400">Counted by ${escapeHtml(v.repName)}</div>`:''}${v.notes?`<div class="mt-2 p-2 rounded-xl bg-slate-50 text-[9px] text-slate-500"><b>Notes:</b> ${escapeHtml(v.notes)}</div>`:''}</div>`;}).join('');
+      }
+      modal.classList.remove('hidden');
+    }
+    function closeB2BStockView(){document.getElementById('b2b-stock-view-modal')?.classList.add('hidden');}
+
+    function openB2BProductEditor(id=''){
+      if(!isB2BOwner()) return showToast('B2B access required.',true); appState=loadState(); const item=(appState.b2bProducts||[]).find(x=>String(x.id)===String(id));
+      document.getElementById('b2b-product-edit-id').value=item?.id||''; document.getElementById('b2b-product-edit-name').value=item?.name||''; document.getElementById('b2b-product-editor-title').innerText=item?'Edit Product':'Add Product'; document.getElementById('b2b-product-editor').classList.remove('hidden');
+    }
+    function closeB2BProductEditor(){document.getElementById('b2b-product-editor')?.classList.add('hidden');}
+    async function saveB2BProductMaster(){
+      if(!isB2BOwner())return showToast('B2B access required.',true); if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
+      const id=document.getElementById('b2b-product-edit-id')?.value||'', name=document.getElementById('b2b-product-edit-name')?.value.trim()||''; if(!name)return showToast('Enter a product name.',true); const now=new Date().toISOString();
+      try{const result=await cloudDb.ref('storeState/b2bProducts').transaction(list=>{list=Array.isArray(list)?list:[];if(list.some(x=>String(x?.name||'').trim().toLowerCase()===name.toLowerCase()&&String(x?.id||'')!==String(id)))return list;if(id){const i=list.findIndex(x=>String(x?.id)===String(id));if(i>=0)list[i]={...list[i],name,updatedAt:now,updatedBy:currentAuthUser.id};}else list.unshift({id:'B2BPROD-'+Date.now(),name,active:true,createdAt:now,createdBy:currentAuthUser.id});return list.slice(0,200);});if(!result.committed)return showToast('Product could not be saved.',true);appState=loadState();appState.b2bProducts=Array.isArray(result.snapshot.val())?result.snapshot.val():[];cloudBaselineState=cloneCloudSafe(appState);closeB2BProductEditor();renderB2BProductMaster();showToast(id?'Product updated.':'Product added and synced to all B2B stores.');try{addAuditLog(id?'EDIT_B2B_PRODUCT':'ADD_B2B_PRODUCT','B2B',JSON.stringify({id,name}),id||name);}catch(e){}}catch(e){console.error(e);showToast('Could not save product.',true);}
+    }
+    async function toggleB2BProduct(id){
+      if(!isB2BOwner())return;if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);const now=new Date().toISOString();try{const result=await cloudDb.ref('storeState/b2bProducts').transaction(list=>{list=Array.isArray(list)?list:[];const i=list.findIndex(x=>String(x?.id)===String(id));if(i<0)return list;list[i]={...list[i],active:list[i].active===false,updatedAt:now,updatedBy:currentAuthUser.id};return list;});if(!result.committed)return;appState=loadState();appState.b2bProducts=Array.isArray(result.snapshot.val())?result.snapshot.val():[];cloudBaselineState=cloneCloudSafe(appState);renderB2BProductMaster();showToast('Product status updated.');}catch(e){showToast('Could not update product.',true);}
+    }
+    function renderB2BProductMaster(){
+      if(!isB2BOwner())return;appState=loadState();const q=(document.getElementById('b2b-product-master-search')?.value||'').trim().toLowerCase(),list=document.getElementById('b2b-product-master-list');if(!list)return;const items=(appState.b2bProducts||[]).filter(x=>!q||String(x.name||'').toLowerCase().includes(q));list.innerHTML=items.length?items.map(x=>`<div class="p-3 rounded-2xl border border-slate-200 bg-white flex items-center justify-between gap-3"><div class="min-w-0"><div class="text-xs font-black text-slate-900 truncate">${escapeHtml(x.name)}</div><div class="text-[8px] font-black uppercase mt-1 ${x.active===false?'text-slate-400':'text-emerald-700'}">${x.active===false?'Inactive':'Active · Synced'}</div></div><div class="flex gap-1.5 shrink-0"><button onclick="openB2BProductEditor('${x.id}')" class="px-2.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-[9px] font-black">Edit</button><button onclick="toggleB2BProduct('${x.id}')" class="px-2.5 py-2 rounded-xl ${x.active===false?'bg-emerald-50 text-emerald-800':'bg-red-50 text-red-700'} text-[9px] font-black">${x.active===false?'Activate':'Deactivate'}</button></div></div>`).join(''):'<div class="p-6 text-center text-[10px] text-slate-400">No products found.</div>';
+    }
     function b2bProductOptionsHtml(selected=''){
-      const knowledge=Array.isArray(appState?.productKnowledge)?appState.productKnowledge:[];
-      const names=[...new Set(knowledge.filter(x=>x&&x.category==='PRODUCT').map(x=>String(x.title||'').trim()).filter(Boolean))];
+      const products=Array.isArray(appState?.b2bProducts)?appState.b2bProducts:[];
+      const names=[...new Set(products.filter(x=>x&&x.active!==false).map(x=>String(x.name||'').trim()).filter(Boolean))];
       return `<option value="">Product name</option>${names.map(n=>`<option value="${escapeHtml(n)}" ${n===selected?'selected':''}>${escapeHtml(n)}</option>`).join('')}<option value="__CUSTOM__">＋ Custom product</option>`;
     }
 
@@ -6986,26 +7197,33 @@
       select.replaceWith(input); input.focus();
     }
 
-    function openB2BStockModal(id){
+    function openB2BStockModal(id,visitId=''){
       if(!isB2BOwner()){showToast('B2B access required.',true);return;}
       appState=loadState(); const lead=(appState.b2bLeads||[]).find(x=>String(x.id)===String(id)); if(!lead){showToast('B2B lead not found.',true);return;}
       const modal=document.getElementById('b2b-stock-modal'); if(!modal)return;
+      const visit=visitId ? (Array.isArray(lead.stockVisits)?lead.stockVisits:[]).find(v=>String(v.id)===String(visitId)) : null;
       document.getElementById('b2b-stock-lead-id').value=lead.id;
-      document.getElementById('b2b-stock-modal-title').innerText=`Stock Count · ${lead.shopName||'Store'}`;
-      document.getElementById('b2b-stock-modal-subtitle').innerText=`${lead.city||'Mangalore'} · ${lead.place||''}`;
-      document.getElementById('b2b-stock-date').value=getLocalDateString();
-      document.getElementById('b2b-stock-rep').innerText=currentAuthUser?.name||'Current user';
-      document.getElementById('b2b-stock-notes').value='';
-      const rows=document.getElementById('b2b-stock-rows'); rows.innerHTML=''; addB2BStockRow();
+      document.getElementById('b2b-stock-visit-id').value=visit?.id||'';
+      document.getElementById('b2b-stock-modal-title').innerText=`${visit?'Edit Stock Count':'Stock Count'} · ${lead.parentAccountName||lead.shopName||'Store'}`;
+      document.getElementById('b2b-stock-modal-subtitle').innerText=`🏪 ${lead.outletName||lead.place||'Main Outlet'} · ${lead.city||'Mangalore'} · ${lead.place||''}`;
+      document.getElementById('b2b-stock-date').value=visit?.date||getLocalDateString();
+      document.getElementById('b2b-stock-rep').innerText=visit?.repName||currentAuthUser?.name||'Current user';
+      document.getElementById('b2b-stock-notes').value=visit?.notes||'';
+      const rows=document.getElementById('b2b-stock-rows'); rows.innerHTML='';
+      const items=Array.isArray(visit?.items)?visit.items:[]; (items.length?items:[{}]).forEach(i=>{
+        if(i.product && !b2bProductOptionsHtml().includes(`value="${escapeHtml(i.product)}"`)) addB2BStockRow();
+        addB2BStockRow(i.product||'',i.quantity??'');
+      });
+      if(!items.length){rows.innerHTML='';addB2BStockRow();}
+      const label=document.getElementById('b2b-stock-save-label');if(label)label.innerText=visit?'Update Stock Count':'Save Stock Count';
       modal.classList.remove('hidden');
     }
-
     function closeB2BStockModal(){document.getElementById('b2b-stock-modal')?.classList.add('hidden');}
 
     async function saveB2BStockCount(){
       if(!isB2BOwner()){showToast('B2B access required.',true);return;}
       if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline){showToast('Firebase connection is required to save stock counts.',true);return;}
-      const leadId=document.getElementById('b2b-stock-lead-id')?.value||''; const date=document.getElementById('b2b-stock-date')?.value||getLocalDateString();
+      const leadId=document.getElementById('b2b-stock-lead-id')?.value||''; const visitId=document.getElementById('b2b-stock-visit-id')?.value||''; const date=document.getElementById('b2b-stock-date')?.value||getLocalDateString();
       const rows=[...document.querySelectorAll('#b2b-stock-rows .b2b-stock-row')]; const items=[];
       rows.forEach(row=>{const select=row.querySelector('.b2b-stock-product'); const custom=row.querySelector('.b2b-stock-custom'); const product=(custom?.value||select?.value||'').trim(); const quantity=Math.max(0,Number(row.querySelector('.b2b-stock-qty')?.value||0)); if(product&&product!=='__CUSTOM__')items.push({product,quantity});});
       if(!items.length){showToast('Add at least one product and quantity.',true);return;}
@@ -7014,21 +7232,49 @@
         const leadsRef=cloudDb.ref('storeState/b2bLeads');
         const result=await leadsRef.transaction(leads=>{
           const list=Array.isArray(leads)?leads:[]; const idx=list.findIndex(x=>String(x?.id)===String(leadId)); if(idx<0)return list;
-          const lead={...(list[idx]||{})}; const visits=Array.isArray(lead.stockVisits)?lead.stockVisits:[];
-          visits.unshift({id:'STOCK-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date,items,notes,repId:currentAuthUser.id,repName:currentAuthUser.name||'',createdAt:now});
-          lead.stockVisits=visits.slice(0,200); lead.lastStockCountDate=date; lead.lastStockCountBy=currentAuthUser.id; lead.updatedAt=now; lead.updatedBy=currentAuthUser.id;
-          list[idx]=lead; return list;
+          const lead={...(list[idx]||{})}; let visits=Array.isArray(lead.stockVisits)?lead.stockVisits:[];
+          if(visitId){
+            const vi=visits.findIndex(v=>String(v?.id)===String(visitId)); if(vi<0)return list;
+            visits[vi]={...(visits[vi]||{}),date,items,notes,updatedAt:now,updatedBy:currentAuthUser.id};
+          }else{
+            visits.unshift({id:'STOCK-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date,items,notes,repId:currentAuthUser.id,repName:currentAuthUser.name||'',createdAt:now});
+          }
+          lead.stockVisits=visits.slice(0,200); const latest=lead.stockVisits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0]; lead.lastStockCountDate=latest?.date||date; lead.lastStockCountBy=latest?.repId||currentAuthUser.id; lead.updatedAt=now; lead.updatedBy=currentAuthUser.id; list[idx]=lead; return list;
         });
-        if(!result.committed){showToast('Stock count could not be saved. Please try again.',true);return;}
-        try{addAuditLog('ADD_B2B_STOCK_COUNT','B2B',JSON.stringify({leadId, date, items}),leadId);}catch(e){console.warn('Stock count audit failed:',e);}
+        if(!result.committed){showToast(`${visitId?'Stock count update':'Stock count'} could not be saved. Please try again.`,true);return;}
+        try{addAuditLog(visitId?'EDIT_B2B_STOCK_COUNT':'ADD_B2B_STOCK_COUNT','B2B',JSON.stringify({leadId,visitId,date,items}),leadId);}catch(e){console.warn('Stock count audit failed:',e);}
         appState=loadState(); appState.b2bLeads=Array.isArray(result.snapshot.val())?result.snapshot.val():[]; cloudBaselineState=cloneCloudSafe(appState);
-        closeB2BStockModal(); renderB2BLeads(); showToast(`Stock count saved · ${items.length} product${items.length===1?'':'s'}.`);
+        closeB2BStockModal(); openB2BStockView(leadId); showToast(visitId?`Stock count updated · ${items.length} product${items.length===1?'':'s'}.`:`Stock count saved · ${items.length} product${items.length===1?'':'s'}.`);
       }catch(e){console.error('B2B stock count save failed:',e);showToast(`Stock count save failed: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
+    }
+
+    function editB2BStockEntry(leadId,visitId){
+      if(!isB2BOwner())return;
+      closeB2BStockView(); openB2BStockModal(leadId,visitId);
+    }
+
+    async function deleteB2BStockEntry(leadId,visitId){
+      if(!isB2BOwner()){showToast('B2B access required.',true);return;}
+      if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline){showToast('Firebase connection is required.',true);return;}
+      if(!confirm('Delete this stock count entry? This cannot be undone.'))return;
+      try{
+        const result=await cloudDb.ref('storeState/b2bLeads').transaction(leads=>{
+          const list=Array.isArray(leads)?leads:[]; const idx=list.findIndex(x=>String(x?.id)===String(leadId)); if(idx<0)return list;
+          const lead={...(list[idx]||{})}; const visits=Array.isArray(lead.stockVisits)?lead.stockVisits:[]; lead.stockVisits=visits.filter(v=>String(v?.id)!==String(visitId));
+          const latest=lead.stockVisits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0]; lead.lastStockCountDate=latest?.date||''; lead.lastStockCountBy=latest?.repId||''; lead.updatedAt=new Date().toISOString(); lead.updatedBy=currentAuthUser.id; list[idx]=lead; return list;
+        });
+        if(!result.committed){showToast('Stock entry could not be deleted.',true);return;}
+        try{addAuditLog('DELETE_B2B_STOCK_COUNT','B2B',JSON.stringify({leadId,visitId}),leadId);}catch(e){console.warn('Stock delete audit failed:',e);}
+        appState=loadState(); appState.b2bLeads=Array.isArray(result.snapshot.val())?result.snapshot.val():[]; cloudBaselineState=cloneCloudSafe(appState);
+        openB2BStockView(leadId); renderB2BLeads(); showToast('Stock count deleted.');
+      }catch(e){console.error('B2B stock delete failed:',e);showToast(`Stock delete failed: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
     }
 
     function getB2BFormValues(){
       return {
         shopName:document.getElementById('b2b-shop-name')?.value.trim()||'',
+        parentAccountName:document.getElementById('b2b-shop-name')?.value.trim()||'',
+        outletName:'',
         city:document.getElementById('b2b-city')?.value||'Mangalore',
         place:document.getElementById('b2b-place')?.value.trim()||'',
         contactName:document.getElementById('b2b-contact-name')?.value.trim()||'',
@@ -7048,7 +7294,7 @@
     }
 
     function resetB2BForm(){
-      ['b2b-shop-name','b2b-place','b2b-contact-name','b2b-mobile','b2b-gst','b2b-address','b2b-current-supplier','b2b-products','b2b-monthly-potential','b2b-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+      ['b2b-shop-name','b2b-outlet-name','b2b-place','b2b-contact-name','b2b-mobile','b2b-gst','b2b-address','b2b-current-supplier','b2b-products','b2b-monthly-potential','b2b-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
       const city=document.getElementById('b2b-city');if(city)city.value='Mangalore';
       ['b2b-business-type','b2b-potential','b2b-source'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
       const st=document.getElementById('b2b-status');if(st)st.value='LEAD';
@@ -7066,7 +7312,7 @@
       const l=(appState.b2bLeads||[]).find(x=>x.id===id);
       if(!l){showToast('B2B lead not found.',true);return;}
       const values={
-        'b2b-shop-name':l.shopName||'', 'b2b-city':l.city||'Mangalore', 'b2b-place':l.place||'', 'b2b-contact-name':l.contactName||'',
+        'b2b-shop-name':l.parentAccountName||l.shopName||'', 'b2b-outlet-name':l.outletName||l.place||'Main Outlet', 'b2b-city':l.city||'Mangalore', 'b2b-place':l.place||'', 'b2b-contact-name':l.contactName||'',
         'b2b-mobile':l.mobile||'', 'b2b-gst':l.gstNumber||'', 'b2b-business-type':l.businessType||'',
         'b2b-address':l.address||'', 'b2b-status':l.status||'LEAD', 'b2b-potential':l.potential||'',
         'b2b-next-followup':l.nextFollowUp||'', 'b2b-current-supplier':l.currentSupplier||'',
@@ -7094,7 +7340,9 @@
         return;
       }
       const values=getB2BFormValues();
-      if(!values.shopName||!values.place){showToast('Shop name and place are required.',true);return;}
+      values.parentAccountName=values.parentAccountName||values.shopName;
+      values.outletName=values.outletName||'';
+      if(!values.shopName||!values.place){showToast('Business name and place are required.',true);return;}
 
       const now=new Date().toISOString();
       const editId=document.getElementById('b2b-edit-id')?.value||'';
@@ -7145,7 +7393,7 @@
               byName:currentAuthUser.name||'Samrajya',
               action:editId?'EDIT_B2B_LEAD':'CREATE_B2B_LEAD',
               category:'B2B',
-              details:JSON.stringify({shopName:values.shopName,place:values.place,status:values.status}),
+              details:JSON.stringify({parentAccountName:values.parentAccountName,outletName:values.outletName,shopName:values.shopName,place:values.place,status:values.status}),
               targetId:editId||leadId
             });
             return list.slice(0,2000);
@@ -7173,7 +7421,7 @@
       const leads=Array.isArray(appState.b2bLeads)?appState.b2bLeads:[];
       if(!leads.length){showToast('No B2B data available to export.',true);return;}
       const headers=[
-        'B2B ID','Shop / Business Name','City','Place / Area','Contact Person Name','Mobile Number','GST Number',
+        'B2B ID','Business / Chain Name','Outlet Name','City','Place / Area','Contact Person Name','Mobile Number','GST Number',
         'Business Type','Full Address','Status','Potential','Next Follow-up','Current Supplier / Brand',
         'Products Interested In','Lead Source','Expected Monthly Requirement','Visit / Follow-up Notes',
         'Visited Date','Tie-Up Date','Stock Placed Date','Created At','Created By','Updated At','Updated By'
@@ -7183,7 +7431,7 @@
         return '"'+text.replace(/"/g,'""')+'"';
       };
       const rows=leads.map(l=>[
-        l.id,l.shopName,l.city||'Mangalore',l.place,l.contactName,l.mobile,l.gstNumber,l.businessType,l.address,
+        l.id,l.parentAccountName||l.shopName,l.outletName||l.place||'Main Outlet',l.city||'Mangalore',l.place,l.contactName,l.mobile,l.gstNumber,l.businessType,l.address,
         b2bStatusLabel(l.status),l.potential,l.nextFollowUp,l.currentSupplier,l.products,l.source,
         l.monthlyPotential,l.notes,l.visitedDate,l.tieUpDate,l.stockPlacedDate,l.createdAt,
         l.createdBy,l.updatedAt,l.updatedBy
@@ -7244,5 +7492,537 @@
     });
   }
 </script>
+
+<script>
+/* v1.4.44 — Chain accounts + outlet-only stock locations.
+   Business/chain records stay in B2B Leads. Additional outlets are created only
+   from Store Stock Overview and are stock locations, not separate B2B leads. */
+(function(){
+  function wwAllLeads(){
+    appState=loadState();
+    return Array.isArray(appState.b2bLeads)?appState.b2bLeads:[];
+  }
+  function wwParentName(l){ return String(l?.parentAccountName||l?.shopName||'').trim()||'Unnamed Business'; }
+  function wwGroupedBusinesses(leads){
+    const map=new Map();
+    leads.filter(l=>!l?.outletOnly).forEach(l=>{
+      const key=wwParentName(l).toLowerCase();
+      if(!map.has(key)) map.set(key,{primary:l,records:[]});
+      map.get(key).records.push(l);
+    });
+    return [...map.values()];
+  }
+  function wwFindStockEntity(id){
+    const leads=wwAllLeads();
+    return leads.find(x=>String(x?.id)===String(id))||null;
+  }
+
+  // B2B Leads = business/chain accounts only. Outlet locations do not appear here.
+  window.renderB2BLeads=function(){
+    if(!isB2BOwner())return;
+    const leads=wwAllLeads();
+    const groups=wwGroupedBusinesses(leads);
+    const q=(document.getElementById('b2b-search')?.value||'').trim().toLowerCase();
+    const cityFilter=window.b2bCityFilter||'ALL';
+    const cityOf=g=>String(g.primary?.city||g.records.find(r=>r.city)?.city||'Mangalore');
+    const matchGroup=(g)=>{
+      const records=g.records;
+      if(cityFilter!=='ALL' && !records.some(r=>cityOf({primary:r})===cityFilter))return false;
+      if(q && !records.some(l=>[wwParentName(l),l.city,l.place,l.contactName,l.mobile,l.gstNumber,l.businessType].some(v=>String(v||'').toLowerCase().includes(q))))return false;
+      const activeFilter=window.b2bActiveFilter||'ALL';
+      if(activeFilter==='ALL')return true;
+      if(activeFilter==='VISITED')return records.some(l=>l.status==='VISITED');
+      if(activeFilter==='TIE_UP')return records.some(l=>l.status==='TIE_UP');
+      if(activeFilter==='STOCK_PLACED')return records.some(l=>l.status==='STOCK_PLACED'||l.status==='REPEAT_ORDER');
+      if(activeFilter==='FOLLOW_UP')return records.some(l=>l.nextFollowUp && l.nextFollowUp<=getLocalDateString());
+      return true;
+    };
+    const cityGroups=groups.filter(g=>cityFilter==='ALL'||g.records.some(r=>String(r.city||'Mangalore')===cityFilter));
+    const counts={
+      total:cityGroups.length,
+      visited:cityGroups.filter(g=>g.records.some(l=>l.status==='VISITED')).length,
+      tie:cityGroups.filter(g=>g.records.some(l=>l.status==='TIE_UP')).length,
+      stock:cityGroups.filter(g=>g.records.some(l=>l.status==='STOCK_PLACED'||l.status==='REPEAT_ORDER')).length,
+      follow:cityGroups.filter(g=>g.records.some(l=>l.nextFollowUp&&l.nextFollowUp<=getLocalDateString())).length
+    };
+    const activeFilter=window.b2bActiveFilter||'ALL';
+    const filtered=groups.filter(matchGroup);
+    const cityTabs=document.getElementById('b2b-city-tabs');
+    if(cityTabs){
+      const cities=[['ALL','All Cities'],['Mangalore','Mangalore'],['Mysore','Mysore'],['Udupi','Udupi'],['Bangalore','Bangalore']];
+      cityTabs.innerHTML=cities.map(([value,label])=>`<button type="button" onclick="filterB2BCity('${value}'); haptic(6)" class="shrink-0 px-3 py-2 rounded-xl border text-[9px] font-black transition ${cityFilter===value?'bg-[#05281b] text-white border-[#05281b]':'bg-white text-slate-600 border-slate-200'}">${label}</button>`).join('');
+    }
+    const k=document.getElementById('b2b-kpis');
+    if(k)k.innerHTML=[['Total Businesses',counts.total,'text-slate-900','ALL'],['Visited',counts.visited,'text-blue-900','VISITED'],['Tie-Ups',counts.tie,'text-amber-900','TIE_UP'],['Stock Placed',counts.stock,'text-emerald-900','STOCK_PLACED'],['Follow-up Due',counts.follow,'text-red-900','FOLLOW_UP']].map(x=>`<button type="button" onclick="filterB2BKPI('${x[3]}'); haptic(6)" aria-label="Show ${x[0]}" class="text-left p-3 rounded-2xl border ${activeFilter===x[3]?'border-emerald-400 ring-2 ring-emerald-100 bg-emerald-50':'border-slate-200 bg-slate-50'} hover:border-emerald-300 active:scale-[.98] transition"><div class="flex items-center justify-between gap-1"><div class="text-[8px] uppercase font-black text-slate-400">${x[0]}</div><span class="text-[9px] text-slate-400">↗</span></div><div class="text-lg font-black ${x[2]} mt-1">${x[1]}</div><div class="text-[8px] font-bold ${activeFilter===x[3]?'text-emerald-700':'text-slate-400'} mt-0.5">Tap to view</div></button>`).join('');
+    const list=document.getElementById('b2b-leads-list');if(!list)return;
+    if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No B2B businesses found.</div>';return;}
+    list.innerHTML=filtered.map(g=>{
+      const l=g.primary; const due=l.nextFollowUp&&l.nextFollowUp<=getLocalDateString();
+      const outletCount=g.records.length + leads.filter(x=>x.outletOnly&&wwParentName(x).toLowerCase()===wwParentName(l).toLowerCase()).length;
+      const city=cityOf(g); const locations=[...new Set(g.records.map(r=>r.city||'Mangalore'))];
+      return `<div class="p-3 rounded-2xl border border-slate-200 bg-white"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(wwParentName(l))}</div><div class="text-[9px] text-slate-500 mt-0.5">🏢 Business / Chain · 📍 ${escapeHtml(locations.join(', '))}</div><div class="text-[9px] font-black text-emerald-800 mt-1">🏪 ${outletCount} outlet${outletCount===1?'':'s'} tracked in Stock Overview</div></div><span class="shrink-0 text-[8px] font-black px-2 py-1 rounded-full ${b2bStatusClass(l.status)}">${b2bStatusLabel(l.status)}</span></div><div class="grid grid-cols-2 gap-2 mt-3 text-[9px]"><div><span class="text-slate-400">Contact:</span> <b>${escapeHtml(l.contactName||'—')}</b></div><div><span class="text-slate-400">Mobile:</span> <b>${escapeHtml(l.mobile||'—')}</b></div><div><span class="text-slate-400">GST:</span> <b>${escapeHtml(l.gstNumber||'—')}</b></div><div><span class="text-slate-400">Potential:</span> <b>${escapeHtml(l.potential||'—')}</b></div><div><span class="text-slate-400">Source:</span> <b>${escapeHtml(l.source||'—')}</b></div><div><span class="text-slate-400">Follow-up:</span> <b class="${due?'text-red-700':''}">${escapeHtml(l.nextFollowUp||'—')}</b></div></div>${l.products||l.notes?`<div class="mt-2 p-2.5 rounded-xl bg-slate-50 text-[9px] text-slate-600">${l.products?`<div><b>Products:</b> ${escapeHtml(l.products)}</div>`:''}${l.notes?`<div class="mt-1"><b>Notes:</b> ${escapeHtml(l.notes)}</div>`:''}</div>`:''}<div class="flex gap-2 mt-3 flex-wrap"><select onchange="updateB2BLeadStatus('${l.id}',this.value)" class="flex-1 px-2 py-2 border border-slate-200 rounded-xl text-[9px] font-black bg-white"><option value="LEAD" ${l.status==='LEAD'?'selected':''}>Lead</option><option value="VISITED" ${l.status==='VISITED'?'selected':''}>Visited</option><option value="TIE_UP" ${l.status==='TIE_UP'?'selected':''}>Tie-Up Done</option><option value="STOCK_PLACED" ${l.status==='STOCK_PLACED'?'selected':''}>Stock Placed</option><option value="REPEAT_ORDER" ${l.status==='REPEAT_ORDER'?'selected':''}>Repeat Order</option></select><button onclick="editB2BLead('${l.id}')" class="px-3 py-2 bg-amber-50 text-amber-800 rounded-xl text-[9px] font-black">Edit</button><button onclick="deleteB2BLead('${l.id}')" class="px-3 py-2 bg-red-50 text-red-700 rounded-xl text-[9px] font-black">Delete</button></div></div>`;
+    }).join('');
+  };
+
+  // Outlet creation is a stock-location operation, never a B2B lead operation.
+  window.createB2BOutletFromAdder=async function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
+    const parent=document.getElementById('b2b-outlet-parent')?.value.trim()||'';
+    const outlet=document.getElementById('b2b-outlet-adder-name')?.value.trim()||'';
+    const city=document.getElementById('b2b-outlet-adder-city')?.value||'Mangalore';
+    const place=document.getElementById('b2b-outlet-adder-place')?.value.trim()||'';
+    if(!parent)return showToast('Select an existing business first.',true);
+    if(!outlet||!place)return showToast('Enter outlet name and place/area.',true);
+    const now=new Date().toISOString();
+    const id='OUTLET-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+    try{
+      const result=await cloudDb.ref('storeState/b2bLeads').transaction(list=>{
+        list=Array.isArray(list)?list:[];
+        list.push({id,parentAccountName:parent,shopName:parent,outletName:outlet,outletOnly:true,city,place,businessType:'Outlet',status:'STOCK_PLACED',potential:'',stockVisits:[],createdAt:now,createdBy:currentAuthUser.id,updatedAt:now,updatedBy:currentAuthUser.id});
+        return list;
+      });
+      if(!result.committed)return showToast('Outlet could not be created.',true);
+      appState=loadState();appState.b2bLeads=Array.isArray(result.snapshot.val())?result.snapshot.val():[];cloudBaselineState=cloneCloudSafe(appState);
+      closeB2BOutletAdder();renderB2BStockOverview();showToast(`${outlet} added under ${parent}. Stock entry can now be recorded separately.`);
+    }catch(e){console.error(e);showToast(`Could not create outlet: ${e?.code||e?.message||'unknown error'}`,true);}
+  };
+
+  // Stock overview owns outlet creation.
+  window.openB2BOutletAdder=function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    appState=loadState();
+    const parents=[...new Set((appState.b2bLeads||[]).filter(l=>!l.outletOnly).map(l=>wwParentName(l)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const sel=document.getElementById('b2b-outlet-parent');if(sel)sel.innerHTML=parents.length?parents.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join(''):'<option value="">No existing business found</option>';
+    const name=document.getElementById('b2b-outlet-adder-name');if(name)name.value='';const place=document.getElementById('b2b-outlet-adder-place');if(place)place.value='';
+    document.getElementById('b2b-outlet-adder')?.classList.remove('hidden');
+  };
+
+  // Stock overview keeps all physical locations visible. Business leads are the
+  // original stock locations; outletOnly records are additional branches.
+  const originalRenderB2BStockOverview=window.renderB2BStockOverview;
+  window.renderB2BStockOverview=function(){
+    originalRenderB2BStockOverview();
+    const page=document.getElementById('page-b2b-stock-overview');
+    const header=page?.querySelector('.bg-white.p-4.rounded-3xl');
+    if(header&&!header.querySelector('#ww-add-outlet-stock-btn')){
+      const btn=document.createElement('button');btn.id='ww-add-outlet-stock-btn';btn.type='button';btn.className='text-[9px] font-black text-white bg-[#05281b] px-3 py-2 rounded-xl';btn.textContent='＋ Add Outlet';btn.onclick=()=>{haptic(8);openB2BOutletAdder();};
+      const top=header.querySelector('.flex.items-start.justify-between'); if(top)top.querySelector('.shrink-0')?.before(btn);
+      else header.querySelector('div')?.appendChild(btn);
+    }
+  };
+
+  // Business accounts are created here; physical outlets are created only from Store Stock Overview.
+  window.openB2BBusinessForm=function(){
+    if(!isB2BOwner()) return showToast('B2B access required.',true);
+    if(typeof resetB2BForm==='function') resetB2BForm();
+    const form=document.getElementById('b2b-business-form-card') || document.querySelector('#page-b2b .bg-white.p-4.rounded-3xl.border');
+    if(form) form.classList.remove('hidden');
+    const grid=document.getElementById('b2b-business-form-grid'); if(grid) grid.style.display='grid';
+    const mode=document.getElementById('b2b-form-mode'); if(mode) mode.innerText='New B2B Business';
+    const title=document.getElementById('b2b-form-title'); if(title) title.innerText='Add Business';
+    const save=document.getElementById('b2b-save-btn'); if(save) save.innerText='Save Business';
+    const cancel=document.getElementById('b2b-cancel-edit-btn'); if(cancel) cancel.classList.add('hidden');
+    document.getElementById('page-b2b')?.scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(()=>document.getElementById('b2b-shop-name')?.focus(),120);
+  };
+
+  // Hide outlet creation from the B2B business page; outlet creation belongs only
+  // to the stock page. Keep the legacy field hidden so existing edit data is not lost.
+  function wwHideBusinessOutletControls(){
+    const b=document.getElementById('page-b2b');if(!b)return;
+    const add=[...b.querySelectorAll('button')].find(x=>String(x.textContent||'').includes('Add Outlet'));if(add)add.classList.add('hidden');
+    const out=document.getElementById('b2b-outlet-name');if(out){const wrap=out.parentElement;if(wrap)wrap.style.display='none';out.value='';}
+    const title=document.getElementById('b2b-form-title');if(title&&!document.getElementById('b2b-edit-id')?.value)title.innerText='Add Business';
+    const desc=document.querySelector('#page-b2b #b2b-form-title')?.parentElement?.querySelector('p');if(desc)desc.innerText='Create and manage the business / chain account. Add individual outlets later from Store Stock Overview.';
+  }
+  const originalNavigateTo=window.navigateTo;
+  window.navigateTo=function(pageId){const r=originalNavigateTo.apply(this,arguments);if(pageId==='page-b2b')setTimeout(wwHideBusinessOutletControls,0);if(pageId==='page-b2b-stock-overview')setTimeout(()=>{wwHideBusinessOutletControls();window.renderB2BStockOverview();},0);return r;};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{wwHideBusinessOutletControls();},100));
+})();
+</script>
+
+<script>
+/* v1.4.45 — Outlet-only stock locations, separate from B2B Leads.
+   B2B Leads contains business/chain accounts only.
+   Physical outlets live in storeState/b2bOutlets and are managed only from
+   Store Stock Overview. Stock history for an outlet is stored on that outlet. */
+(function(){
+  const OUTLET_PATH='storeState/b2bOutlets';
+  const LEADS_PATH='storeState/b2bLeads';
+  const norm=v=>String(v||'').trim().toLowerCase();
+  const esc=v=>typeof escapeHtml==='function'?escapeHtml(v):String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const outletName=o=>String(o?.outletName||o?.name||o?.place||'Outlet').trim();
+  const parentName=o=>String(o?.parentAccountName||o?.parentBusinessName||o?.shopName||'').trim();
+  const outletParentId=o=>String(o?.parentBusinessId||'').trim();
+
+  async function readOutlets(){
+    if(!cloudDb) return [];
+    try{
+      const snap=await cloudDb.ref(OUTLET_PATH).once('value');
+      const raw=snap.val();
+      if(Array.isArray(raw)) return raw.filter(Boolean);
+      if(raw&&typeof raw==='object') return Object.values(raw).filter(Boolean);
+      return [];
+    }catch(e){ console.warn('Outlet read failed',e); return []; }
+  }
+
+  async function migrateLegacyOutletRecords(){
+    if(!cloudDb) return [];
+    try{
+      const [outSnap,leadSnap]=await Promise.all([cloudDb.ref(OUTLET_PATH).once('value'),cloudDb.ref(LEADS_PATH).once('value')]);
+      const rawOutlets=outSnap.val();
+      let outlets=Array.isArray(rawOutlets)?rawOutlets.filter(Boolean):(rawOutlets&&typeof rawOutlets==='object'?Object.values(rawOutlets).filter(Boolean):[]);
+      let leads=Array.isArray(leadSnap.val())?leadSnap.val():[];
+
+      // Normalize the outlet collection to unique Firebase child IDs. This prevents
+      // adding a second outlet from replacing/overwriting the first outlet when the
+      // collection was previously stored as an array.
+      const outletMap={};
+      outlets.forEach(x=>{ const id=String(x?.id||'').trim(); if(id) outletMap[id]=x; });
+      const legacy=leads.filter(x=>x&&x.outletOnly);
+      legacy.forEach(x=>{
+        const id=String(x.id||('OUTLET-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)));
+        if(!outletMap[id]) outletMap[id]={
+          id,
+          parentBusinessId:x.parentBusinessId||'',
+          parentAccountName:parentName(x),
+          outletName:outletName(x),
+          city:x.city||'Mangalore',
+          place:x.place||'',
+          stockVisits:Array.isArray(x.stockVisits)?x.stockVisits:[],
+          lastStockCountDate:x.lastStockCountDate||'',
+          lastStockCountBy:x.lastStockCountBy||'',
+          createdAt:x.createdAt||new Date().toISOString(),
+          createdBy:x.createdBy||currentAuthUser?.id||'',
+          updatedAt:x.updatedAt||new Date().toISOString(),
+          updatedBy:x.updatedBy||currentAuthUser?.id||''
+        };
+      });
+
+      const normalized=Object.values(outletMap);
+      const rawWasObject=rawOutlets&&typeof rawOutlets==='object'&&!Array.isArray(rawOutlets);
+      if(!rawWasObject || normalized.length!==Object.keys(rawOutlets||{}).length){
+        await cloudDb.ref(OUTLET_PATH).set(Object.fromEntries(normalized.map(x=>[String(x.id),x])));
+      }
+      if(legacy.length){
+        leads=leads.filter(x=>!x?.outletOnly);
+        await cloudDb.ref(LEADS_PATH).set(leads);
+        appState=loadState(); appState.b2bLeads=leads; cloudBaselineState=cloneCloudSafe(appState);
+      }
+      return normalized;
+    }catch(e){ console.error('Legacy outlet migration failed',e); return await readOutlets(); }
+  }
+
+  async function getStockEntity(id,type){
+    if(type==='OUTLET'){
+      const outlets=await readOutlets(); return {type:'OUTLET',item:outlets.find(x=>String(x?.id)===String(id))||null};
+    }
+    appState=loadState(); return {type:'BUSINESS',item:(appState.b2bLeads||[]).find(x=>String(x?.id)===String(id)&&!x?.outletOnly)||null};
+  }
+
+  function entityLabel(entity){
+    const x=entity.item||{};
+    if(entity.type==='OUTLET') return `${parentName(x)||'Business'} · ${outletName(x)}`;
+    return `${parentName(x)||'Business'} · ${x.outletName||x.place||'Main Outlet'}`;
+  }
+
+  async function writeOutlet(updated){
+    return await cloudDb.ref(`${OUTLET_PATH}/${String(updated.id)}`).set(updated);
+  }
+
+  window.openB2BOutletAdder=async function(){
+    if(!isB2BOwner()) return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline) return showToast('Firebase connection is required.',true);
+    appState=loadState();
+    const parents=[...new Map((appState.b2bLeads||[]).filter(l=>!l?.outletOnly).map(l=>[String(l.id),l])).values()]
+      .sort((a,b)=>parentName(a).localeCompare(parentName(b)));
+    const sel=document.getElementById('b2b-outlet-parent');
+    if(sel) sel.innerHTML=parents.length?parents.map(p=>`<option value="${esc(p.id)}">${esc(parentName(p))}</option>`).join(''):'<option value="">No existing business found</option>';
+    const name=document.getElementById('b2b-outlet-adder-name'); if(name)name.value='';
+    const place=document.getElementById('b2b-outlet-adder-place'); if(place)place.value='';
+    const city=document.getElementById('b2b-outlet-adder-city'); if(city)city.value='Mangalore';
+    document.getElementById('b2b-outlet-adder')?.classList.remove('hidden');
+  };
+
+  window.createB2BOutletFromAdder=async function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
+    appState=loadState();
+    const parentId=document.getElementById('b2b-outlet-parent')?.value.trim()||'';
+    const outlet=document.getElementById('b2b-outlet-adder-name')?.value.trim()||'';
+    const city=document.getElementById('b2b-outlet-adder-city')?.value||'Mangalore';
+    const place=document.getElementById('b2b-outlet-adder-place')?.value.trim()||'';
+    const parent=(appState.b2bLeads||[]).find(x=>String(x?.id)===String(parentId)&&!x?.outletOnly);
+    if(!parent)return showToast('Select an existing business first.',true);
+    if(!outlet||!place)return showToast('Enter outlet name and place/area.',true);
+    const now=new Date().toISOString();
+    const id='OUTLET-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+    const record={id,parentBusinessId:parent.id,parentAccountName:parentName(parent),outletName:outlet,city,place,stockVisits:[],lastStockCountDate:'',lastStockCountBy:'',createdAt:now,createdBy:currentAuthUser.id,updatedAt:now,updatedBy:currentAuthUser.id};
+    try{
+      await cloudDb.ref(`${OUTLET_PATH}/${id}`).set(record);
+      try{addAuditLog('CREATE_B2B_OUTLET','B2B',JSON.stringify({parentBusinessId:parent.id,parentAccountName:parentName(parent),outletName:outlet,city,place}),id);}catch(e){}
+      closeB2BOutletAdder();
+      await window.renderB2BStockOverview();
+      showToast(`${outlet} added under ${parentName(parent)}.`);
+    }catch(e){console.error(e);showToast(`Could not create outlet: ${e?.code||e?.message||'unknown error'}`,true);}
+  };
+
+  window.renderB2BStockOverview=async function(){
+    if(!isB2BOwner())return;
+    if(!cloudDb||!cloudStateLoaded)return;
+    appState=loadState();
+    const outlets=await migrateLegacyOutletRecords();
+    const businesses=(appState.b2bLeads||[]).filter(l=>!l?.outletOnly);
+    const cityFilter=window.b2bStockOverviewCityFilter||'ALL';
+    const q=(document.getElementById('b2b-stock-overview-search')?.value||'').trim().toLowerCase();
+    const outletByParent=new Map();
+    outlets.forEach(o=>{const key=String(o.parentBusinessId||'name:'+norm(parentName(o)));if(!outletByParent.has(key))outletByParent.set(key,[]);outletByParent.get(key).push(o);});
+    const locations=[];
+    businesses.forEach(b=>{
+      const key=String('id:'+b.id);
+      let os=outletByParent.get(key)||[];
+      if(!os.length) os=outletByParent.get('name:'+norm(parentName(b)))||[];
+      if(os.length){
+        os.forEach(o=>locations.push({type:'OUTLET',item:o,parent:b}));
+      }else{
+        locations.push({type:'BUSINESS',item:b,parent:b});
+      }
+    });
+    const filtered=locations.filter(e=>{
+      const x=e.item; const latest=(Array.isArray(x.stockVisits)?x.stockVisits:[]).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
+      const items=Array.isArray(latest?.items)?latest.items:[];
+      const hay=[parentName(e.parent),outletName(x),x.city,x.place,...items.map(i=>i.product)].join(' ').toLowerCase();
+      return (cityFilter==='ALL'||String(x.city||'Mangalore')===cityFilter)&&(!q||hay.includes(q));
+    });
+    const tabs=document.getElementById('b2b-stock-city-tabs');
+    if(tabs){const cities=[['ALL','All Cities'],['Mangalore','Mangalore'],['Mysore','Mysore'],['Udupi','Udupi'],['Bangalore','Bangalore']];tabs.innerHTML=cities.map(([v,label])=>`<button type="button" onclick="filterB2BStockOverviewCity('${v}'); haptic(6)" class="shrink-0 px-3 py-2 rounded-xl border text-[9px] font-black ${cityFilter===v?'bg-[#05281b] text-white border-[#05281b]':'bg-white text-slate-600 border-slate-200'}">${label}</button>`).join('');}
+    let productSet=new Set(),totalUnits=0,lastCount='—';
+    filtered.forEach(e=>{const latest=(Array.isArray(e.item.stockVisits)?e.item.stockVisits:[]).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];if(latest){if(String(latest.date||'')>String(lastCount))lastCount=latest.date||'—';(latest.items||[]).forEach(i=>{productSet.add(String(i.product||'').trim());totalUnits+=Number(i.quantity)||0;});}});
+    const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.innerText=v;};
+    setText('b2b-stock-store-count',filtered.length);setText('b2b-stock-product-count',productSet.size);setText('b2b-stock-unit-count',totalUnits);setText('b2b-stock-last-count',lastCount);
+    const list=document.getElementById('b2b-stock-overview-list');if(!list)return;
+    if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No stock locations found.</div>';return;}
+    const grouped=new Map();
+    filtered.forEach(e=>{const key=String(e.parent?.id||norm(parentName(e.parent)));if(!grouped.has(key))grouped.set(key,{parent:e.parent,locations:[]});grouped.get(key).locations.push(e);});
+    list.innerHTML=[...grouped.values()].map(g=>{
+      const cards=g.locations.map(e=>{
+        const x=e.item; const visits=Array.isArray(x.stockVisits)?x.stockVisits:[]; const latest=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0]; const items=Array.isArray(latest?.items)?latest.items:[]; const total=items.reduce((sum,i)=>sum+(Number(i.quantity)||0),0); const type=e.type;
+        return `<div class="p-3 rounded-2xl border border-slate-200 bg-white"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><div class="text-xs font-black text-slate-900 truncate">🏪 ${esc(outletName(x))}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${esc(x.city||'Mangalore')} · ${esc(x.place||'—')}</div></div><span class="text-[8px] font-black px-2 py-1 rounded-full bg-emerald-50 text-emerald-800">${type==='OUTLET'?'OUTLET':'MAIN'}</span></div>${items.length?`<div class="mt-3 overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="text-[8px] uppercase tracking-wide text-slate-400"><th class="pb-2 pr-3">Product</th><th class="pb-2 text-right">Qty</th></tr></thead><tbody>${items.map(i=>`<tr class="border-t border-slate-100"><td class="py-2 pr-3 text-[10px] font-bold text-slate-700">${esc(i.product||'—')}</td><td class="py-2 text-right text-sm font-black text-emerald-800">${Number(i.quantity)||0}</td></tr>`).join('')}</tbody></table></div><div class="mt-2 text-[8px] text-slate-400 flex justify-between"><span>Last count: ${esc(latest?.date||'—')}</span><span>${items.length} products · ${total} units</span></div>`:`<div class="mt-3 p-3 rounded-xl bg-slate-50 text-[9px] text-slate-400">No stock count recorded yet.</div>`}<div class="flex gap-2 mt-3"><button type="button" onclick="openB2BStockModal('${x.id}','','${type}')" class="flex-1 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-[9px] font-black">＋ Stock Count</button><button type="button" onclick="openB2BStockView('${x.id}','${type}')" class="flex-1 px-3 py-2 rounded-xl bg-slate-50 text-slate-700 text-[9px] font-black">📦 View Stock</button></div></div>`;
+      }).join('');
+      return `<div class="rounded-3xl border border-slate-200 bg-slate-50 p-3"><div class="px-1 pb-2"><div class="text-sm font-black text-slate-900">${esc(parentName(g.parent))}</div><div class="text-[9px] text-slate-500 mt-0.5">Business / Chain · ${g.locations.length} stock location${g.locations.length===1?'':'s'}</div></div><div class="space-y-2">${cards}</div></div>`;
+    }).join('');
+  };
+
+  window.openB2BStockView=async function(id,type='BUSINESS'){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    const entity=await getStockEntity(id,type); const lead=entity.item; if(!lead)return showToast('Stock location not found.',true);
+    const modal=document.getElementById('b2b-stock-view-modal');if(!modal)return;
+    window.wwStockViewType=entity.type;
+    window.wwStockViewId=id;
+    document.getElementById('b2b-stock-view-title').innerText=`Product Stock · ${parentName(lead)||lead.shopName||'Store'}`;
+    document.getElementById('b2b-stock-view-subtitle').innerText=`🏪 ${entity.type==='OUTLET'?outletName(lead):(lead.outletName||lead.place||'Main Outlet')} · ${lead.city||'Mangalore'} · ${lead.place||''}`;
+    document.getElementById('b2b-stock-view-add').onclick=()=>{closeB2BStockView();openB2BStockModal(id,'',entity.type);};
+    const visits=Array.isArray(lead.stockVisits)?lead.stockVisits:[];const list=document.getElementById('b2b-stock-history-list');
+    if(!visits.length){list.innerHTML='<div class="p-5 rounded-2xl border border-dashed border-slate-200 text-center text-[10px] text-slate-400">No stock count recorded for this outlet yet.</div>';}
+    else{const sorted=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')));list.innerHTML=sorted.map((v,idx)=>{const items=Array.isArray(v.items)?v.items:[];const total=items.reduce((sum,i)=>sum+(Number(i.quantity)||0),0);return `<div class="p-3 rounded-2xl border ${idx===0?'border-emerald-200 bg-emerald-50/60':'border-slate-200 bg-white'}"><div class="flex items-center justify-between gap-2"><div class="text-[10px] font-black text-slate-800">${esc(v.date||'—')}</div><div class="flex items-center gap-1"><span class="text-[9px] font-black text-slate-400 mr-1">${items.length} products · ${total} units</span><button type="button" onclick="editB2BStockEntry('${id}','${v.id}','${entity.type}')" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-black">Edit</button><button type="button" onclick="deleteB2BStockEntry('${id}','${v.id}','${entity.type}')" class="px-2 py-1 rounded-lg bg-red-50 text-red-700 border border-red-100 text-[8px] font-black">Delete</button></div></div><div class="mt-2 grid grid-cols-2 gap-2">${items.map(i=>`<div class="p-2 rounded-xl bg-white border border-slate-100"><div class="text-[9px] font-black text-slate-700 truncate">${esc(i.product||'—')}</div><div class="text-base font-black text-emerald-800 mt-0.5">${Number(i.quantity)||0}</div><div class="text-[8px] text-slate-400">units</div></div>`).join('')}</div>${v.repName?`<div class="mt-2 text-[8px] text-slate-400">Counted by ${esc(v.repName)}</div>`:''}${v.notes?`<div class="mt-2 p-2 rounded-xl bg-slate-50 text-[9px] text-slate-500"><b>Notes:</b> ${esc(v.notes)}</div>`:''}</div>`;}).join('');}
+    modal.classList.remove('hidden');
+  };
+
+  window.openB2BStockModal=async function(id,visitId='',type='BUSINESS'){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    const entity=await getStockEntity(id,type);const lead=entity.item;if(!lead)return showToast('Stock location not found.',true);
+    const modal=document.getElementById('b2b-stock-modal');if(!modal)return;
+    document.getElementById('b2b-stock-lead-id').value=id;
+    let typeEl=document.getElementById('b2b-stock-entity-type');if(!typeEl){typeEl=document.createElement('input');typeEl.type='hidden';typeEl.id='b2b-stock-entity-type';document.getElementById('b2b-stock-modal').appendChild(typeEl);}typeEl.value=entity.type;
+    const visit=visitId?(Array.isArray(lead.stockVisits)?lead.stockVisits:[]).find(v=>String(v.id)===String(visitId)):null;
+    document.getElementById('b2b-stock-visit-id').value=visit?.id||'';
+    document.getElementById('b2b-stock-modal-title').innerText=`${visit?'Edit Stock Count':'Stock Count'} · ${parentName(lead)||lead.shopName||'Store'}`;
+    document.getElementById('b2b-stock-modal-subtitle').innerText=`🏪 ${entity.type==='OUTLET'?outletName(lead):(lead.outletName||lead.place||'Main Outlet')} · ${lead.city||'Mangalore'} · ${lead.place||''}`;
+    document.getElementById('b2b-stock-date').value=visit?.date||getLocalDateString();document.getElementById('b2b-stock-rep').innerText=visit?.repName||currentAuthUser?.name||'Current user';document.getElementById('b2b-stock-notes').value=visit?.notes||'';
+    const rows=document.getElementById('b2b-stock-rows');rows.innerHTML='';const items=Array.isArray(visit?.items)?visit.items:[];if(items.length){items.forEach(i=>addB2BStockRow(i.product||'',i.quantity??''));}else addB2BStockRow();
+    const label=document.getElementById('b2b-stock-save-label');if(label)label.innerText=visit?'Update Stock Count':'Save Stock Count';modal.classList.remove('hidden');
+  };
+
+  window.saveB2BStockCount=async function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required to save stock counts.',true);
+    const id=document.getElementById('b2b-stock-lead-id')?.value||'';const visitId=document.getElementById('b2b-stock-visit-id')?.value||'';const type=document.getElementById('b2b-stock-entity-type')?.value||'BUSINESS';const date=document.getElementById('b2b-stock-date')?.value||getLocalDateString();
+    const rows=[...document.querySelectorAll('#b2b-stock-rows .b2b-stock-row')];const items=[];rows.forEach(row=>{const select=row.querySelector('.b2b-stock-product');const custom=row.querySelector('.b2b-stock-custom');const product=(custom?.value||select?.value||'').trim();const quantity=Math.max(0,Number(row.querySelector('.b2b-stock-qty')?.value||0));if(product&&product!=='__CUSTOM__')items.push({product,quantity});});
+    if(!items.length)return showToast('Add at least one product and quantity.',true);
+    const notes=document.getElementById('b2b-stock-notes')?.value.trim()||'';const now=new Date().toISOString();
+    try{
+      const path=type==='OUTLET'?`${OUTLET_PATH}/${id}`:LEADS_PATH;
+      const result=await cloudDb.ref(path).transaction(list=>{
+        if(type==='OUTLET'){
+          const item={...(list||{})};let visits=Array.isArray(item.stockVisits)?item.stockVisits:[];
+          if(visitId){const vi=visits.findIndex(v=>String(v?.id)===String(visitId));if(vi<0)return list;visits[vi]={...(visits[vi]||{}),date,items,notes,updatedAt:now,updatedBy:currentAuthUser.id};}
+          else visits.unshift({id:'STOCK-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date,items,notes,repId:currentAuthUser.id,repName:currentAuthUser.name||'',createdAt:now});
+          item.stockVisits=visits.slice(0,200);const latest=item.stockVisits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];item.lastStockCountDate=latest?.date||date;item.lastStockCountBy=latest?.repId||currentAuthUser.id;item.updatedAt=now;item.updatedBy=currentAuthUser.id;return item;
+        }
+        const arr=Array.isArray(list)?list:[];const idx=arr.findIndex(x=>String(x?.id)===String(id));if(idx<0)return arr;const item={...(arr[idx]||{})};let visits=Array.isArray(item.stockVisits)?item.stockVisits:[];if(visitId){const vi=visits.findIndex(v=>String(v?.id)===String(visitId));if(vi<0)return arr;visits[vi]={...(visits[vi]||{}),date,items,notes,updatedAt:now,updatedBy:currentAuthUser.id};}else visits.unshift({id:'STOCK-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date,items,notes,repId:currentAuthUser.id,repName:currentAuthUser.name||'',createdAt:now});item.stockVisits=visits.slice(0,200);const latest=item.stockVisits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];item.lastStockCountDate=latest?.date||date;item.lastStockCountBy=latest?.repId||currentAuthUser.id;item.updatedAt=now;item.updatedBy=currentAuthUser.id;arr[idx]=item;return arr;
+      });
+      if(!result.committed)return showToast('Stock count could not be saved.',true);
+      try{addAuditLog(visitId?'EDIT_B2B_STOCK_COUNT':'ADD_B2B_STOCK_COUNT','B2B',JSON.stringify({id,entityType:type,visitId,date,items}),id);}catch(e){}
+      closeB2BStockModal();await window.renderB2BStockOverview();showToast(visitId?'Stock count updated.':'Stock count saved.');
+    }catch(e){console.error(e);showToast(`Stock count save failed: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
+  };
+
+  window.editB2BStockEntry=function(id,visitId,type='BUSINESS'){closeB2BStockView();openB2BStockModal(id,visitId,type);};
+  window.deleteB2BStockEntry=async function(id,visitId,type='BUSINESS'){
+    if(!isB2BOwner())return showToast('B2B access required.',true);if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);if(!confirm('Delete this stock count entry? This cannot be undone.'))return;
+    try{const path=type==='OUTLET'?`${OUTLET_PATH}/${id}`:LEADS_PATH;const result=await cloudDb.ref(path).transaction(list=>{if(type==='OUTLET'){if(!list)return list;const item={...list};item.stockVisits=(Array.isArray(item.stockVisits)?item.stockVisits:[]).filter(v=>String(v?.id)!==String(visitId));const latest=item.stockVisits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];item.lastStockCountDate=latest?.date||'';item.lastStockCountBy=latest?.repId||'';item.updatedAt=new Date().toISOString();item.updatedBy=currentAuthUser.id;return item;}const arr=Array.isArray(list)?list:[];const idx=arr.findIndex(x=>String(x?.id)===String(id));if(idx<0)return arr;const item={...(arr[idx]||{})};item.stockVisits=(Array.isArray(item.stockVisits)?item.stockVisits:[]).filter(v=>String(v?.id)!==String(visitId));const latest=item.stockVisits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];item.lastStockCountDate=latest?.date||'';item.lastStockCountBy=latest?.repId||'';item.updatedAt=new Date().toISOString();item.updatedBy=currentAuthUser.id;arr[idx]=item;return arr;});if(!result.committed)return showToast('Stock entry could not be deleted.',true);openB2BStockView(id,type);await window.renderB2BStockOverview();showToast('Stock count deleted.');}catch(e){console.error(e);showToast(`Stock delete failed: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
+  };
+
+  // Prevent the old wrapper from injecting a second/hidden Add Outlet button.
+  const oldStockRender=window.renderB2BStockOverview;
+  // Navigation: stock page should always show its own Add Outlet button; B2B page never shows it.
+  const navOriginal=window.navigateTo;
+  window.navigateTo=function(pageId){const r=navOriginal.apply(this,arguments);if(pageId==='page-b2b-stock-overview')setTimeout(()=>{document.getElementById('ww-add-outlet-stock-btn')?.remove();window.renderB2BStockOverview();},0);return r;};
+})();
+</script>
 </body>
 </html>
+
+<script>
+/* v1.4.47 — Robust outlet recovery + visibility.
+   If older versions created multiple B2B records for the same chain, keep the
+   first record as the business account and convert the additional locations into
+   independent outlet stock records. Always render every outlet under its parent. */
+(function(){
+  const OUTLET_PATH='storeState/b2bOutlets';
+  const LEADS_PATH='storeState/b2bLeads';
+  const norm=v=>String(v||'').trim().toLowerCase();
+  const parentName=o=>String(o?.parentAccountName||o?.parentBusinessName||o?.shopName||'').trim();
+  const outletName=o=>String(o?.outletName||o?.name||o?.place||'Main Outlet').trim();
+  const makeId=()=> 'OUTLET-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);
+  const toArray=raw=>Array.isArray(raw)?raw.filter(Boolean):(raw&&typeof raw==='object'?Object.values(raw).filter(Boolean):[]);
+  const esc=v=>typeof escapeHtml==='function'?escapeHtml(v):String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  async function recoverAndReadOutlets(){
+    if(!cloudDb) return [];
+    try{
+      const [outSnap,leadSnap]=await Promise.all([
+        cloudDb.ref(OUTLET_PATH).once('value'),
+        cloudDb.ref(LEADS_PATH).once('value')
+      ]);
+      const existing=toArray(outSnap.val());
+      let leads=toArray(leadSnap.val());
+      const byId={};
+      existing.forEach(o=>{if(o?.id)byId[String(o.id)]={...o};});
+
+      const businessGroups=new Map();
+      leads.filter(l=>l&&!l.outletOnly).forEach(l=>{
+        const key=norm(parentName(l)||l.shopName);
+        if(!key)return;
+        if(!businessGroups.has(key))businessGroups.set(key,[]);
+        businessGroups.get(key).push(l);
+      });
+
+      const legacyOutletLeads=leads.filter(l=>l?.outletOnly);
+      const duplicateLeads=[];
+      businessGroups.forEach(records=>{if(records.length>1)records.slice(1).forEach(l=>duplicateLeads.push(l));});
+      const candidates=[...legacyOutletLeads,...duplicateLeads];
+      const candidateIds=new Set(candidates.map(x=>String(x.id)));
+
+      candidates.forEach(x=>{
+        const id=String(x.id||makeId());
+        if(!byId[id]){
+          byId[id]={
+            id,
+            parentBusinessId:x.parentBusinessId||'',
+            parentAccountName:parentName(x),
+            outletName:outletName(x),
+            city:x.city||'Mangalore',
+            place:x.place||'',
+            stockVisits:Array.isArray(x.stockVisits)?x.stockVisits:[],
+            lastStockCountDate:x.lastStockCountDate||'',
+            lastStockCountBy:x.lastStockCountBy||'',
+            createdAt:x.createdAt||new Date().toISOString(),
+            createdBy:x.createdBy||currentAuthUser?.id||'',
+            updatedAt:x.updatedAt||new Date().toISOString(),
+            updatedBy:x.updatedBy||currentAuthUser?.id||''
+          };
+        }
+      });
+
+      const normalized=Object.values(byId);
+      const outletObject=Object.fromEntries(normalized.map(o=>[String(o.id),o]));
+      const raw=outSnap.val();
+      const rawObj=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+      if(JSON.stringify(rawObj)!==JSON.stringify(outletObject)){
+        await cloudDb.ref(OUTLET_PATH).set(outletObject);
+      }
+
+      if(candidateIds.size){
+        const cleaned=leads.filter(l=>!candidateIds.has(String(l.id)));
+        await cloudDb.ref(LEADS_PATH).set(cleaned);
+        appState=loadState();appState.b2bLeads=cleaned;cloudBaselineState=cloneCloudSafe(appState);
+      }
+      return normalized;
+    }catch(e){console.error('Outlet recovery failed:',e);return []}
+  }
+
+  window.renderB2BStockOverview=async function(){
+    if(!isB2BOwner())return;
+    if(!cloudDb||!cloudStateLoaded)return;
+    appState=loadState();
+    const outlets=await recoverAndReadOutlets();
+    const businesses=(appState.b2bLeads||[]).filter(l=>!l?.outletOnly);
+    const cityFilter=window.b2bStockOverviewCityFilter||'ALL';
+    const q=(document.getElementById('b2b-stock-overview-search')?.value||'').trim().toLowerCase();
+
+    const locations=[];
+    const outletParentIds=new Set();
+    outlets.forEach(o=>{if(o.parentBusinessId)outletParentIds.add(String(o.parentBusinessId));});
+    businesses.forEach(b=>{
+      const own=outlets.filter(o=>String(o.parentBusinessId||'')===String(b.id)||norm(o.parentAccountName)===norm(parentName(b)));
+      if(own.length) own.forEach(o=>locations.push({type:'OUTLET',item:o,parent:b}));
+      else locations.push({type:'BUSINESS',item:b,parent:b});
+    });
+    outlets.filter(o=>!businesses.some(b=>String(b.id)===String(o.parentBusinessId)||norm(parentName(b))===norm(o.parentAccountName)))
+      .forEach(o=>locations.push({type:'OUTLET',item:o,parent:{id:o.parentBusinessId||('orphan-'+norm(o.parentAccountName)),shopName:o.parentAccountName,parentAccountName:o.parentAccountName}}));
+
+    const filtered=locations.filter(e=>{
+      const x=e.item;
+      const latest=(Array.isArray(x.stockVisits)?x.stockVisits:[]).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
+      const items=Array.isArray(latest?.items)?latest.items:[];
+      const hay=[parentName(e.parent),outletName(x),x.city,x.place,...items.map(i=>i.product)].join(' ').toLowerCase();
+      return (cityFilter==='ALL'||String(x.city||'Mangalore')===cityFilter)&&(!q||hay.includes(q));
+    });
+
+    const tabs=document.getElementById('b2b-stock-city-tabs');
+    if(tabs){const cities=[['ALL','All Cities'],['Mangalore','Mangalore'],['Mysore','Mysore'],['Udupi','Udupi'],['Bangalore','Bangalore']];tabs.innerHTML=cities.map(([v,label])=>`<button type="button" onclick="filterB2BStockOverviewCity('${v}'); haptic(6)" class="shrink-0 px-3 py-2 rounded-xl border text-[9px] font-black ${cityFilter===v?'bg-[#05281b] text-white border-[#05281b]':'bg-white text-slate-600 border-slate-200'}">${label}</button>`).join('');}
+    let productSet=new Set(),totalUnits=0,lastCount='—';
+    filtered.forEach(e=>{const latest=(Array.isArray(e.item.stockVisits)?e.item.stockVisits:[]).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];if(latest){if(String(latest.date||'')>String(lastCount))lastCount=latest.date||'—';(latest.items||[]).forEach(i=>{productSet.add(String(i.product||'').trim());totalUnits+=Number(i.quantity)||0;});}});
+    const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.innerText=v;};
+    setText('b2b-stock-store-count',filtered.length);setText('b2b-stock-product-count',productSet.size);setText('b2b-stock-unit-count',totalUnits);setText('b2b-stock-last-count',lastCount);
+    const list=document.getElementById('b2b-stock-overview-list');if(!list)return;
+    if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No stock locations found.</div>';return;}
+    const grouped=new Map();
+    filtered.forEach(e=>{const key=String(e.parent?.id||norm(parentName(e.parent)));if(!grouped.has(key))grouped.set(key,{parent:e.parent,locations:[]});grouped.get(key).locations.push(e);});
+    list.innerHTML=[...grouped.values()].map(g=>{
+      const cards=g.locations.map(e=>{
+        const x=e.item;const visits=Array.isArray(x.stockVisits)?x.stockVisits:[];const latest=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];const items=Array.isArray(latest?.items)?latest.items:[];const total=items.reduce((s,i)=>s+(Number(i.quantity)||0),0);
+        return `<div class="p-3 rounded-2xl border border-slate-200 bg-white"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">🏪 ${esc(outletName(x))}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${esc(x.city||'Mangalore')} · ${esc(x.place||'—')}</div></div><span class="text-[8px] font-black px-2 py-1 rounded-full ${e.type==='OUTLET'?'bg-blue-50 text-blue-700':'bg-emerald-50 text-emerald-700'}">${e.type==='OUTLET'?'OUTLET':'MAIN'}</span></div>${items.length?`<div class="mt-3 overflow-x-auto"><table class="w-full text-left"><tbody>${items.map(i=>`<tr class="border-t border-slate-100"><td class="py-2 text-[10px] font-bold text-slate-700">${esc(i.product||'—')}</td><td class="py-2 text-right text-sm font-black text-emerald-800">${Number(i.quantity)||0}</td></tr>`).join('')}</tbody></table></div><div class="mt-2 text-[8px] text-slate-400 flex justify-between"><span>Last count: ${esc(latest?.date||'—')}</span><span>${items.length} products · ${total} units</span></div>`:`<div class="mt-3 p-3 rounded-xl bg-slate-50 text-[9px] text-slate-400">No stock count recorded yet.</div>`}<div class="mt-2 flex gap-2"><button type="button" onclick="openB2BStockModal('${esc(x.id)}','','${e.type}')" class="flex-1 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-[9px] font-black">＋ Stock Count</button><button type="button" onclick="openB2BStockView('${esc(x.id)}','${e.type}')" class="flex-1 py-2 rounded-xl bg-slate-50 text-slate-700 text-[9px] font-black">📦 View Stock</button><button type="button" onclick="deleteB2BStockLocation('${esc(x.id)}')" class="py-2 px-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-[9px] font-black">🗑 Delete</button></div></div>`;
+      }).join('');
+      return `<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-sm font-black text-slate-900">${esc(parentName(g.parent)||'Business')}</div><div class="text-[9px] text-slate-400 mt-0.5">${g.locations.length} stock location${g.locations.length===1?'':'s'}</div><div class="mt-3 space-y-2">${cards}</div></div>`;
+    }).join('');
+  };
+
+  const originalOpen=window.openB2BOutletAdder;
+  // Create directly in b2bOutlets; never create a B2B lead.
+  window.createB2BOutletFromAdder=async function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
+    appState=loadState();
+    const parentId=document.getElementById('b2b-outlet-parent')?.value.trim()||'';const outlet=document.getElementById('b2b-outlet-adder-name')?.value.trim()||'';const city=document.getElementById('b2b-outlet-adder-city')?.value||'Mangalore';const place=document.getElementById('b2b-outlet-adder-place')?.value.trim()||'';
+    const parent=(appState.b2bLeads||[]).find(x=>String(x?.id)===String(parentId)&&!x?.outletOnly);if(!parent)return showToast('Select an existing business first.',true);if(!outlet||!place)return showToast('Enter outlet name and place/area.',true);
+    const now=new Date().toISOString();const id=makeId();const record={id,parentBusinessId:parent.id,parentAccountName:parentName(parent),outletName:outlet,city,place,stockVisits:[],lastStockCountDate:'',lastStockCountBy:'',createdAt:now,createdBy:currentAuthUser.id,updatedAt:now,updatedBy:currentAuthUser.id};
+    try{await cloudDb.ref(`${OUTLET_PATH}/${id}`).set(record);closeB2BOutletAdder();await window.renderB2BStockOverview();showToast(`${outlet} added under ${parentName(parent)}.`);}catch(e){console.error(e);showToast(`Could not create outlet: ${e?.code||e?.message||'unknown error'}`,true);}
+  };
+
+  // Ensure navigation does not reintroduce the old wrapper.
+  const nav=window.navigateTo;window.navigateTo=function(pageId){const r=nav.apply(this,arguments);if(pageId==='page-b2b-stock-overview')setTimeout(()=>window.renderB2BStockOverview(),0);return r;};
+})();
+</script>
