@@ -3969,17 +3969,15 @@
         let isLate = false;
         let lateMinutes = 0;
 
-        if (!isOwnerRole()) {
-          const [shHour, shMin] = appState.storeConfig.shiftStart.split(':').map(Number);
-          const cutoff = new Date(now);
-          cutoff.setHours(shHour, shMin + appState.storeConfig.graceMins, 0, 0);
-
-          if (now > cutoff) {
-            isLate = true;
-            const shiftStart = new Date(now);
-            shiftStart.setHours(shHour, shMin, 0, 0);
-            lateMinutes = Math.floor((now - shiftStart) / (1000 * 60));
-          }
+        {
+          // Apply the same grace-period rule to every role, including Owners.
+          const [shHour, shMin] = String(appState.storeConfig?.shiftStart || '08:00').split(':').map(Number);
+          const graceMinutes = Math.max(0, Number(appState.storeConfig?.graceMins ?? 15));
+          const shiftStart = new Date(now);
+          shiftStart.setHours(shHour || 0, shMin || 0, 0, 0);
+          const cutoff = new Date(shiftStart.getTime() + graceMinutes * 60000);
+          lateMinutes = Math.max(0, Math.floor((now.getTime() - cutoff.getTime()) / 60000));
+          isLate = lateMinutes > 0;
         }
 
         const newLog = {
@@ -5437,9 +5435,20 @@
       const [sh, sm] = String(appState.storeConfig?.shiftStart || '08:00').split(':').map(Number);
       const shiftStart = new Date(newIn);
       shiftStart.setHours(sh || 0, sm || 0, 0, 0);
-      const grace = Number(appState.storeConfig?.graceMins ?? 15);
-      a.lateMinutes = Math.max(0, Math.floor((newIn - new Date(shiftStart.getTime() + grace * 60000)) / 60000));
+      const grace = Math.max(0, Number(appState.storeConfig?.graceMins ?? 15));
+      const lateCutoff = new Date(shiftStart.getTime() + grace * 60000);
+      a.lateMinutes = Math.max(0, Math.floor((newIn.getTime() - lateCutoff.getTime()) / 60000));
       a.isLate = a.lateMinutes > 0;
+      a.lateExceptionOriginalMinutes = a.lateMinutes;
+      if (!a.isLate) {
+        a.lateExceptionStatus = null;
+        a.lateExceptionApproved = false;
+        a.lateExceptionBy = null;
+        a.lateExceptionAt = null;
+        a.lateExceptionReason = null;
+      } else if (!a.lateExceptionStatus) {
+        a.lateExceptionStatus = a.lateExceptionApproved ? 'APPROVED' : 'PENDING';
+      }
 
       if (newOut) {
         const [eh, em] = String(appState.storeConfig?.shiftEnd || '21:00').split(':').map(Number);
@@ -8076,7 +8085,7 @@
 </script>
 
 <script>
-/* v1.4.53 — final audit fixes: router coverage, B2B export, business deletion cascade. */
+/* v1.4.54 — final audit fixes: router coverage, B2B export, business deletion cascade. */
 (function(){
   const escCsv=v=>{const t=String(v??'');return '"'+t.replace(/"/g,'""')+'"';};
   window.exportB2BToCSV=function(){
