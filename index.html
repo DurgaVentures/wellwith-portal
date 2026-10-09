@@ -2148,6 +2148,13 @@
       toggleSidebar(false);
       if(currentAuthUser && pageId!=='page-welcome' && pageId!=='page-login' && !isCurrentSessionValid()){ currentAuthUser=null; showToast('Your session was ended by Super Admin.',true); pageId='page-login'; }
 
+      const b2bOnlyPages = ['page-b2b', 'page-b2b-stock-overview', 'page-b2b-product-master'];
+      if (b2bOnlyPages.includes(pageId) && !isB2BOwner()) {
+        showToast('B2B management access required.', true);
+        navigateTo('page-dashboard');
+        return;
+      }
+
       const adminOnlyPages = ['page-admin-desk', 'page-daily-snapshot', 'page-store-brain', 'page-action-center'];
       if (adminOnlyPages.includes(pageId) && !isManagerRole()) {
         showToast('Access Denied. Management authorization required.', true);
@@ -2177,7 +2184,7 @@
 
       const allPages = [
         'page-welcome', 'page-login', 'page-dashboard', 'page-profile', 'page-salary-slips', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones', 'page-knowledge',
-        'page-b2b', 'page-b2b-stock-overview', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
+        'page-b2b', 'page-b2b-stock-overview', 'page-b2b-product-master', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
       ];
       allPages.forEach(id => {
         const el = document.getElementById(id);
@@ -2216,7 +2223,7 @@
 
         if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
         else if (pageId === 'page-profile') { titleEl.innerText = 'My Profile'; subtitleEl.innerText = 'Employee Details'; }
-        else if (pageId === 'page-b2b') { titleEl.innerText = 'B2B Leads'; subtitleEl.innerText = 'Private B2B Database'; } else if (pageId === 'page-b2b-stock-overview') { titleEl.innerText = 'Store Stock Overview'; subtitleEl.innerText = 'B2B Product Stock'; }
+        else if (pageId === 'page-b2b') { titleEl.innerText = 'B2B Leads'; subtitleEl.innerText = 'Private B2B Database'; } else if (pageId === 'page-b2b-stock-overview') { titleEl.innerText = 'Store Stock Overview'; subtitleEl.innerText = 'B2B Product Stock'; } else if (pageId === 'page-b2b-product-master') { titleEl.innerText = 'B2B Product Master'; subtitleEl.innerText = 'Products for Stock Counting'; }
         else if (pageId === 'page-salary-slips') { titleEl.innerText = 'My Salary Slips'; subtitleEl.innerText = 'Salary Records'; }
         else if (pageId === 'page-history') { titleEl.innerText = 'Attendance Logs'; subtitleEl.innerText = 'Transparency Ledger'; }
         else if (pageId === 'page-leaves') { titleEl.innerText = 'Holidays & Offs'; subtitleEl.innerText = 'Requests & Status'; }
@@ -7454,8 +7461,19 @@
       if(!isB2BOwner())return; appState=loadState(); const l=appState.b2bLeads.find(x=>x.id===id); if(!l)return; const old=l.status; l.status=status; l.updatedAt=new Date().toISOString(); if(status==='VISITED'&&!l.visitedDate)l.visitedDate=getLocalDateString(); if(status==='TIE_UP'&&!l.tieUpDate)l.tieUpDate=getLocalDateString(); if((status==='STOCK_PLACED'||status==='REPEAT_ORDER')&&!l.stockPlacedDate)l.stockPlacedDate=getLocalDateString(); saveState(appState); addAuditLog('UPDATE_B2B_STATUS','B2B',`${old} → ${status}`,id); renderB2BLeads(); showToast('B2B status updated.');
     }
 
-    function deleteB2BLead(id){
-      if(!isB2BOwner())return; const l=loadState().b2bLeads.find(x=>x.id===id); if(!l)return; if(!confirm(`Delete B2B lead for ${l.shopName}?`))return; appState=loadState(); appState.b2bLeads=appState.b2bLeads.filter(x=>x.id!==id); saveState(appState); addAuditLog('DELETE_B2B_LEAD','B2B',l.shopName,id); renderB2BLeads(); showToast('B2B lead deleted.');
+    async function deleteB2BLead(id){
+      if(!isB2BOwner())return showToast('B2B access required.',true);
+      if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required to delete a B2B business.',true);
+      appState=loadState(); const l=(appState.b2bLeads||[]).find(x=>String(x?.id)===String(id)&&!x?.outletOnly); if(!l)return showToast('B2B business not found.',true);
+      const raw=appState.b2bOutlets; const outlets=Array.isArray(raw)?raw:(raw&&typeof raw==='object'?Object.values(raw):[]); const childOutlets=outlets.filter(o=>String(o.parentBusinessId||'')===String(id)||String(o.parentAccountName||'').trim().toLowerCase()===String(l.parentAccountName||l.shopName||'').trim().toLowerCase());
+      const message=childOutlets.length?`Delete ${l.parentAccountName||l.shopName}?\n\nThis business has ${childOutlets.length} stock location${childOutlets.length===1?'':'s'}. The business and all its stock locations/history will be permanently removed.`:`Delete B2B business for ${l.parentAccountName||l.shopName}?`;
+      if(!confirm(message))return;
+      try{
+        await cloudDb.ref(LEADS_PATH).transaction(list=>{const arr=Array.isArray(list)?list:[];return arr.filter(x=>String(x?.id)!==String(id));});
+        if(childOutlets.length){const updates={};childOutlets.forEach(o=>{updates[String(o.id)]=null;});await cloudDb.ref(OUTLET_PATH).update(updates);}
+        try{addAuditLog('DELETE_B2B_BUSINESS','B2B',JSON.stringify({businessId:id,name:l.parentAccountName||l.shopName,deletedOutlets:childOutlets.map(o=>o.id)}),id);}catch(e){console.warn('Business delete audit failed',e);}
+        await new Promise(r=>setTimeout(r,100));appState=loadState();renderB2BLeads();await window.renderB2BStockOverview();showToast('B2B business deleted.');
+      }catch(e){console.error('B2B business delete failed',e);showToast(`Could not delete B2B business: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
     }
 
     function renderManagementDailySnapshot(){if(!isManagerRole())return;appState=loadState();const today=getLocalDateString(),emps=(appState.employees||[]).filter(e=>!e.archived),todays=(appState.attendance||[]).filter(a=>a.date===today&&a.punchInTime),present=todays.length,onDuty=todays.filter(a=>!a.punchOutTime).length,late=todays.filter(a=>a.isLate&&!a.lateExceptionApproved).length,breaks=todays.filter(a=>(a.breaks||[]).some(b=>!b.end)),cash=(appState.cashDrawerLogs||[]).find(c=>c.date===today),cashDone=!!(cash&&cash.cashClosingConfirmed===true&&cash.nightPhysicalCash!==null&&cash.nightPhysicalCash!==undefined),closing=isStoreNightClosingDoneToday(),enquiries=(appState.customerEnquiries||[]).filter(e=>e.createdAt&&getLocalDateString(new Date(e.createdAt))===today).length,pendingLeave=(appState.leaveRequests||[]).filter(r=>r.status==='PENDING').length,suggestions=(appState.staffSuggestions||[]).filter(s=>s.status==='NEW').length,kpis=[['👥','Present',present],['🟢','On Duty',onDuty],['⏰','Late',late],['🍱','On Break',breaks.length],['💰','Cash',cashDone?'DONE':'PENDING'],['🏁','Closing',closing?'DONE':'PENDING'],['💬','Enquiries',enquiries],['💡','Suggestions',suggestions]],dateEl=document.getElementById('daily-snapshot-date');if(dateEl)dateEl.innerText=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});const grid=document.getElementById('daily-snapshot-kpis');if(grid)grid.innerHTML=kpis.map(k=>`<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-lg">${k[0]}</div><div class="text-[8px] uppercase font-black text-slate-400 mt-1">${k[1]}</div><div class="text-sm font-black text-slate-900 mt-0.5">${k[2]}</div></div>`).join('');const att=document.getElementById('daily-snapshot-attendance');if(att)att.innerHTML=`<div>${present} of ${emps.length} active staff have punched in.</div><div class="mt-1">${onDuty} currently on duty · ${breaks.length} on break · ${late} late marks requiring attention.</div>`;const ops=document.getElementById('daily-snapshot-operations');if(ops)ops.innerHTML=`<div>Cash settlement: <b>${cashDone?'Completed':'Pending'}</b>.</div><div class="mt-1">Night closing: <b>${closing?'Completed':'Pending'}</b> · Customer enquiries today: <b>${enquiries}</b>.</div>`;const attention=[];if(late)attention.push(`⏰ ${late} late mark${late===1?'':'s'} need review.`);if(breaks.length)attention.push(`🍱 ${breaks.length} employee${breaks.length===1?' is':'s are'} currently on break.`);if(!cashDone)attention.push('💰 Daily cash settlement is not locked yet.');if(!closing)attention.push('🏁 Store night closing is not completed.');if(pendingLeave)attention.push(`🏖️ ${pendingLeave} time-off request${pendingLeave===1?'':'s'} pending.`);if(!attention.length)attention.push('✅ No immediate operational items require attention.');const at=document.getElementById('daily-snapshot-attention');if(at)at.innerHTML=attention.map(x=>`<div>${x}</div>`).join('');}
@@ -7558,7 +7576,7 @@
     if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No B2B businesses found.</div>';return;}
     list.innerHTML=filtered.map(g=>{
       const l=g.primary; const due=l.nextFollowUp&&l.nextFollowUp<=getLocalDateString();
-      const outletCount=g.records.length + leads.filter(x=>x.outletOnly&&wwParentName(x).toLowerCase()===wwParentName(l).toLowerCase()).length;
+      const physicalOutlets=(()=>{const raw=appState.b2bOutlets;const arr=Array.isArray(raw)?raw:(raw&&typeof raw==='object'?Object.values(raw):[]);return arr.filter(o=>String(o.parentBusinessId||'')===String(l.id)||String(o.parentAccountName||'').trim().toLowerCase()===wwParentName(l).trim().toLowerCase()).length;})(); const outletCount=Math.max(g.records.length?1:0,physicalOutlets);
       const city=cityOf(g); const locations=[...new Set(g.records.map(r=>r.city||'Mangalore'))];
       return `<div class="p-3 rounded-2xl border border-slate-200 bg-white"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">${escapeHtml(wwParentName(l))}</div><div class="text-[9px] text-slate-500 mt-0.5">🏢 Business / Chain · 📍 ${escapeHtml(locations.join(', '))}</div><div class="text-[9px] font-black text-emerald-800 mt-1">🏪 ${outletCount} outlet${outletCount===1?'':'s'} tracked in Stock Overview</div></div><span class="shrink-0 text-[8px] font-black px-2 py-1 rounded-full ${b2bStatusClass(l.status)}">${b2bStatusLabel(l.status)}</span></div><div class="grid grid-cols-2 gap-2 mt-3 text-[9px]"><div><span class="text-slate-400">Contact:</span> <b>${escapeHtml(l.contactName||'—')}</b></div><div><span class="text-slate-400">Mobile:</span> <b>${escapeHtml(l.mobile||'—')}</b></div><div><span class="text-slate-400">GST:</span> <b>${escapeHtml(l.gstNumber||'—')}</b></div><div><span class="text-slate-400">Potential:</span> <b>${escapeHtml(l.potential||'—')}</b></div><div><span class="text-slate-400">Source:</span> <b>${escapeHtml(l.source||'—')}</b></div><div><span class="text-slate-400">Follow-up:</span> <b class="${due?'text-red-700':''}">${escapeHtml(l.nextFollowUp||'—')}</b></div></div>${l.products||l.notes?`<div class="mt-2 p-2.5 rounded-xl bg-slate-50 text-[9px] text-slate-600">${l.products?`<div><b>Products:</b> ${escapeHtml(l.products)}</div>`:''}${l.notes?`<div class="mt-1"><b>Notes:</b> ${escapeHtml(l.notes)}</div>`:''}</div>`:''}<div class="flex gap-2 mt-3 flex-wrap"><select onchange="updateB2BLeadStatus('${l.id}',this.value)" class="flex-1 px-2 py-2 border border-slate-200 rounded-xl text-[9px] font-black bg-white"><option value="LEAD" ${l.status==='LEAD'?'selected':''}>Lead</option><option value="VISITED" ${l.status==='VISITED'?'selected':''}>Visited</option><option value="TIE_UP" ${l.status==='TIE_UP'?'selected':''}>Tie-Up Done</option><option value="STOCK_PLACED" ${l.status==='STOCK_PLACED'?'selected':''}>Stock Placed</option><option value="REPEAT_ORDER" ${l.status==='REPEAT_ORDER'?'selected':''}>Repeat Order</option></select><button onclick="editB2BLead('${l.id}')" class="px-3 py-2 bg-amber-50 text-amber-800 rounded-xl text-[9px] font-black">Edit</button><button onclick="deleteB2BLead('${l.id}')" class="px-3 py-2 bg-red-50 text-red-700 rounded-xl text-[9px] font-black">Delete</button></div></div>`;
     }).join('');
@@ -7879,6 +7897,200 @@
   // Navigation: stock page should always show its own Add Outlet button; B2B page never shows it.
   const navOriginal=window.navigateTo;
   window.navigateTo=function(pageId){const r=navOriginal.apply(this,arguments);if(pageId==='page-b2b-stock-overview')setTimeout(()=>{document.getElementById('ww-add-outlet-stock-btn')?.remove();window.renderB2BStockOverview();},0);return r;};
+})();
+</script>
+
+<script>
+/* v1.4.52 — stability hardening / module consistency pass.
+   Final B2B outlet + stock handlers use one data model:
+   storeState/b2bLeads = business accounts
+   storeState/b2bOutlets/{outletId} = physical stock locations
+   Stock history stays on the owning record as stockVisits[]. */
+(function(){
+  const OUTLET_PATH='storeState/b2bOutlets';
+  const LEADS_PATH='storeState/b2bLeads';
+  const norm=v=>String(v??'').trim().toLowerCase();
+  const esc=v=>typeof escapeHtml==='function'?escapeHtml(v):String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const today=()=>typeof getLocalDateString==='function'?getLocalDateString():new Date().toISOString().slice(0,10);
+  const parentName=x=>String(x?.parentAccountName||x?.shopName||'').trim()||'Unnamed Business';
+  const outletName=x=>String(x?.outletName||x?.place||'Main Outlet').trim()||'Main Outlet';
+
+  function outletList(){
+    appState=loadState();
+    const raw=appState.b2bOutlets;
+    return Array.isArray(raw)?raw:(raw&&typeof raw==='object'?Object.values(raw):[]);
+  }
+  function findBusiness(id){
+    appState=loadState();
+    return (appState.b2bLeads||[]).find(x=>String(x?.id)===String(id)&&!x?.outletOnly)||null;
+  }
+  function findOutlet(id){ return outletList().find(x=>String(x?.id)===String(id))||null; }
+  function locationFor(id,type){
+    const t=String(type||'').toUpperCase();
+    if(t==='OUTLET') return {type:'OUTLET',item:findOutlet(id)};
+    if(t==='BUSINESS') return {type:'BUSINESS',item:findBusiness(id)};
+    const o=findOutlet(id); if(o)return {type:'OUTLET',item:o};
+    const b=findBusiness(id); if(b)return {type:'BUSINESS',item:b};
+    return {type:t==='OUTLET'?'OUTLET':'BUSINESS',item:null};
+  }
+  function getVisits(item){return Array.isArray(item?.stockVisits)?item.stockVisits:[];}
+  function latestVisit(item){return getVisits(item).slice().sort((a,b)=>String(b?.date||b?.createdAt||'').localeCompare(String(a?.date||a?.createdAt||'')))[0]||null;}
+
+  // The outlet selector must store the parent BUSINESS ID, not its display name.
+  window.openB2BOutletAdder=function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    appState=loadState();
+    const businesses=(appState.b2bLeads||[]).filter(x=>!x?.outletOnly);
+    const sel=document.getElementById('b2b-outlet-parent');
+    if(sel){
+      sel.innerHTML=businesses.length?businesses.map(b=>`<option value="${esc(b.id)}">${esc(parentName(b))}</option>`).join(''):'<option value="">No existing business found</option>';
+    }
+    const name=document.getElementById('b2b-outlet-adder-name');if(name)name.value='';
+    const place=document.getElementById('b2b-outlet-adder-place');if(place)place.value='';
+    const city=document.getElementById('b2b-outlet-adder-city');if(city)city.value='Mangalore';
+    document.getElementById('b2b-outlet-adder')?.classList.remove('hidden');
+  };
+
+  window.createB2BOutletFromAdder=async function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
+    appState=loadState();
+    const parentId=document.getElementById('b2b-outlet-parent')?.value.trim()||'';
+    const outlet=document.getElementById('b2b-outlet-adder-name')?.value.trim()||'';
+    const city=document.getElementById('b2b-outlet-adder-city')?.value||'Mangalore';
+    const place=document.getElementById('b2b-outlet-adder-place')?.value.trim()||'';
+    const parent=findBusiness(parentId);
+    if(!parent)return showToast('Select an existing business first.',true);
+    if(!outlet||!place)return showToast('Enter outlet name and place/area.',true);
+    const now=new Date().toISOString();
+    const id='OUTLET-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+    const record={id,parentBusinessId:parent.id,parentAccountName:parentName(parent),outletName:outlet,city,place,stockVisits:[],lastStockCountDate:'',lastStockCountBy:'',createdAt:now,createdBy:currentAuthUser.id,updatedAt:now,updatedBy:currentAuthUser.id};
+    try{
+      await cloudDb.ref(`${OUTLET_PATH}/${id}`).set(record);
+      closeB2BOutletAdder();
+      await window.renderB2BStockOverview();
+      try{addAuditLog('CREATE_B2B_OUTLET','B2B',JSON.stringify({parentBusinessId:parent.id,parentAccountName:parentName(parent),outletName:outlet,city,place}),id);}catch(e){console.warn('Outlet audit failed',e);}
+      showToast(`${outlet} added under ${parentName(parent)}.`);
+    }catch(e){console.error('B2B outlet create failed',e);showToast(`Could not create outlet: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
+  };
+
+  window.openB2BStockModal=function(id,visitId='',type=''){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    const loc=locationFor(id,type);
+    if(!loc.item)return showToast('Stock location not found.',true);
+    const visits=getVisits(loc.item);const visit=visitId?visits.find(v=>String(v?.id)===String(visitId)):null;
+    document.getElementById('b2b-stock-lead-id').value=id;
+    document.getElementById('b2b-stock-visit-id').value=visitId||'';
+    document.getElementById('b2b-stock-date').value=visit?.date||today();
+    document.getElementById('b2b-stock-rep').innerText=visit?.repName||currentAuthUser?.name||'—';
+    document.getElementById('b2b-stock-modal-title').innerText=visit?'Edit Stock Count':`Stock Count · ${outletName(loc.item)}`;
+    document.getElementById('b2b-stock-modal-subtitle').innerText=`${parentName(loc.item)} · ${loc.item.city||'Mangalore'} · ${loc.item.place||'—'}`;
+    const label=document.getElementById('b2b-stock-save-label');if(label)label.innerText=visit?'Update Stock Count':'Save Stock Count';
+    const rows=document.getElementById('b2b-stock-rows');if(rows)rows.innerHTML='';
+    if(visit&&Array.isArray(visit.items)&&visit.items.length){visit.items.forEach(i=>addB2BStockRow(i.product,i.quantity));}
+    else addB2BStockRow();
+    const notes=document.getElementById('b2b-stock-notes');if(notes)notes.value=visit?.notes||'';
+    document.getElementById('b2b-stock-modal')?.classList.remove('hidden');
+    document.getElementById('b2b-stock-modal').dataset.locationType=loc.type;
+  };
+
+  window.openB2BStockView=function(id,type=''){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    const loc=locationFor(id,type);
+    if(!loc.item)return showToast('Stock location not found.',true);
+    const title=document.getElementById('b2b-stock-view-title');const sub=document.getElementById('b2b-stock-view-subtitle');
+    if(title)title.innerText=`${outletName(loc.item)} · Stock History`;
+    if(sub)sub.innerText=`${parentName(loc.item)} · ${loc.item.city||'Mangalore'} · ${loc.item.place||'—'}`;
+    const add=document.getElementById('b2b-stock-view-add');if(add){add.onclick=()=>{closeB2BStockView();window.openB2BStockModal(id,'',loc.type);};}
+    const list=document.getElementById('b2b-stock-history-list');if(!list)return;
+    const visits=getVisits(loc.item).slice().sort((a,b)=>String(b?.date||b?.createdAt||'').localeCompare(String(a?.date||a?.createdAt||'')));
+    list.innerHTML=visits.length?visits.map(v=>{
+      const items=Array.isArray(v.items)?v.items:[];const total=items.reduce((s,i)=>s+(Number(i.quantity)||0),0);
+      return `<div class="p-3 rounded-2xl border border-slate-200 bg-white"><div class="flex items-center justify-between gap-2"><div class="text-[10px] font-black text-slate-800">${esc(v.date||'—')}</div><div class="flex items-center gap-1"><span class="text-[9px] font-black text-slate-400 mr-1">${items.length} products · ${total} units</span><button type="button" onclick="editB2BStockEntry('${esc(id)}','${esc(v.id)}','${esc(loc.type)}')" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-black">Edit</button><button type="button" onclick="deleteB2BStockEntry('${esc(id)}','${esc(v.id)}','${esc(loc.type)}')" class="px-2 py-1 rounded-lg bg-red-50 text-red-700 border border-red-100 text-[8px] font-black">Delete</button></div></div><div class="mt-2 grid grid-cols-2 gap-2">${items.map(i=>`<div class="p-2 rounded-xl bg-slate-50 border border-slate-100"><div class="text-[9px] font-black text-slate-700 truncate">${esc(i.product||'—')}</div><div class="text-base font-black text-emerald-800 mt-0.5">${Number(i.quantity)||0}</div><div class="text-[8px] text-slate-400">units</div></div>`).join('')}</div>${v.repName?`<div class="mt-2 text-[8px] text-slate-400">Counted by ${esc(v.repName)}</div>`:''}${v.notes?`<div class="mt-2 p-2 rounded-xl bg-slate-50 text-[9px] text-slate-500"><b>Notes:</b> ${esc(v.notes)}</div>`:''}</div>`;
+    }).join(''):'<div class="p-6 text-center text-[10px] text-slate-400">No stock count recorded yet.</div>';
+    document.getElementById('b2b-stock-view-modal')?.classList.remove('hidden');
+  };
+
+  window.saveB2BStockCount=async function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
+    const id=document.getElementById('b2b-stock-lead-id')?.value||'';
+    const visitId=document.getElementById('b2b-stock-visit-id')?.value||'';
+    const type=document.getElementById('b2b-stock-modal')?.dataset.locationType||'';
+    const loc=locationFor(id,type);if(!loc.item)return showToast('Stock location not found.',true);
+    const date=document.getElementById('b2b-stock-date')?.value||today();
+    const rows=[...document.querySelectorAll('#b2b-stock-rows .b2b-stock-row')];const items=[];
+    rows.forEach(row=>{const select=row.querySelector('.b2b-stock-product');const custom=row.querySelector('.b2b-stock-custom');const product=(custom?.value||select?.value||'').trim();const quantity=Math.max(0,Number(row.querySelector('.b2b-stock-qty')?.value||0));if(product&&product!=='__CUSTOM__')items.push({product,quantity});});
+    if(!items.length)return showToast('Add at least one product and quantity.',true);
+    const notes=document.getElementById('b2b-stock-notes')?.value.trim()||'';const now=new Date().toISOString();
+    try{
+      if(loc.type==='OUTLET'){
+        const ref=cloudDb.ref(`${OUTLET_PATH}/${id}`);
+        const result=await ref.transaction(obj=>{if(!obj)return obj;const latest={...obj};let visits=Array.isArray(latest.stockVisits)?latest.stockVisits:[];if(visitId){const i=visits.findIndex(v=>String(v?.id)===String(visitId));if(i<0)return latest;visits[i]={...visits[i],date,items,notes,updatedAt:now,updatedBy:currentAuthUser.id};}else visits.unshift({id:'STOCK-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date,items,notes,repId:currentAuthUser.id,repName:currentAuthUser.name||'',createdAt:now});latest.stockVisits=visits.slice(0,200);const lv=latest.stockVisits.slice().sort((a,b)=>String(b?.date||b?.createdAt||'').localeCompare(String(a?.date||a?.createdAt||'')))[0];latest.lastStockCountDate=lv?.date||date;latest.lastStockCountBy=lv?.repId||currentAuthUser.id;latest.updatedAt=now;latest.updatedBy=currentAuthUser.id;return latest;});
+        if(!result.committed)return showToast('Stock count could not be saved. Please try again.',true);
+      }else{
+        const ref=cloudDb.ref(LEADS_PATH);
+        const result=await ref.transaction(list=>{const arr=Array.isArray(list)?list:[];const i=arr.findIndex(x=>String(x?.id)===String(id));if(i<0)return arr;const lead={...arr[i]};let visits=Array.isArray(lead.stockVisits)?lead.stockVisits:[];if(visitId){const vi=visits.findIndex(v=>String(v?.id)===String(visitId));if(vi<0)return arr;visits[vi]={...visits[vi],date,items,notes,updatedAt:now,updatedBy:currentAuthUser.id};}else visits.unshift({id:'STOCK-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date,items,notes,repId:currentAuthUser.id,repName:currentAuthUser.name||'',createdAt:now});lead.stockVisits=visits.slice(0,200);const lv=lead.stockVisits.slice().sort((a,b)=>String(b?.date||b?.createdAt||'').localeCompare(String(a?.date||a?.createdAt||'')))[0];lead.lastStockCountDate=lv?.date||date;lead.lastStockCountBy=lv?.repId||currentAuthUser.id;lead.updatedAt=now;lead.updatedBy=currentAuthUser.id;arr[i]=lead;return arr;});
+        if(!result.committed)return showToast('Stock count could not be saved. Please try again.',true);
+      }
+      try{addAuditLog(visitId?'EDIT_B2B_STOCK_COUNT':'ADD_B2B_STOCK_COUNT','B2B',JSON.stringify({id,locationType:loc.type,visitId,date,items}),id);}catch(e){console.warn('Stock audit failed',e);}
+      closeB2BStockModal();await window.renderB2BStockOverview();showToast(visitId?'Stock count updated.':'Stock count saved.');
+    }catch(e){console.error('B2B stock save failed',e);showToast(`Stock count save failed: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
+  };
+
+  window.editB2BStockEntry=function(id,visitId,type=''){if(!isB2BOwner())return;closeB2BStockView();window.openB2BStockModal(id,visitId,type);};
+  window.deleteB2BStockEntry=async function(id,visitId,type=''){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
+    if(!confirm('Delete this stock count entry? This cannot be undone.'))return;
+    const loc=locationFor(id,type);if(!loc.item)return showToast('Stock location not found.',true);
+    try{
+      if(loc.type==='OUTLET'){
+        const result=await cloudDb.ref(`${OUTLET_PATH}/${id}`).transaction(obj=>{if(!obj)return obj;const latest={...obj};latest.stockVisits=getVisits(latest).filter(v=>String(v?.id)!==String(visitId));const lv=latest.stockVisits.slice().sort((a,b)=>String(b?.date||b?.createdAt||'').localeCompare(String(a?.date||a?.createdAt||'')))[0];latest.lastStockCountDate=lv?.date||'';latest.lastStockCountBy=lv?.repId||'';latest.updatedAt=new Date().toISOString();latest.updatedBy=currentAuthUser.id;return latest;});if(!result.committed)return showToast('Stock entry could not be deleted.',true);
+      }else{
+        const result=await cloudDb.ref(LEADS_PATH).transaction(list=>{const arr=Array.isArray(list)?list:[];const i=arr.findIndex(x=>String(x?.id)===String(id));if(i<0)return arr;const lead={...arr[i]};lead.stockVisits=getVisits(lead).filter(v=>String(v?.id)!==String(visitId));const lv=lead.stockVisits.slice().sort((a,b)=>String(b?.date||b?.createdAt||'').localeCompare(String(a?.date||a?.createdAt||'')))[0];lead.lastStockCountDate=lv?.date||'';lead.lastStockCountBy=lv?.repId||'';lead.updatedAt=new Date().toISOString();lead.updatedBy=currentAuthUser.id;arr[i]=lead;return arr;});if(!result.committed)return showToast('Stock entry could not be deleted.',true);
+      }
+      try{addAuditLog('DELETE_B2B_STOCK_COUNT','B2B',JSON.stringify({id,locationType:loc.type,visitId}),id);}catch(e){console.warn('Stock delete audit failed',e);}
+      closeB2BStockView();await window.renderB2BStockOverview();showToast('Stock count deleted.');
+    }catch(e){console.error('B2B stock delete failed',e);showToast(`Stock delete failed: ${e?.code||e?.message||'unknown Firebase error'}`,true);}
+  };
+
+  // Management quick action "Announce" must stay inside the existing admin console;
+  // there is intentionally no separate page-announcements route.
+  const baseNav=window.navigateTo;
+  window.navigateTo=function(pageId){
+    if(pageId==='page-announcements'){
+      if(!isManagerRole())return showToast('Management access required.',true);
+      baseNav('page-admin-desk');
+      setTimeout(()=>{if(typeof switchAdminTab==='function')switchAdminTab('simple-announcements');},0);
+      return;
+    }
+    const r=baseNav.apply(this,arguments);
+    return r;
+  };
+
+  // If an older business record accidentally contains outletOnly data, keep it out
+  // of the business page; stock overview recovery handles migration separately.
+  if(typeof wwHideBusinessOutletControls==='function')wwHideBusinessOutletControls();
+})();
+</script>
+
+<script>
+/* v1.4.53 — final audit fixes: router coverage, B2B export, business deletion cascade. */
+(function(){
+  const escCsv=v=>{const t=String(v??'');return '"'+t.replace(/"/g,'""')+'"';};
+  window.exportB2BToCSV=function(){
+    if(!isB2BOwner())return showToast('B2B access required.',true);
+    appState=loadState();
+    const businesses=Array.isArray(appState.b2bLeads)?appState.b2bLeads.filter(x=>!x?.outletOnly):[];
+    const raw=appState.b2bOutlets;const outlets=Array.isArray(raw)?raw:(raw&&typeof raw==='object'?Object.values(raw):[]);
+    if(!businesses.length&&!outlets.length)return showToast('No B2B data available to export.',true);
+    const headers=['Record Type','B2B ID','Business / Chain Name','Outlet Name','City','Place / Area','Contact Person Name','Mobile Number','GST Number','Business Type','Full Address','Status','Potential','Next Follow-up','Current Supplier / Brand','Products Interested In','Lead Source','Expected Monthly Requirement','Visit / Follow-up Notes','Visited Date','Tie-Up Date','Stock Placed Date','Created At','Created By','Updated At','Updated By','Last Stock Count'];
+    const rows=[];
+    businesses.forEach(l=>rows.push(['BUSINESS',l.id,l.parentAccountName||l.shopName,'',l.city||'Mangalore',l.place,l.contactName,l.mobile,l.gstNumber,l.businessType,l.address,typeof b2bStatusLabel==='function'?b2bStatusLabel(l.status):l.status,l.potential,l.nextFollowUp,l.currentSupplier,l.products,l.source,l.monthlyPotential,l.notes,l.visitedDate,l.tieUpDate,l.stockPlacedDate,l.createdAt,l.createdBy,l.updatedAt,l.updatedBy,l.lastStockCountDate].map(escCsv).join(',')));
+    outlets.forEach(o=>rows.push(['OUTLET',o.id,o.parentAccountName||'',o.outletName||'',o.city||'Mangalore',o.place,'','','','Outlet','', 'STOCK LOCATION','','','','','','','','','','',o.createdAt,o.createdBy,o.updatedAt,o.updatedBy,o.lastStockCountDate].map(escCsv).join(',')));
+    const csv='\ufeff'+[headers.map(escCsv).join(','),...rows].join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`Wellwith_B2B_${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);showToast(`Exported ${rows.length} B2B business/outlet records to CSV.`);
+  };
 })();
 </script>
 </body>
