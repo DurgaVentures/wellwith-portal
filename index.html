@@ -9053,53 +9053,115 @@
     if(!o)throw new Error('Order not found');
     if(!['PACKED','READY_DISPATCH','DISPATCHED'].includes(o.status))throw new Error('Order must be packed before generating its India Post label.');
     if(!window.PDFLib)throw new Error('PDF generator library could not load. Check internet connection and retry.');
-    const {PDFDocument,StandardFonts}=PDFLib;
-    const bytes=Uint8Array.from(atob(INDIA_POST_TEMPLATE_B64),c=>c.charCodeAt(0));
-    const doc=await PDFDocument.load(bytes);
-    const page=doc.getPages()[0];
-    const font=await doc.embedFont(StandardFonts.Helvetica);
+
+    // Build a completely new A4 PDF. Do not load, copy, or overlay the old template.
+    const {PDFDocument,StandardFonts,rgb}=PDFLib;
+    const doc=await PDFDocument.create();
+    const page=doc.addPage([595.28,841.89]);
+    const regular=await doc.embedFont(StandardFonts.Helvetica);
     const bold=await doc.embedFont(StandardFonts.HelveticaBold);
-    const H=page.getHeight(),W=page.getWidth();
-    const black=PDFLib.rgb(0,0,0);
-    const c=o.customer||{},cod=o.paymentMode==='COD';
+    const black=rgb(0,0,0);
+    const W=page.getWidth(),H=page.getHeight();
+    const c=o.customer||{};
+    const cod=o.paymentMode==='COD';
     const amount=Number(o.codAmount||o.total||0).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});
-    const header=cod?`COD – Rs. ${amount}`:'PREPAID';
-    // Coordinates are calibrated to the redesigned A4 black-and-white master PDF.
-    // The master contains all fixed table rules, labels, customer ID and sender details.
-    function draw(value,x,top,size=10.5,isBold=false){
-      const text=String(value??'').replace(/[\r\n]+/g,' ').trim();
-      if(!text)return;
-      const f=isBold?bold:font;
-      page.drawText(text,{x,y:H-top-size,size,font:f,color:black});
+    const paymentHeading=cod?`COD – Rs. ${amount}`:'PREPAID';
+    const margin=42,tableW=W-margin*2,labelW=112,valueX=margin+labelW;
+    const valueW=tableW-labelW;
+    const fontSize=10.5,lineH=14;
+
+    const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
+    function drawText(value,x,top,size=fontSize,isBold=false){
+      const valueText=String(value??'');
+      if(!valueText)return;
+      page.drawText(valueText,{
+        x,y:H-top-size,size,font:isBold?bold:regular,color:black
+      });
     }
-    function wrap(value,maxWidth=378,size=10.5){
-      const words=String(value||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+    function wrapText(value,maxWidth,size=fontSize,font=regular){
+      const words=clean(value).split(' ').filter(Boolean);
       const lines=[];let line='';
       for(const word of words){
         const test=line?line+' '+word:word;
         if(font.widthOfTextAtSize(test,size)<=maxWidth){line=test;continue;}
         if(line)lines.push(line);
-        if(font.widthOfTextAtSize(word,size)<=maxWidth)line=word;
-        else{let part='';for(const ch of word){const next=part+ch;if(font.widthOfTextAtSize(next,size)>maxWidth&&part){lines.push(part);part=ch;}else part=next;}line=part;}
+        if(font.widthOfTextAtSize(word,size)<=maxWidth){line=word;continue;}
+        let part='';
+        for(const ch of word){
+          const next=part+ch;
+          if(font.widthOfTextAtSize(next,size)>maxWidth&&part){lines.push(part);part=ch;}
+          else part=next;
+        }
+        line=part;
       }
       if(line)lines.push(line);
       return lines;
     }
-    // Header right aligned within the existing heading band.
-    const hw=bold.widthOfTextAtSize(header,17);
-    page.drawText(header,{x:544.25-hw-2,y:H-70-17,size:17,font:bold,color:black});
-    // Recipient values: draw inside the existing blank value cells; no borders are repainted.
-    draw(c.name,155.9,170.5,10.5);
-    draw(c.mobile,155.9,201.7,10.5);
-    const addressParts=[c.address,c.landmark,c.city,c.state].map(v=>String(v||'').trim()).filter(Boolean);
-    const addressLines=wrap(addressParts.join(', '),378,10.5);
-    if(addressLines.length>7)throw new Error('Customer address is too long for the label. Shorten the address or use the address notes field.');
-    addressLines.forEach((line,i)=>draw(line,155.9,238.5+i*13.2,10.5));
-    draw(c.pin,155.9,337.0,10.5);
-    draw(cod?'CASH ON DELIVERY (COD)':'PREPAID',155.9,369.0,10.5);
-    if(cod)draw('Rs. '+amount,155.9,403.0,10.5,true);
-    const out=await doc.save();
-    return new Blob([out],{type:'application/pdf'});
+    function sectionTitle(label,top){
+      drawText(label,margin,top,11.5,true);
+      return top+19;
+    }
+    function drawTable(rows,top){
+      const prepared=rows.map(row=>{
+        const isAddress=row.label==='Address';
+        const lines=Array.isArray(row.valueLines)?row.valueLines:wrapText(row.value,valueW-22,fontSize,row.bold?bold:regular);
+        const height=isAddress?Math.max(52,lines.length*lineH+20):Math.max(34,lines.length*lineH+14);
+        return {...row,lines,height};
+      });
+      const totalH=prepared.reduce((s,r)=>s+r.height,0);
+      // Outer border and internal rules are drawn as vector paths for clean print output.
+      page.drawRectangle({x:margin,y:H-top-totalH,width:tableW,height:totalH,borderColor:black,borderWidth:0.8});
+      page.drawLine({start:{x:valueX,y:H-top},end:{x:valueX,y:H-top-totalH},thickness:0.8,color:black});
+      let cursor=top;
+      for(let i=0;i<prepared.length;i++){
+        const row=prepared[i],mid=cursor+row.height/2;
+        if(i>0)page.drawLine({start:{x:margin,y:H-cursor},end:{x:margin+tableW,y:H-cursor},thickness:0.65,color:black});
+        drawText(row.label,margin+10,mid-6.5,10.5,true);
+        const valueFont=row.bold?bold:regular;
+        const textTop=row.lines.length>1?cursor+(row.height-row.lines.length*lineH)/2:mid-6.5;
+        row.lines.forEach((line,j)=>{
+          const textW=valueFont.widthOfTextAtSize(line,fontSize);
+          drawText(line,valueX+10,textTop+j*lineH,fontSize,!!row.bold);
+        });
+        cursor+=row.height;
+      }
+      return top+totalH;
+    }
+
+    // Header band and India Post customer identifier.
+    drawText('INDIA POST – PARCEL LABEL',margin,22,17,true);
+    const statusW=bold.widthOfTextAtSize(paymentHeading,17);
+    drawText(paymentHeading,W-margin-statusW,22,17,true);
+    let top=57;
+    page.drawRectangle({x:margin,y:H-top-37,width:tableW,height:37,borderColor:black,borderWidth:0.9});
+    drawText('India Post Customer ID: 1309075351',margin+12,top+12,10.5,false);
+
+    top=top+51;
+    top=sectionTitle('RECIPIENT',top);
+    const addressParts=[c.address,c.landmark,c.city,c.state].map(clean).filter(Boolean);
+    top=drawTable([
+      {label:'Name',value:clean(c.name)},
+      {label:'Mobile',value:clean(c.mobile)},
+      {label:'Address',value:addressParts.join(', ')},
+      {label:'PIN Code',value:clean(c.pin)},
+      {label:'Payment Type',value:cod?'CASH ON DELIVERY (COD)':'PREPAID'},
+      {label:'COD Amount',value:cod?'Rs. '+amount:'',bold:cod}
+    ],top);
+    top+=12;
+    top=sectionTitle('SENDER',top);
+    top=drawTable([
+      {label:'Store',value:'WELLWITH'},
+      {label:'Firm',value:'DURGA VENTURES'},
+      {label:'Mobile',value:'8618486377'},
+      {label:'Address',value:'Shop No. 6, Upper Ground Floor, Kadri Mallikatta Market Complex, Mangalore'},
+      {label:'GSTIN',value:'29ADAFD3264A1ZV'},
+      {label:'PIN Code',value:'575002'}
+    ],top);
+
+    if(top>H-28)throw new Error('This address is too long to fit on one A4 label. Shorten the address and generate again.');
+    // Classic cross-reference table (no object streams) for broad reader compatibility.
+    const bytes=await doc.save({useObjectStreams:false,addDefaultPage:false});
+    return new Blob([bytes],{type:'application/pdf'});
   }
   async function markLabel(id){appState=loadState();const o=(appState.dispatchOrders||[]).find(x=>x.id===id);if(!o)return;const now=new Date().toISOString();o.labelGeneratedAt=now;o.labelGeneratedBy=currentAuthUser?.id||'';o.labelGeneratedByName=currentAuthUser?.name||'';o.timeline=o.timeline||[];o.timeline.push({status:'LABEL_GENERATED',at:now,by:o.labelGeneratedBy,byName:o.labelGeneratedByName,note:'India Post label generated'});if(o.status==='PACKED'){o.status='READY_DISPATCH';o.updatedAt=now;}saveState(appState);}
   window.dispatchDownloadLabel=async function(id){if(!canProcess())return showToast('Inventory staff access required.',true);try{const blob=await buildLabel(id);const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`India-Post-${id}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);await markLabel(id);renderDispatchDesk();showToast('India Post label downloaded.');}catch(e){showToast(e.message||'Could not generate label.',true);}};
