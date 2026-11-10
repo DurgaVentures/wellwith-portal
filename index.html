@@ -119,6 +119,8 @@
 </button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-profile')"><span>👤</span> <span>My Profile</span></button>
 <button id="nav-item-dispatch" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-dispatch')"><span>📦</span> <span>Dispatch &amp; Fulfilment</span></button>
+<button id="nav-item-wallet" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-wallet')"><span>👛</span> <span>My Wallet &amp; History</span></button>
+
 <button id="nav-item-b2b" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b')"><span>🏢</span> <span>B2B Leads</span></button><button id="nav-item-b2b-stock-overview" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b-stock-overview')"><span>📋</span> <span>Store Stock Overview</span></button><button id="nav-item-b2b-product-master" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b-product-master')"><span>🧾</span> <span>Product Master</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-salary-slips')"><span>💳</span> <span>My Salary Slips</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-history')">
@@ -167,6 +169,7 @@
 <div class="text-[9px] text-slate-400 mt-0.5 font-medium">All controls are grouped inside one clean workspace.</div>
 </div>
 <button class="sa-side-item bg-slate-50 font-black text-slate-800 mt-1" onclick="haptic(8); openSuperAdminSection('control')">📊 <span>Super Admin Command Center</span></button>
+<button id="nav-item-incentive-master" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-incentive-master')"><span>⚙️</span> <span>Dispatch Incentive Master</span></button>
 </div>
 </nav>
 <div class="p-3 border-t border-slate-100">
@@ -1510,6 +1513,40 @@
   </div>
 </section>
 
+
+<section class="hidden space-y-4" id="page-wallet">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+    <div class="flex items-center justify-between"><div><div class="text-[9px] uppercase tracking-widest font-black text-amber-700">Inventory Dispatch Incentive</div><h2 class="text-lg font-black text-slate-900">My Wallet</h2></div><span class="text-2xl">👛</span></div>
+    <div class="rounded-2xl bg-[#05281b] text-white p-5"><div class="text-[10px] uppercase tracking-widest text-emerald-200 font-bold">Available Balance</div><div id="wallet-current-balance" class="text-3xl font-black mt-1">₹0.00</div><div class="text-[10px] text-emerald-100 mt-2">₹35 for each successfully dispatched order</div></div>
+    <div class="grid grid-cols-2 gap-2"><div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100"><div class="text-[9px] uppercase font-black text-emerald-700">Total Earned</div><div id="wallet-total-earned" class="text-base font-black text-emerald-900">₹0.00</div></div><div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><div class="text-[9px] uppercase font-black text-slate-500">Total Paid Out</div><div id="wallet-total-paid" class="text-base font-black text-slate-900">₹0.00</div></div></div>
+  </div>
+  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3"><div class="flex items-center justify-between"><h3 class="font-black text-sm">Wallet History</h3><span id="wallet-history-count" class="text-[9px] text-slate-400 font-bold">0 transactions</span></div><div id="wallet-history-list" class="space-y-2"><div class="text-center text-xs text-slate-400 py-5">No wallet transactions yet.</div></div></div>
+  <div id="wallet-admin-panel" class="hidden bg-white p-4 rounded-3xl border border-amber-200 shadow-sm space-y-3">
+    <div><div class="text-[9px] uppercase tracking-widest font-black text-amber-700">Super Admin</div><h3 class="font-black text-sm">Staff Wallet Payout</h3><p class="text-[10px] text-slate-500 mt-1">Record payment to a staff member. Paying the full available balance resets their wallet to ₹0.</p></div>
+    <select id="wallet-admin-employee" onchange="renderWalletAdminBalance()" class="w-full px-3 py-3 border rounded-xl text-xs bg-white"><option value="">Select inventory staff</option></select>
+    <div class="rounded-xl bg-slate-50 border p-3 flex justify-between"><span class="text-[10px] text-slate-500 font-bold">Available wallet</span><b id="wallet-admin-balance" class="text-sm">₹0.00</b></div>
+    <input id="wallet-payout-reference" class="w-full px-3 py-3 border rounded-xl text-xs" placeholder="Payment reference / UTR (optional)">
+    <input id="wallet-payout-note" class="w-full px-3 py-3 border rounded-xl text-xs" placeholder="Note (optional)">
+    <button type="button" onclick="walletPayFullBalance()" class="w-full py-3 rounded-xl bg-amber-600 text-white text-xs font-black">Record Full Payout &amp; Clear Wallet</button>
+  </div>
+</section>
+
+<section class="hidden space-y-4" id="page-incentive-master">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+    <div class="text-[9px] uppercase tracking-widest font-black text-amber-700">Super Admin Only</div>
+    <h2 class="text-lg font-black text-slate-900">Dispatch Incentive Product Master</h2>
+    <p class="text-[10px] text-slate-500">Set the wallet credit for each dispatch product. If an order contains multiple products, only the highest configured product fee is credited once for that order — fees are not added together and quantity does not multiply the incentive.</p>
+    <div class="rounded-xl bg-amber-50 border border-amber-100 p-3 text-[10px] text-amber-900 font-semibold">Example: Product A ₹20 + Product B ₹35 in one order = ₹35 wallet credit.</div>
+  </div>
+  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+    <div class="flex items-center justify-between gap-2"><h3 class="font-black text-sm">Product-wise dispatch fee</h3><button onclick="renderDispatchIncentiveMaster()" class="text-[9px] font-black text-emerald-800">↻ Refresh</button></div>
+    <div id="dispatch-incentive-product-list" class="space-y-2"></div>
+    <button type="button" onclick="saveDispatchIncentiveMaster()" class="w-full py-3 rounded-xl bg-[#05281b] text-white text-xs font-black">Save Incentive Rates</button>
+    <p id="dispatch-incentive-save-status" class="text-[9px] text-slate-400 text-center">Changes apply to orders dispatched after the rates are saved.</p>
+  </div>
+</section>
+
+
 </main>
 <!-- Native App Bottom Navigation Bar -->
 <nav class="hidden absolute bottom-0 inset-x-0 bg-white border-t border-slate-200/80 px-4 py-2 z-30 flex justify-around items-center text-[10px] font-bold text-slate-500 shadow-lg" id="app-bottom-nav">
@@ -2021,6 +2058,8 @@
       if (!Array.isArray(parsed.archivedEmployees)) parsed.archivedEmployees = [];
       if (!Array.isArray(parsed.inventory)) parsed.inventory = [];
       if (!Array.isArray(parsed.inventoryMovements)) parsed.inventoryMovements = [];
+      if (!Array.isArray(parsed.walletTransactions)) parsed.walletTransactions = [];
+      if (!parsed.dispatchIncentiveRates || typeof parsed.dispatchIncentiveRates !== 'object' || Array.isArray(parsed.dispatchIncentiveRates)) parsed.dispatchIncentiveRates = {};
       if (!Array.isArray(parsed.dispatchOrders)) parsed.dispatchOrders = [];
       if (!parsed.systemConfig || typeof parsed.systemConfig !== 'object') parsed.systemConfig = JSON.parse(JSON.stringify(defaultState.systemConfig));
       if (!Array.isArray(parsed.deletedEmployeeIds)) parsed.deletedEmployeeIds = [];
@@ -2102,7 +2141,9 @@
     }
 
     function isSuperAdmin() {
-      return !!(currentAuthUser && (currentAuthUser.phone === '8088504219' || currentAuthUser.role === 'SUPER_ADMIN'));
+      const role = String(currentAuthUser?.role || '').toUpperCase().replace(/[^A-Z]/g, '');
+      const phone = String(currentAuthUser?.phone || '').replace(/\D/g, '');
+      return !!(currentAuthUser && (phone === '8088504219' || ['SUPERADMIN','ROOTSUPERADMIN'].includes(role)));
     }
 
     // v1.4.42: B2B supports chain accounts with outlet-wise stock tracking. v1.4.36: B2B includes mobile stock-count visits with product/quantity entries.
@@ -2258,7 +2299,7 @@
 
       const allPages = [
         'page-welcome', 'page-login', 'page-dashboard', 'page-profile', 'page-salary-slips', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones', 'page-knowledge',
-        'page-b2b', 'page-b2b-stock-overview', 'page-b2b-product-master', 'page-dispatch', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
+        'page-b2b', 'page-b2b-stock-overview', 'page-b2b-product-master', 'page-dispatch', 'page-wallet', 'page-incentive-master', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
       ];
       allPages.forEach(id => {
         const el = document.getElementById(id);
@@ -2297,6 +2338,8 @@
 
         if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
         else if (pageId === 'page-dispatch') { titleEl.innerText = 'Dispatch & Fulfilment'; subtitleEl.innerText = 'Customer Orders & India Post'; }
+        else if (pageId === 'page-wallet') { titleEl.innerText = 'My Wallet'; subtitleEl.innerText = 'Dispatch Incentives & Payment History'; }
+        else if (pageId === 'page-incentive-master') { titleEl.innerText = 'Dispatch Incentive Master'; subtitleEl.innerText = 'Product-wise Wallet Credit Settings'; }
         else if (pageId === 'page-profile') { titleEl.innerText = 'My Profile'; subtitleEl.innerText = 'Employee Details'; }
         else if (pageId === 'page-b2b') { titleEl.innerText = 'B2B Leads'; subtitleEl.innerText = 'Private B2B Database'; } else if (pageId === 'page-b2b-stock-overview') { titleEl.innerText = 'Store Stock Overview'; subtitleEl.innerText = 'B2B Product Stock'; } else if (pageId === 'page-b2b-product-master') { titleEl.innerText = 'B2B Product Master'; subtitleEl.innerText = 'Products for Stock Counting'; }
         else if (pageId === 'page-salary-slips') { titleEl.innerText = 'My Salary Slips'; subtitleEl.innerText = 'Salary Records'; }
@@ -2330,6 +2373,8 @@
       });
 
       if (pageId === 'page-dispatch') renderDispatchDesk();
+      if (pageId === 'page-wallet') renderStaffWallet();
+      if (pageId === 'page-incentive-master') renderDispatchIncentiveMaster();
       if (pageId === 'page-dashboard') renderEmployeePersonalData();
       else if (pageId === 'page-b2b') renderB2BLeads(); else if (pageId === 'page-b2b-stock-overview') renderB2BStockOverview();
       else if (pageId === 'page-profile') renderProfilePage();
@@ -2853,6 +2898,8 @@
       document.getElementById('sidebar-role-badge').innerText = getDisplayRole(currentAuthUser.role);
       document.getElementById('side-cat-admin').classList.toggle('hidden', !isLead);
       const superCat = document.getElementById('side-cat-superadmin');
+      const incentiveMasterNav = document.getElementById('nav-item-incentive-master');
+      if (incentiveMasterNav) incentiveMasterNav.classList.toggle('hidden', !isSuperAdmin());
       if (superCat) superCat.classList.toggle('hidden', !isSuperAdmin());
       const b2bAccess = isB2BOwner();
       const b2bNav = document.getElementById('nav-item-b2b');
@@ -8320,15 +8367,56 @@
   const dispatchModalStyle=document.createElement('style');dispatchModalStyle.textContent='@keyframes dispatchModalIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}';document.head.appendChild(dispatchModalStyle);
   // In-app India Post tracking dialog: avoid browser-native prompt() popups.
   window.closeDispatchTrackingModal=function(){document.getElementById('dispatch-tracking-modal')?.remove();};
-  window.dispatchConfirmTracking=function(id){
+  window.dispatchConfirmTracking=async function(id){
     const modal=document.getElementById('dispatch-tracking-modal');
     const input=document.getElementById('dispatch-tracking-input');
     const tracking=(input?.value||'').trim().toUpperCase();
     if(!tracking){input?.focus();return showToast('Enter the India Post consignment / tracking ID.',true);}
-    const latest=orders().find(x=>x.id===id);
-    if(!latest||!['READY_DISPATCH','PACKED'].includes(latest.status)){window.closeDispatchTrackingModal();return showToast('This order is no longer ready for dispatch.',true);}
-    window.closeDispatchTrackingModal();
-    updateOrder(id,x=>{if(!['READY_DISPATCH','PACKED'].includes(x.status))return;x.trackingId=tracking;x.courier='India Post';x.dispatchedAt=new Date().toISOString();x.dispatchedBy=currentAuthUser.id;x.dispatchedByName=currentAuthUser.name;logStatus(x,'DISPATCHED','Handed over to India Post. Tracking: '+x.trackingId);});
+    if(!currentAuthUser||!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase is not connected. Dispatch was not saved.',true);
+    const actor={id:currentAuthUser.id||'',name:currentAuthUser.name||'Inventory Staff',role:currentAuthUser.role||'STAFF'};
+    const now=new Date().toISOString();
+    const resultButton=modal?.querySelector('button[onclick*="dispatchConfirmTracking"]');
+    if(resultButton){resultButton.disabled=true;resultButton.textContent='Saving…';}
+    try{
+      const result=await cloudDb.ref('storeState').transaction(serverState=>{
+        if(!serverState)return;
+        const latest=ensureStateArrays(serverState);
+        const list=Array.isArray(latest.dispatchOrders)?latest.dispatchOrders:[];
+        const order=list.find(x=>String(x.id)===String(id));
+        if(!order||!['READY_DISPATCH','PACKED'].includes(order.status))return;
+        order.trackingId=tracking;order.courier='India Post';order.dispatchedAt=now;
+        order.dispatchedBy=actor.id;order.dispatchedByName=actor.name;
+        order.status='DISPATCHED';order.updatedAt=now;order.updatedBy=actor.id;order.updatedByName=actor.name;
+        order.timeline=Array.isArray(order.timeline)?order.timeline:[];
+        order.timeline.push({status:'DISPATCHED',at:now,by:actor.id,byName:actor.name,note:'Handed over to India Post. Tracking: '+tracking});
+        latest.walletTransactions=Array.isArray(latest.walletTransactions)?latest.walletTransactions:[];
+        const previousCredit=latest.walletTransactions.filter(t=>t.type==='CREDIT'&&String(t.orderId)===String(order.id)).slice(-1)[0];
+        const previousCreditReversed=previousCredit&&latest.walletTransactions.some(t=>t.type==='REVERSAL'&&String(t.reversesTransactionId)===String(previousCredit.id));
+        const alreadyCredited=!!previousCredit&&!previousCreditReversed;
+        if(!alreadyCredited&&(actor.role==='INVENTORY_STAFF'||actor.role==='INVENTORY')){
+          const rateMap=latest.dispatchIncentiveRates&&typeof latest.dispatchIncentiveRates==='object'?latest.dispatchIncentiveRates:{};
+          const productFees=(Array.isArray(order.items)?order.items:[]).map(item=>{
+            const productName=String(item.name||'').trim();
+            const fee=Number(rateMap[productName.toLowerCase()]??rateMap[productName]??0);
+            return {name:productName,fee:Number.isFinite(fee)&&fee>0?fee:0};
+          });
+          const highest=productFees.reduce((best,item)=>item.fee>best.fee?item:best,{name:'',fee:0});
+          if(highest.fee>0){
+            const creditId='WAL-C-'+String(order.id)+'-'+String(now).replace(/[^0-9]/g,'');
+            latest.walletTransactions.push({id:creditId,type:'CREDIT',employeeId:actor.id,employeeName:actor.name,amount:highest.fee,orderId:order.id,invoiceNumber:order.invoiceNumber||'',description:'Dispatch incentive · '+highest.name,productName:highest.name,productFees,createdAt:now,createdBy:actor.id,createdByName:actor.name});
+            order.walletCreditId=creditId;order.walletCreditAmount=highest.fee;order.walletCreditedTo=actor.id;order.walletCreditProduct=highest.name;order.walletCreditReversedAt=null;order.walletCreditReversalId=null;
+          }
+        }
+        return latest;
+      },undefined,false);
+      if(!result.committed){showToast('Dispatch was not saved. The order may already have been dispatched.',true);if(resultButton){resultButton.disabled=false;resultButton.textContent='Confirm Dispatch';}return;}
+      appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);
+      window.closeDispatchTrackingModal();renderDispatchDesk();
+      showToast((actor.role==='INVENTORY_STAFF'||actor.role==='INVENTORY')?'Order dispatched. Product-wise incentive credited to your wallet.':'Order dispatched successfully.');
+    }catch(error){
+      console.error('Atomic dispatch / wallet credit failed:',error);showToast('Dispatch failed: '+(error?.message||'Firebase error'),true);
+      if(resultButton){resultButton.disabled=false;resultButton.textContent='Confirm Dispatch';}
+    }
   };
   window.dispatchMarkDispatched=function(id){
     if(!canProcess())return showToast('Inventory staff or management access required.',true);
@@ -8380,7 +8468,7 @@
     const safe=(v)=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const invoice=String(o.invoiceNumber||'').replace(/^ONL-/i,'');
     overlay.innerHTML=`<div role="dialog" aria-modal="true" aria-labelledby="dispatch-edit-title" class="w-full max-w-xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 space-y-3">
-      <div class="flex items-start justify-between gap-3"><div><h3 id="dispatch-edit-title" class="font-black text-base text-slate-900">Edit Dispatch Order</h3><p class="text-[10px] text-slate-500">${safe(o.id)} · ${safe(o.status)} · Correct important order details</p></div><button type="button" onclick="closeDispatchEditModal()" class="text-slate-500 text-2xl leading-none" aria-label="Close">&times;</button></div>
+      <div class="flex items-start justify-between gap-3"><div><h3 id="dispatch-edit-title" class="font-black text-base text-slate-900">Edit Dispatch Order</h3><p class="text-[10px] text-slate-500">${safe(o.invoiceNumber||o.id)} · ${safe(o.status)} · Correct important order details</p></div><button type="button" onclick="closeDispatchEditModal()" class="text-slate-500 text-2xl leading-none" aria-label="Close">&times;</button></div>
       <div class="rounded-xl bg-amber-50 border border-amber-200 p-2 text-[10px] text-amber-900">If products or delivery details change before dispatch, the order returns to Packing for verification. For dispatched, delivered or RTO orders, enter a reason for the correction. Courier tracking and the actual delivery outcome are preserved; contact the courier separately if a dispatched parcel's address changes.</div>
       <div class="grid grid-cols-2 gap-2">
         <label class="col-span-2 text-[10px] font-bold text-slate-600">Invoice number <span class="text-red-600">*</span><div class="flex mt-1"><span class="px-3 py-2.5 bg-slate-100 border border-r-0 rounded-l-lg font-black">ONL-</span><input id="dei-invoice" value="${safe(invoice)}" inputmode="numeric" class="min-w-0 flex-1 px-3 py-2.5 border rounded-r-lg text-xs" /></div></label>
@@ -8423,8 +8511,13 @@
     const postDispatchStates=['DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'];
     if(postDispatchStates.includes(current.status)&&!editReason)return showToast('Please enter a reason for editing this dispatched, delivered or RTO order.',true);
     const before={invoiceNumber:current.invoiceNumber,customer:JSON.parse(JSON.stringify(current.customer||{})),items:JSON.parse(JSON.stringify(current.items||[])),deliveryCharge:current.deliveryCharge,total:current.total,paymentMode:current.paymentMode,instructions:current.instructions||'',whatsappOptIn:current.whatsappOptIn===true};
-    const afterStatus=['PACKED','READY_DISPATCH','READY_FOR_DISPATCH'].includes(current.status)?'PACKING':current.status;
+    const afterStatus=['PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(current.status)?'PACKING':current.status;
     const saved=updateOrder(id,o=>{
+      if(['DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(current.status)){
+        const reversalAt=new Date().toISOString();
+        reverseDispatchWalletCredit(o,'Order edited after dispatch; returned to Packing for verification.',reversalAt);
+        o.trackingId='';o.dispatchedAt=null;o.dispatchedBy='';o.dispatchedByName='';
+      }
       o.invoiceNumber=invoiceNumber;o.customer={...(o.customer||{}),name,mobile:'+91 '+mobile,address,landmark:landmarkValue,city,state,pin};
       o.items=items;o.subtotal=Math.round(subtotal*100)/100;o.deliveryCharge=delivery;o.total=total;o.paymentMode=paymentMode;o.codAmount=paymentMode==='COD'?total:0;o.instructions=instructionsValue;
       const previousOptIn=o.whatsappOptIn===true;
@@ -8596,6 +8689,26 @@
       </div></div>`;
     document.body.appendChild(overlay);
   };
+
+  function reverseDispatchWalletCredit(order,reason,at){
+    if(!order||!order.walletCreditId||order.walletCreditReversedAt)return false;
+    const transactions=Array.isArray(appState.walletTransactions)?appState.walletTransactions:[];
+    const credit=transactions.find(t=>t.type==='CREDIT'&&String(t.id)===String(order.walletCreditId));
+    if(!credit||Number(credit.amount||0)<=0)return false;
+    const reversalId='WAL-R-'+String(order.id)+'-'+String(order.walletCreditId);
+    if(transactions.some(t=>t.type==='REVERSAL'&&String(t.id)===reversalId))return false;
+    transactions.push({
+      id:reversalId,type:'REVERSAL',employeeId:credit.employeeId,employeeName:credit.employeeName,
+      amount:Number(credit.amount),orderId:order.id,invoiceNumber:order.invoiceNumber||credit.invoiceNumber||'',
+      description:'Dispatch incentive reversed',productName:credit.productName||'',
+      reversesTransactionId:credit.id,note:reason,createdAt:at,
+      createdBy:currentAuthUser?.id||'',createdByName:currentAuthUser?.name||'System'
+    });
+    appState.walletTransactions=transactions;
+    order.walletCreditReversedAt=at;order.walletCreditReversedBy=currentAuthUser?.id||'';
+    order.walletCreditReversalId=reversalId;
+    return true;
+  }
   window.dispatchSaveStatus=function(id){
     if(!canProcess())return showToast('Inventory staff or management access required.',true);
     const latest=orders().find(x=>x.id===id);if(!latest)return showToast('Order not found. Refresh and retry.',true);
@@ -8607,7 +8720,15 @@
     if(next==='DISPATCHED'&&!latest.trackingId)return showToast('Enter the India Post tracking ID before marking this order dispatched.',true);
     if(['DELIVERED','RTO','DELIVERY_FAILED'].includes(next)&&!latest.trackingId&&!['DISPATCHED','DELIVERY_FAILED'].includes(latest.status))return showToast('A tracking ID and dispatch record are required for delivery outcomes.',true);
     const from=latest.status;
+    const returnsToPreDispatch=['RECEIVED','ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','CANCELLED'].includes(next);
+    const wasDispatched=['DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(from);
     const saved=updateOrder(id,o=>{
+      if(wasDispatched&&returnsToPreDispatch){
+        const reversalAt=new Date().toISOString();
+        reverseDispatchWalletCredit(o,'Order status changed from '+(statusName[from]||from)+' to '+(statusName[next]||next)+'. '+reason,reversalAt);
+        o.trackingId=o.trackingId||'';
+        o.dispatchedAt=null;
+      }
       o.statusChangeHistory=o.statusChangeHistory||[];
       const entry={from,to:next,reason,at:new Date().toISOString(),by:currentAuthUser?.id||'',byName:currentAuthUser?.name||'Inventory Staff'};
       o.statusChangeHistory.push(entry);
@@ -8625,7 +8746,7 @@
     const o=orders().find(x=>String(x.id)===String(id));if(!o)return showToast('Order not found. Refresh and retry.',true);
     document.getElementById('dispatch-delete-modal')?.remove();
     const overlay=document.createElement('div');overlay.id='dispatch-delete-modal';overlay.className='fixed inset-0 z-[10000] flex items-center justify-center p-4';overlay.style.background='rgba(15,23,42,.65)';
-    overlay.innerHTML=`<div role="dialog" aria-modal="true" class="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-3"><div class="flex items-start justify-between gap-3"><div><h3 class="text-base font-black text-red-700">Delete Dispatch Order</h3><p class="text-xs text-slate-500 mt-1">This removes the order from the active queue and stores it in the deleted-order archive.</p></div><button type="button" onclick="closeDispatchDeleteModal()" class="text-2xl leading-none text-slate-400">×</button></div><div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs"><b>${escD(o.id)} · ${escD(o.customer?.name||'')}</b><div class="mt-1 text-slate-600">Invoice: ${escD(o.invoiceNumber||'—')} · ${escD(statusName[o.status]||o.status)}</div><div class="mt-1 font-bold">Total: ${moneyD(o.total)}</div></div><label class="block text-xs font-bold text-slate-700">Reason for deletion <span class="text-red-600">*</span><textarea id="dispatch-delete-reason" maxlength="500" rows="3" class="mt-1 w-full rounded-xl border p-3 text-sm" placeholder="e.g. Duplicate order, entered by mistake, customer cancelled..."></textarea></label><p class="text-[10px] text-slate-500">Deleted by, date/time, and reason will be saved with the archived order.<div id="dispatch-delete-error" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-semibold text-red-700"></div></p><div class="flex gap-2"><button type="button" onclick="closeDispatchDeleteModal()" class="flex-1 rounded-xl border px-4 py-3 text-xs font-bold">Cancel</button><button type="button" data-confirm-delete="true" onclick="dispatchConfirmDelete('${id}')" class="flex-1 rounded-xl bg-red-700 px-4 py-3 text-xs font-black text-white">Confirm Delete</button></div></div>`;
+    overlay.innerHTML=`<div role="dialog" aria-modal="true" class="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-3"><div class="flex items-start justify-between gap-3"><div><h3 class="text-base font-black text-red-700">Delete Dispatch Order</h3><p class="text-xs text-slate-500 mt-1">This removes the order from the active queue and stores it in the deleted-order archive.</p></div><button type="button" onclick="closeDispatchDeleteModal()" class="text-2xl leading-none text-slate-400">×</button></div><div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs"><b>${escD(o.invoiceNumber||o.id)} · ${escD(o.customer?.name||'')}</b><div class="mt-1 text-slate-600">${escD(statusName[o.status]||o.status)}</div><div class="mt-1 font-bold">Total: ${moneyD(o.total)}</div></div><label class="block text-xs font-bold text-slate-700">Reason for deletion <span class="text-red-600">*</span><textarea id="dispatch-delete-reason" maxlength="500" rows="3" class="mt-1 w-full rounded-xl border p-3 text-sm" placeholder="e.g. Duplicate order, entered by mistake, customer cancelled..."></textarea></label><p class="text-[10px] text-slate-500">Deleted by, date/time, and reason will be saved with the archived order.<div id="dispatch-delete-error" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-semibold text-red-700"></div></p><div class="flex gap-2"><button type="button" onclick="closeDispatchDeleteModal()" class="flex-1 rounded-xl border px-4 py-3 text-xs font-bold">Cancel</button><button type="button" data-confirm-delete="true" onclick="dispatchConfirmDelete('${id}')" class="flex-1 rounded-xl bg-red-700 px-4 py-3 text-xs font-black text-white">Confirm Delete</button></div></div>`;
     overlay.addEventListener('click',e=>{if(e.target===overlay)window.closeDispatchDeleteModal();});document.body.appendChild(overlay);document.getElementById('dispatch-delete-reason')?.focus();
   };
   window.closeDispatchDeleteModal=function(){document.getElementById('dispatch-delete-modal')?.remove();};
@@ -8678,8 +8799,8 @@
       if(button){button.disabled=false;button.textContent='Confirm Delete';button.classList.remove('opacity-60','cursor-not-allowed');}
     }
   };
-  function orderCard(o){const can=canProcess(),c=o.customer||{},items=(o.items||[]).map(i=>`${escD(i.name)} × ${i.quantity}`).join(' · ');let actions='';if(currentAuthUser)actions+=actionButton('Delete Order',`dispatchOpenDelete('${o.id}')`,'bg-red-50 text-red-700 border border-red-200');if(can)actions+=actionButton('Update Status',`dispatchOpenStatusModal('${o.id}')`,'bg-slate-100 text-slate-900 border border-slate-300');if(can)actions+=actionButton('WhatsApp Customer',`dispatchOpenWhatsApp('${o.id}')`,'bg-emerald-100 text-emerald-900 border border-emerald-300');if(can&&['ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(o.status))actions+=actionButton('✎ Edit Order',`dispatchOpenEdit('${o.id}')`,'bg-amber-300 text-amber-950 border border-amber-500 shadow-sm');if(can&&o.status==='RECEIVED')actions+=actionButton('Accept Order',`dispatchAccept('${o.id}')`);if(can&&o.status==='ACCEPTED')actions+=actionButton('Start Packing',`dispatchStartPacking('${o.id}')`);if(can&&o.status==='PACKING')actions+=actionButton('Mark Packed',`dispatchMarkPacked('${o.id}')`);if(can&&o.status==='PACKED')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white');if(can&&o.status==='READY_DISPATCH')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white')+actionButton('Mark Dispatched',`dispatchMarkDispatched('${o.id}')`,'bg-violet-700 text-white');if(can&&['DISPATCHED','DELIVERY_FAILED'].includes(o.status))actions+=`<select onchange="if(this.value)dispatchSetDeliveryStatus('${o.id}',this.value);this.value=''" class="px-3 py-2 border border-slate-300 rounded-xl text-[10px] font-bold bg-white"><option value="">Update delivery outcome…</option><option value="DELIVERED">Mark Delivered</option><option value="DELIVERY_FAILED">Delivery Failed</option><option value="RTO">Mark Returned / RTO</option></select>`;
-    return `<article class="border border-slate-200 rounded-2xl p-3 space-y-2"><div class="flex flex-wrap justify-between gap-2"><div><div class="font-black text-xs text-slate-900">${escD(o.id)} · ${escD(c.name)}</div><div class="text-[10px] text-slate-500 mt-1">${escD(c.mobile)} · ${escD(c.city)}, ${escD(c.state)} – ${escD(c.pin)}</div><div class="text-[10px] font-bold text-slate-700 mt-1">Invoice: ${escD(o.invoiceNumber||'—')}</div></div><span class="px-2.5 py-1 rounded-full text-[9px] font-black ${statusTone[o.status]||'bg-slate-100'}">${statusName[o.status]||o.status}</span></div><div class="text-[10px] text-slate-600">${items}</div><div class="flex flex-wrap justify-between gap-2 text-[10px]"><span class="font-bold">${moneyD(o.total)} · ${o.paymentMode==='COD'?'COD '+moneyD(o.codAmount):'PREPAID'}</span><span class="text-slate-400">Created ${new Date(o.createdAt).toLocaleString('en-IN')}</span></div>${o.trackingId?`<div class="p-2 bg-violet-50 rounded-lg text-[10px]">India Post tracking: <b>${escD(o.trackingId)}</b></div>`:''}<div class="flex flex-wrap gap-2">${actions}</div><details class="text-[10px] text-slate-500"><summary class="cursor-pointer font-bold">Order details &amp; timeline</summary><div class="mt-2 space-y-2">${escD(c.address)} ${escD(c.landmark)}<br><div class="font-bold text-slate-700 pt-1">Status history</div>${(o.timeline||[]).map(t=>`<div>• ${escD(statusName[t.status]||t.status)} — ${escD(t.byName)} — ${new Date(t.at).toLocaleString('en-IN')}${t.note?`<div class="pl-3 text-slate-400">${escD(t.note)}</div>`:''}</div>`).join('')}<div class="font-bold text-slate-700 pt-2 border-t">Manual status changes (${(o.statusChangeHistory||[]).length})</div>${(o.statusChangeHistory||[]).length?(o.statusChangeHistory||[]).slice().reverse().map(h=>`<div class="rounded-lg border border-indigo-200 bg-indigo-50/60 p-2"><div class="font-bold text-slate-800">${escD(statusName[h.from]||h.from)} → ${escD(statusName[h.to]||h.to)}</div><div class="text-slate-600">By ${escD(h.byName||"Staff")} · ${h.at?new Date(h.at).toLocaleString("en-IN"):"Time unavailable"}</div><div class="text-slate-600">Reason: ${escD(h.reason||"—")}</div></div>`).join(""):'<div class="text-slate-400">No manual status changes.</div>'}<div class="font-bold text-slate-700 pt-2 border-t">Order edit history (${(o.editHistory||[]).length})</div>${(o.editHistory||[]).length?(o.editHistory||[]).slice().reverse().map((e,i)=>`<div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2 space-y-1"><div class="font-bold text-slate-800">Edited by ${escD(e.byName||'Staff')} — ${e.at?new Date(e.at).toLocaleString('en-IN'):'Time unavailable'}</div><div class="text-slate-600">Reason: ${escD(e.reason||'Not provided')}</div><div class="mt-1">${dispatchEditChanges(e)}</div></div>`).join(''):'<div class="text-slate-400">No order edits recorded.</div>'}</div></details></article>`;}
+  function orderCard(o){const can=canProcess(),c=o.customer||{},items=(o.items||[]).map(i=>`${escD(i.name)} × ${i.quantity}`).join(' · ');let actions='';if(currentAuthUser)actions+=actionButton('Delete Order',`dispatchOpenDelete('${o.id}')`,'bg-red-50 text-red-700 border border-red-200');if(can)actions+=actionButton('Update Status',`dispatchOpenStatusModal('${o.id}')`,'bg-slate-100 text-slate-900 border border-slate-300');if(can)actions+=actionButton('WhatsApp Customer',`dispatchOpenWhatsApp('${o.id}')`,'bg-emerald-100 text-emerald-900 border border-emerald-300');if(can&&['ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(o.status))actions+=actionButton('✎ Edit Order',`dispatchOpenEdit('${o.id}')`,'bg-amber-300 text-amber-950 border border-amber-500 shadow-sm');if(can&&o.status==='RECEIVED')actions+=actionButton('Accept Order',`dispatchAccept('${o.id}')`);if(can&&o.status==='ACCEPTED')actions+=actionButton('Start Packing',`dispatchStartPacking('${o.id}')`);if(can&&o.status==='PACKING')actions+=actionButton('Mark Packed',`dispatchMarkPacked('${o.id}')`);if(can&&o.status==='PACKED')actions+=actionButton('Mark Ready',`dispatchReady('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white');if(can&&o.status==='READY_DISPATCH')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white')+actionButton('Mark Dispatched',`dispatchMarkDispatched('${o.id}')`,'bg-violet-700 text-white');if(can&&['DISPATCHED','DELIVERY_FAILED'].includes(o.status))actions+=`<select onchange="if(this.value)dispatchSetDeliveryStatus('${o.id}',this.value);this.value=''" class="px-3 py-2 border border-slate-300 rounded-xl text-[10px] font-bold bg-white"><option value="">Update delivery outcome…</option><option value="DELIVERED">Mark Delivered</option><option value="DELIVERY_FAILED">Delivery Failed</option><option value="RTO">Mark Returned / RTO</option></select>`;
+    return `<article class="border border-slate-200 rounded-2xl p-3 space-y-2"><div class="flex flex-wrap justify-between gap-2"><div><div class="font-black text-xs text-slate-900">${escD(o.invoiceNumber||o.id)} · ${escD(c.name)}</div><div class="text-[10px] text-slate-500 mt-1">${escD(c.mobile)} · ${escD(c.city)}, ${escD(c.state)} – ${escD(c.pin)}</div></div><span class="px-2.5 py-1 rounded-full text-[9px] font-black ${statusTone[o.status]||'bg-slate-100'}">${statusName[o.status]||o.status}</span></div><div class="text-[10px] text-slate-600">${items}</div><div class="flex flex-wrap justify-between gap-2 text-[10px]"><span class="font-bold">${moneyD(o.total)} · ${o.paymentMode==='COD'?'COD '+moneyD(o.codAmount):'PREPAID'}</span><span class="text-slate-400">Created ${new Date(o.createdAt).toLocaleString('en-IN')}</span></div>${o.trackingId?`<div class="p-2 bg-violet-50 rounded-lg text-[10px]">India Post tracking: <b>${escD(o.trackingId)}</b></div>`:''}<div class="flex flex-wrap gap-2">${actions}</div><details class="text-[10px] text-slate-500"><summary class="cursor-pointer font-bold">Order details &amp; timeline</summary><div class="mt-2 space-y-2">${escD(c.address)} ${escD(c.landmark)}<br><div class="font-bold text-slate-700 pt-1">Status history</div>${(o.timeline||[]).map(t=>`<div>• ${escD(statusName[t.status]||t.status)} — ${escD(t.byName)} — ${new Date(t.at).toLocaleString('en-IN')}${t.note?`<div class="pl-3 text-slate-400">${escD(t.note)}</div>`:''}</div>`).join('')}<div class="font-bold text-slate-700 pt-2 border-t">Manual status changes (${(o.statusChangeHistory||[]).length})</div>${(o.statusChangeHistory||[]).length?(o.statusChangeHistory||[]).slice().reverse().map(h=>`<div class="rounded-lg border border-indigo-200 bg-indigo-50/60 p-2"><div class="font-bold text-slate-800">${escD(statusName[h.from]||h.from)} → ${escD(statusName[h.to]||h.to)}</div><div class="text-slate-600">By ${escD(h.byName||"Staff")} · ${h.at?new Date(h.at).toLocaleString("en-IN"):"Time unavailable"}</div><div class="text-slate-600">Reason: ${escD(h.reason||"—")}</div></div>`).join(""):'<div class="text-slate-400">No manual status changes.</div>'}<div class="font-bold text-slate-700 pt-2 border-t">Order edit history (${(o.editHistory||[]).length})</div>${(o.editHistory||[]).length?(o.editHistory||[]).slice().reverse().map((e,i)=>`<div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2 space-y-1"><div class="font-bold text-slate-800">Edited by ${escD(e.byName||'Staff')} — ${e.at?new Date(e.at).toLocaleString('en-IN'):'Time unavailable'}</div><div class="text-slate-600">Reason: ${escD(e.reason||'Not provided')}</div><div class="mt-1">${dispatchEditChanges(e)}</div></div>`).join(''):'<div class="text-slate-400">No order edits recorded.</div>'}</div></details></article>`;}
   let activeDispatchQueue='RECEIVED';
   window.openDispatchQueue=function(status){
     activeDispatchQueue=status||'RECEIVED';
@@ -8719,7 +8840,11 @@
     const titleMap={RECEIVED:'New Orders',PACKING:'Packing Queue',READY_DISPATCH:'Ready to Dispatch',DISPATCHED:'Dispatched Orders',ALL:'All Orders'};
     $('dispatch-queue-title').textContent=titleMap[status]||'Order Queue';
     const list=(appState.dispatchOrders||[]).filter(o=>{
-      if(status!=='ALL'&&o.status!==status)return false;
+      // Accepted orders belong in the Packing queue so they remain visible
+      // until staff starts packing. The status is still shown on each order card.
+      if(status==='PACKING'&&!['ACCEPTED','PACKING'].includes(o.status))return false;
+      if(status==='READY_DISPATCH'&&!['PACKED','READY_DISPATCH'].includes(o.status))return false;
+      if(status!=='ALL'&&status!=='PACKING'&&status!=='READY_DISPATCH'&&o.status!==status)return false;
       const date=new Date(o.createdAt||0);
       if(from){const d=new Date(from+'T00:00:00');if(date<d)return false;}
       if(to){const d=new Date(to+'T23:59:59.999');if(date>d)return false;}
@@ -8734,6 +8859,106 @@
     });
     $('dispatch-queue-results').innerHTML=list.length?list.map(orderCard).join(''):'<div class="text-center text-xs text-slate-400 py-8">No orders match this queue and date range.</div>';
   };
+
+
+  window.renderDispatchIncentiveMaster=function(){
+    if(!isSuperAdmin())return;
+    appState=loadState();
+    const list=document.getElementById('dispatch-incentive-product-list');if(!list)return;
+    const managedNames = (typeof window.dispatchProductNames === 'function' ? window.dispatchProductNames() : (Array.isArray(appState.dispatchProductNames) ? appState.dispatchProductNames : []));
+    const historicalNames = (Array.isArray(appState.dispatchOrders) ? appState.dispatchOrders : []).flatMap(o => Array.isArray(o.items) ? o.items.map(i => i.name) : []);
+    const products=[...new Set([...managedNames,...historicalNames].map(x=>String(x||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const rates=appState.dispatchIncentiveRates||{};
+    const saveButton=document.querySelector('#page-incentive-master button[onclick="saveDispatchIncentiveMaster()"]');
+    if(saveButton)saveButton.disabled=!products.length;
+    list.innerHTML=products.length?products.map((name,index)=>{
+      const key=name.toLowerCase(),value=Number(rates[key]??rates[name]??0);
+      return `<label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50"><span class="min-w-0 flex-1 text-[10px] font-bold text-slate-800">${escD(name)}</span><span class="text-[9px] text-slate-400">₹</span><input data-incentive-product="${escD(name)}" type="number" min="0" step="0.01" value="${value>0?value:0}" class="w-24 px-2 py-2 border border-slate-300 rounded-lg text-xs text-right font-black bg-white" aria-label="Dispatch fee for ${escD(name)}"></label>`;
+    }).join(''):'<div class="p-5 text-center text-xs text-slate-400">No dispatch products found. Add product names from Dispatch → Manage product names.</div>';
+    const status=document.getElementById('dispatch-incentive-save-status');if(status)status.textContent='Rates are currently saved in Firebase. Unconfigured products earn ₹0.';
+  };
+  window.saveDispatchIncentiveMaster=async function(){
+    if(!isSuperAdmin())return showToast('Super Admin access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required to save incentive rates.',true);
+    const inputs=[...document.querySelectorAll('#dispatch-incentive-product-list [data-incentive-product]')];
+    const rates={};
+    for(const input of inputs){
+      const name=input.getAttribute('data-incentive-product')||'',fee=Number(input.value);
+      if(!name||!Number.isFinite(fee)||fee<0)return showToast('Enter valid non-negative incentive amounts.',true);
+      rates[name.toLowerCase()]=Math.round(fee*100)/100;
+    }
+    const now=new Date().toISOString();
+    try{
+      const result=await cloudDb.ref('storeState/dispatchIncentiveRates').transaction(current=>{
+        const merged=current&&typeof current==='object'&&!Array.isArray(current)?{...current}:{};
+        Object.entries(rates).forEach(([key,value])=>merged[key]=value);
+        return merged;
+      },undefined,false);
+      if(!result.committed)return showToast('Incentive rates were not saved.',true);
+      appState=loadState();appState.dispatchIncentiveRates=result.snapshot.val()||rates;cloudBaselineState=cloneCloudSafe(appState);
+      const status=document.getElementById('dispatch-incentive-save-status');if(status)status.textContent='Saved successfully · '+new Date(now).toLocaleString('en-IN');
+      showToast('Product-wise dispatch incentive rates saved.');
+      try{addAuditLog('UPDATE_DISPATCH_INCENTIVE_RATES','WALLET',JSON.stringify(rates),'dispatchIncentiveRates');}catch(e){}
+    }catch(error){console.error('Dispatch incentive rates save failed:',error);showToast('Could not save rates: '+(error?.message||'Firebase error'),true);}
+  };
+  function walletTransactionsFor(employeeId){
+    appState=loadState();
+    return (appState.walletTransactions||[]).filter(t=>String(t.employeeId)===String(employeeId)).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  }
+  function walletTotals(employeeId){
+    const tx=walletTransactionsFor(employeeId);
+    const earned=tx.filter(t=>t.type==='CREDIT').reduce((s,t)=>s+Number(t.amount||0),0);
+    const paid=tx.filter(t=>t.type==='PAYOUT').reduce((s,t)=>s+Number(t.amount||0),0);
+    const reversed=tx.filter(t=>t.type==='REVERSAL').reduce((s,t)=>s+Number(t.amount||0),0);
+    return {earned,paid,reversed,balance:Math.max(0,earned-paid-reversed),tx};
+  }
+  window.renderStaffWallet=function(){
+    if(!currentAuthUser)return;
+    appState=loadState();const mine=walletTotals(currentAuthUser.id);
+    const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+    set('wallet-current-balance','₹'+mine.balance.toFixed(2));set('wallet-total-earned','₹'+mine.earned.toFixed(2));set('wallet-total-paid','₹'+mine.paid.toFixed(2));set('wallet-history-count',mine.tx.length+' transactions');
+    const list=document.getElementById('wallet-history-list');
+    if(list)list.innerHTML=mine.tx.length?mine.tx.map(t=>{
+      const credit=t.type==='CREDIT',reversal=t.type==='REVERSAL',sign=credit?'+':'−',title=credit?'Dispatch incentive':(reversal?'Dispatch incentive reversed':'Wallet payout');
+      const detail=credit?`Order ${escD(t.invoiceNumber||t.orderId||'')}${t.productName?' · '+escD(t.productName):''}`:(reversal?`Order ${escD(t.invoiceNumber||t.orderId||'')} · ${escD(t.note||'Order returned to pre-dispatch status')}`:`Paid by ${escD(t.createdByName||'Super Admin')}${t.reference?' · Ref: '+escD(t.reference):''}`);
+      return `<div class="p-3 rounded-xl border ${credit?'border-emerald-100 bg-emerald-50':'border-slate-200 bg-slate-50'}"><div class="flex justify-between gap-2"><div><div class="text-[10px] font-black text-slate-800">${title}</div><div class="text-[9px] text-slate-500 mt-1">${detail}</div><div class="text-[8px] text-slate-400 mt-1">${t.createdAt?new Date(t.createdAt).toLocaleString('en-IN'):'—'}${t.note?' · '+escD(t.note):''}</div></div><div class="text-xs font-black ${credit?'text-emerald-700':'text-slate-800'}">${sign}₹${Number(t.amount||0).toFixed(2)}</div></div></div>`;
+    }).join(''):'<div class="text-center text-xs text-slate-400 py-5">No wallet transactions yet.</div>';
+    const panel=document.getElementById('wallet-admin-panel');if(panel)panel.classList.toggle('hidden',!isSuperAdmin());if(isSuperAdmin())renderWalletAdminEmployees();
+  };
+  function renderWalletAdminEmployees(){
+    const select=document.getElementById('wallet-admin-employee');if(!select)return;
+    appState=loadState();const previous=select.value;
+    const employees=(appState.employees||[]).filter(e=>!e.disabled&&!e.archived&&['INVENTORY_STAFF','INVENTORY'].includes(String(e.role||'').toUpperCase()));
+    select.innerHTML='<option value="">Select inventory staff</option>'+employees.map(e=>`<option value="${escD(e.id)}">${escD(e.name)} · ${escD(e.employeeCode||'')}</option>`).join('');
+    if(employees.some(e=>e.id===previous))select.value=previous;renderWalletAdminBalance();
+  }
+  window.renderWalletAdminBalance=function(){
+    const id=document.getElementById('wallet-admin-employee')?.value||'',el=document.getElementById('wallet-admin-balance');if(!el)return;
+    el.textContent='₹'+(id?walletTotals(id).balance:0).toFixed(2);
+  };
+  window.walletPayFullBalance=async function(){
+    if(!isSuperAdmin())return showToast('Super Admin access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase is not connected. Payout was not saved.',true);
+    const employeeId=document.getElementById('wallet-admin-employee')?.value||'',reference=(document.getElementById('wallet-payout-reference')?.value||'').trim(),note=(document.getElementById('wallet-payout-note')?.value||'').trim();
+    if(!employeeId)return showToast('Select an inventory staff member.',true);
+    const now=new Date().toISOString(),actor={id:currentAuthUser.id,name:currentAuthUser.name};
+    try{
+      const result=await cloudDb.ref('storeState').transaction(serverState=>{
+        if(!serverState)return;
+        const latest=ensureStateArrays(serverState),emp=(latest.employees||[]).find(e=>String(e.id)===String(employeeId));if(!emp)return;
+        latest.walletTransactions=Array.isArray(latest.walletTransactions)?latest.walletTransactions:[];
+        const tx=latest.walletTransactions.filter(t=>String(t.employeeId)===String(employeeId));
+        const balance=Math.max(0,tx.filter(t=>t.type==='CREDIT').reduce((s,t)=>s+Number(t.amount||0),0)-tx.filter(t=>t.type==='PAYOUT').reduce((s,t)=>s+Number(t.amount||0),0));
+        if(balance<=0)return;
+        latest.walletTransactions.push({id:'WAL-P-'+Date.now()+'-'+employeeId,type:'PAYOUT',employeeId,employeeName:emp.name,amount:balance,description:'Full wallet payout',reference,note,createdAt:now,createdBy:actor.id,createdByName:actor.name});
+        return latest;
+      },undefined,false);
+      if(!result.committed)return showToast('No available balance to pay, or the payout could not be committed.',true);
+      appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);
+      document.getElementById('wallet-payout-reference').value='';document.getElementById('wallet-payout-note').value='';
+      renderStaffWallet();renderWalletAdminBalance();showToast('Payout recorded. Staff wallet balance is now ₹0.00.');
+    }catch(error){console.error('Wallet payout failed:',error);showToast('Payout failed: '+(error?.message||'Firebase error'),true);}
+  };
   window.renderDispatchDesk=function(){
     if(!$('page-dispatch'))return;
     appState=loadState();
@@ -8742,7 +8967,12 @@
     $('dispatch-create-panel').classList.toggle('hidden',inv&&!manage);
     const all=appState.dispatchOrders||[];
     const counts={RECEIVED:0,PACKING:0,READY_DISPATCH:0,DISPATCHED:0};
-    all.forEach(o=>{if(counts[o.status]!==undefined)counts[o.status]++;});
+    all.forEach(o=>{
+      if(o.status==='RECEIVED')counts.RECEIVED++;
+      else if(o.status==='ACCEPTED'||o.status==='PACKING')counts.PACKING++;
+      else if(o.status==='PACKED'||o.status==='READY_DISPATCH')counts.READY_DISPATCH++;
+      else if(o.status==='DISPATCHED')counts.DISPATCHED++;
+    });
     $('dispatch-kpis').innerHTML=[
       ['New Orders',counts.RECEIVED,'bg-blue-50 text-blue-800','RECEIVED'],
       ['Packing',counts.PACKING,'bg-amber-50 text-amber-800','PACKING'],
@@ -8809,7 +9039,7 @@
   window.dispatchPrintLabel=async function(id){if(!canProcess())return showToast('Inventory staff access required.',true);try{const blob=await buildLabel(id),url=URL.createObjectURL(blob),w=window.open(url,'_blank');if(!w){URL.revokeObjectURL(url);return showToast('Allow pop-ups to print the label.',true);}await markLabel(id);renderDispatchDesk();setTimeout(()=>{try{w.focus();w.print();}catch(e){}},900);}catch(e){showToast(e.message||'Could not prepare label.',true);}};
   // Initialize first product row and keep navigation refresh hooks compatible with existing wrappers.
   document.addEventListener('DOMContentLoaded',()=>{if($('dispatch-item-rows')&&!$('dispatch-item-rows').children.length)dispatchAddItem();});
-  const priorNav=window.navigateTo;window.navigateTo=function(pageId){const result=priorNav.apply(this,arguments);if(pageId==='page-dispatch')setTimeout(renderDispatchDesk,0);return result;};
+  const priorNav=window.navigateTo;window.navigateTo=function(pageId){const result=priorNav.apply(this,arguments);if(pageId==='page-dispatch')setTimeout(renderDispatchDesk,0);if(pageId==='page-wallet')setTimeout(renderStaffWallet,0);return result;};
   const priorRefresh=window.refreshActiveScreen;window.refreshActiveScreen=function(){const result=priorRefresh.apply(this,arguments);if(window.currentActivePage==='page-dispatch'||document.getElementById('page-dispatch')?.classList.contains('hidden')===false)renderDispatchDesk();return result;};
 })();
 </script>
@@ -8831,7 +9061,7 @@
   const style=document.createElement('style');
   style.id='inventory-staff-access-style';
   style.textContent=`
-    body.inventory-staff-only #app-sidebar nav > *:not(#nav-item-dispatch){display:none!important}
+    body.inventory-staff-only #app-sidebar nav > *:not(#nav-item-dispatch):not(#nav-item-wallet){display:none!important}
     body.inventory-staff-only #sidebar-notification-button{display:none!important}
     body.inventory-staff-only #app-bottom-nav{display:none!important}
     body.inventory-staff-only #page-dispatch #dispatch-create-panel{display:none!important}
@@ -8848,13 +9078,15 @@
   const originalNavigate=window.navigateTo;
   if(typeof originalNavigate==='function'){
     window.navigateTo=function(pageId){
-      if(inventoryOnly()&&!['page-dispatch','page-login','page-welcome'].includes(pageId)){
+      if(pageId==='page-incentive-master'&&!isSuperAdmin()){showToast('Super Admin access required.',true);return;}
+      if(inventoryOnly()&&!['page-dispatch','page-wallet','page-login','page-welcome'].includes(pageId)){
         applyInventoryOnlyMode();
         pageId='page-dispatch';
       }
       const result=originalNavigate.apply(this,[pageId]);
       applyInventoryOnlyMode();
       if(inventoryOnly()&&pageId==='page-dispatch')setTimeout(()=>window.renderDispatchDesk?.(),0);
+      if(inventoryOnly()&&pageId==='page-wallet')setTimeout(()=>window.renderStaffWallet?.(),0);
       return result;
     };
   }
