@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.4.36 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.55 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -8,7 +8,7 @@
 <meta content="#05281b" name="theme-color"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<title>Wellwith Mangaluru — Store Portal</title>
+<title>Wellwith Mangaluru — Store Portal v1.4.73</title>
 <link rel="manifest" href="./manifest.json">
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Firebase Compat Libraries -->
@@ -118,6 +118,7 @@
 <span>🏠</span> <span>Dashboard Overview</span>
 </button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-profile')"><span>👤</span> <span>My Profile</span></button>
+<button id="nav-item-dispatch" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-dispatch')"><span>📦</span> <span>Dispatch &amp; Fulfilment</span></button>
 <button id="nav-item-b2b" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b')"><span>🏢</span> <span>B2B Leads</span></button><button id="nav-item-b2b-stock-overview" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b-stock-overview')"><span>📋</span> <span>Store Stock Overview</span></button><button id="nav-item-b2b-product-master" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-b2b-product-master')"><span>🧾</span> <span>Product Master</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-salary-slips')"><span>💳</span> <span>My Salary Slips</span></button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="haptic(8); navigateTo('page-history')">
@@ -1285,7 +1286,7 @@
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
           <select id="sa-role-employee" onchange="syncSelectedEmployeeRoleUI()" class="w-full px-3 py-2 border rounded-xl text-[10px] font-bold bg-white"></select>
           <div class="grid grid-cols-2 gap-2">
-            <select id="sa-role-value" class="px-2 py-2 border rounded-xl text-[10px] font-bold bg-white"><option>STAFF</option><option>MANAGER</option><option>OWNER</option><option>SUPER_ADMIN</option></select>
+            <select id="sa-role-value" class="px-2 py-2 border rounded-xl text-[10px] font-bold bg-white"><option>STAFF</option><option>INVENTORY_STAFF</option><option>MANAGER</option><option>OWNER</option><option>SUPER_ADMIN</option></select>
             <button id="sa-role-change-btn" onclick="saChangeRole()" class="px-2 py-2 bg-white border rounded-xl text-[10px] font-black">Change Role</button>
           </div>
           <div class="grid grid-cols-3 gap-2">
@@ -1440,6 +1441,57 @@
   <!-- Hidden compatibility containers used by existing admin functions. -->
   
 </section>
+
+<!-- ================= MODULE: DISPATCH & FULFILMENT ================= -->
+<section class="hidden space-y-4" id="page-dispatch">
+  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div><div class="text-[9px] uppercase tracking-widest font-black text-emerald-700">Store Operations</div><h2 class="text-xl font-black text-slate-900 mt-1">Dispatch &amp; Fulfilment Desk</h2><p class="text-[10px] text-slate-500 mt-1">Customer orders, packing, India Post labels and dispatch tracking.</p></div>
+      <span id="dispatch-role-chip" class="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 text-[9px] font-black">ORDER DESK</span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4" id="dispatch-kpis"></div>
+  </div>
+
+  <div id="dispatch-create-panel" class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+    <div class="flex items-center justify-between gap-2"><div><h3 class="font-black text-sm text-slate-900">＋ Create Customer Dispatch Order</h3><p class="text-[10px] text-slate-500">Enter the recipient and order details.</p></div><span class="text-[9px] font-black text-slate-400">STORE DESK</span></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div class="md:col-span-2">
+        <label for="dispatch-invoice-number" class="block text-[10px] font-black text-slate-600 mb-1">Invoice Number *</label>
+        <div class="flex items-stretch">
+          <span class="inline-flex items-center px-4 rounded-l-xl border border-r-0 bg-slate-100 text-slate-700 text-sm font-black">ONL-</span>
+          <input id="dispatch-invoice-number" type="text" inputmode="numeric" autocomplete="off" class="min-w-0 flex-1 px-3 py-3 border rounded-r-xl text-xs font-bold" placeholder="Enter invoice number" aria-label="Invoice number (number only)" />
+        </div>
+        <p class="text-[9px] text-slate-400 mt-1">Enter only the invoice number. The ONL- prefix is added automatically.</p>
+      </div>
+      <input id="dispatch-customer-name" class="px-3 py-3 border rounded-xl text-xs" placeholder="Customer name *" />
+      <input id="dispatch-customer-mobile" class="px-3 py-3 border rounded-xl text-xs" placeholder="Mobile number *" maxlength="10" inputmode="numeric" />
+      <label class="md:col-span-2 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-[10px] text-emerald-950"><input id="dispatch-whatsapp-optin" type="checkbox" class="mt-0.5" /><span><b>Customer has explicitly agreed to receive WhatsApp order updates</b><br/>Tick only after the customer has agreed to receive order-related WhatsApp updates on this mobile number.</span></label>
+      <textarea id="dispatch-customer-address" class="md:col-span-2 px-3 py-3 border rounded-xl text-xs" rows="3" placeholder="Full address with house / door number, street, area *"></textarea>
+      <input id="dispatch-landmark" class="px-3 py-3 border rounded-xl text-xs" placeholder="Landmark (optional)" />
+      <input id="dispatch-city" class="px-3 py-3 border rounded-xl text-xs" placeholder="City / District *" />
+      <select id="dispatch-state" class="px-3 py-3 border rounded-xl text-xs bg-white"><option value="Karnataka">Karnataka</option><option>Kerala</option><option>Tamil Nadu</option><option>Andhra Pradesh</option><option>Telangana</option><option>Maharashtra</option><option>Goa</option><option>Other</option></select>
+      <input id="dispatch-pin" class="px-3 py-3 border rounded-xl text-xs" placeholder="PIN code *" maxlength="6" inputmode="numeric" />
+    </div>
+    <div class="border-t pt-3 space-y-2">
+      <div class="flex justify-between items-center"><b class="text-xs">Order products</b><button type="button" onclick="dispatchAddItem()" class="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-[10px] font-black">＋ Add product</button></div>
+      <div id="dispatch-item-rows" class="space-y-2"></div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div><label class="text-[9px] font-bold text-slate-500">Delivery charge (₹)</label><input id="dispatch-delivery-charge" type="number" min="0" step="0.01" value="0" oninput="dispatchUpdateTotal()" class="w-full px-3 py-2.5 border rounded-xl text-xs" /></div>
+        <div><label class="text-[9px] font-bold text-slate-500">Payment mode *</label><select id="dispatch-payment-mode" onchange="dispatchUpdateTotal()" class="w-full px-3 py-2.5 border rounded-xl text-xs bg-white"><option value="COD">COD</option><option value="PREPAID">PREPAID</option></select></div>
+        <div><label class="text-[9px] font-bold text-slate-500">Order total (₹)</label><input id="dispatch-order-total" readonly class="w-full px-3 py-2.5 border rounded-xl text-xs bg-slate-50 font-black" value="0.00" /></div>
+      </div>
+      <div id="dispatch-cod-preview" class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-900">COD collection amount: ₹0.00</div>
+      <textarea id="dispatch-instructions" rows="2" class="w-full px-3 py-2.5 border rounded-xl text-xs" placeholder="Special instructions (optional)"></textarea>
+      <button type="button" onclick="dispatchCreateOrder()" class="w-full py-3.5 rounded-xl bg-[#05281b] text-white text-xs font-black">Submit Dispatch Order →</button>
+    </div>
+  </div>
+
+  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+    <div class="flex flex-wrap justify-between items-center gap-2"><div><h3 class="font-black text-sm">Order Queue</h3><p class="text-[10px] text-slate-500">Live order status and fulfilment actions.</p></div><select id="dispatch-filter" onchange="renderDispatchDesk()" class="px-3 py-2 border rounded-xl text-[10px] bg-white"><option value="ALL">All orders</option><option value="RECEIVED">New / Received</option><option value="ACCEPTED">Accepted</option><option value="PACKING">Packing</option><option value="PACKED">Packed</option><option value="READY_DISPATCH">Ready to Dispatch</option><option value="DISPATCHED">Dispatched</option><option value="DELIVERED">Delivered</option><option value="DELIVERY_FAILED">Delivery Failed</option><option value="RTO">Returned / RTO</option></select></div>
+    <div id="dispatch-orders-list" class="space-y-3"><div class="text-center text-xs text-slate-400 py-8">Loading orders…</div></div>
+  </div>
+</section>
+
 </main>
 <!-- Native App Bottom Navigation Bar -->
 <nav class="hidden absolute bottom-0 inset-x-0 bg-white border-t border-slate-200/80 px-4 py-2 z-30 flex justify-around items-center text-[10px] font-bold text-slate-500 shadow-lg" id="app-bottom-nav">
@@ -1591,6 +1643,7 @@
 </div>
 <select class="px-2.5 py-1.5 bg-slate-50 border rounded-xl font-bold text-xs outline-none" id="modal-emp-role-select" onchange="updateEmployeeRoleBySuperAdmin(this.value)">
 <option value="STAFF">Staff (Floor Worker)</option>
+<option value="INVENTORY_STAFF">Inventory Staff</option>
 <option value="MANAGER">Store Manager</option>
 <option value="OWNER">Store Owner</option>
 </select>
@@ -1753,6 +1806,7 @@
       archivedEmployees: [],
       inventory: [],
       inventoryMovements: [],
+      dispatchOrders: [],
       systemConfig: { lunchMaxMins: 60, shortBreakMaxMins: 15, maxShortBreaks: 2 },
       deletedEmployeeIds: [],
       deletedEmployeeCodes: [],
@@ -1949,6 +2003,7 @@
       if (!Array.isArray(parsed.archivedEmployees)) parsed.archivedEmployees = [];
       if (!Array.isArray(parsed.inventory)) parsed.inventory = [];
       if (!Array.isArray(parsed.inventoryMovements)) parsed.inventoryMovements = [];
+      if (!Array.isArray(parsed.dispatchOrders)) parsed.dispatchOrders = [];
       if (!parsed.systemConfig || typeof parsed.systemConfig !== 'object') parsed.systemConfig = JSON.parse(JSON.stringify(defaultState.systemConfig));
       if (!Array.isArray(parsed.deletedEmployeeIds)) parsed.deletedEmployeeIds = [];
       if (!Array.isArray(parsed.salarySlips)) parsed.salarySlips = [];
@@ -2070,6 +2125,7 @@
     function getDisplayRole(role) {
       if (role === 'SUPER_ADMIN' || role === 'OWNER') return 'STORE OWNER';
       if (role === 'MANAGER' || role === 'ADMIN') return 'STORE MANAGER';
+      if (role === 'INVENTORY_STAFF') return 'INVENTORY STAFF';
       return 'STAFF';
     }
 
@@ -2184,7 +2240,7 @@
 
       const allPages = [
         'page-welcome', 'page-login', 'page-dashboard', 'page-profile', 'page-salary-slips', 'page-history', 'page-leaves', 'page-schedule', 'page-notifications', 'page-milestones', 'page-knowledge',
-        'page-b2b', 'page-b2b-stock-overview', 'page-b2b-product-master', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
+        'page-b2b', 'page-b2b-stock-overview', 'page-b2b-product-master', 'page-dispatch', 'page-gate', 'page-shift', 'page-cash', 'page-punchout', 'page-enquiries', 'page-suggestions', 'page-daily-snapshot', 'page-store-brain', 'page-action-center', 'page-admin-desk'
       ];
       allPages.forEach(id => {
         const el = document.getElementById(id);
@@ -2222,6 +2278,7 @@
         if (bottomNav) bottomNav.classList.remove('hidden');
 
         if (pageId === 'page-dashboard') { titleEl.innerText = 'Store Dashboard'; subtitleEl.innerText = 'Overview & Presence'; }
+        else if (pageId === 'page-dispatch') { titleEl.innerText = 'Dispatch & Fulfilment'; subtitleEl.innerText = 'Customer Orders & India Post'; }
         else if (pageId === 'page-profile') { titleEl.innerText = 'My Profile'; subtitleEl.innerText = 'Employee Details'; }
         else if (pageId === 'page-b2b') { titleEl.innerText = 'B2B Leads'; subtitleEl.innerText = 'Private B2B Database'; } else if (pageId === 'page-b2b-stock-overview') { titleEl.innerText = 'Store Stock Overview'; subtitleEl.innerText = 'B2B Product Stock'; } else if (pageId === 'page-b2b-product-master') { titleEl.innerText = 'B2B Product Master'; subtitleEl.innerText = 'Products for Stock Counting'; }
         else if (pageId === 'page-salary-slips') { titleEl.innerText = 'My Salary Slips'; subtitleEl.innerText = 'Salary Records'; }
@@ -2254,6 +2311,7 @@
         }
       });
 
+      if (pageId === 'page-dispatch') renderDispatchDesk();
       if (pageId === 'page-dashboard') renderEmployeePersonalData();
       else if (pageId === 'page-b2b') renderB2BLeads(); else if (pageId === 'page-b2b-stock-overview') renderB2BStockOverview();
       else if (pageId === 'page-profile') renderProfilePage();
@@ -4903,8 +4961,8 @@
       if((appState.employees||[]).some(e=>String(e.phone||'')===phone))return showToast('An account already uses this mobile number.',true);
       if((appState.archivedEmployees||[]).some(e=>String(e.phone||'')===phone))return showToast('This mobile number belongs to an archived employee. Restore that employee instead.',true);
       const pin=await adminAsk('Set the initial 4-digit PIN.',{title:'Add Employee',fieldLabel:'Initial 4-digit PIN',placeholder:'0000'}); if(!/^\d{4}$/.test(pin||''))return showToast('PIN must be exactly 4 digits.',true);
-      const role=(await adminAsk('Choose the authority role.',{title:'Add Employee',fieldLabel:'Role',value:'STAFF'}))||'STAFF';
-      const designation=await adminAsk('Enter the employee designation.',{title:'Add Employee',fieldLabel:'Designation',placeholder:'Store Manager'}); if(designation===null)return;
+      const role=(await adminAsk('Choose the authority role. For a dispatch-only login, enter INVENTORY_STAFF.',{title:'Add Employee',fieldLabel:'Role (STAFF / INVENTORY_STAFF / MANAGER / OWNER / SUPER_ADMIN)',value:'STAFF'}))||'STAFF';
+      const designation=await adminAsk('Enter the employee designation.',{title:'Add Employee',fieldLabel:'Designation',placeholder:role.toUpperCase()==='INVENTORY_STAFF'?'Inventory & Dispatch Executive':'Store Manager'}); if(designation===null)return;
       const weekOff=(await adminAsk('Set the weekly off day.',{title:'Add Employee',fieldLabel:'Week-off day',value:'Sunday'}))||'Sunday';
       const dateOfJoining=await adminAsk('Enter the employee date of joining.',{title:'Add Employee',fieldLabel:'Date of joining (YYYY-MM-DD)',placeholder:'2026-09-07'}); if(dateOfJoining===null)return;
       if(!/^\d{4}-\d{2}-\d{2}$/.test((dateOfJoining||'').trim()))return showToast('Enter the date of joining as YYYY-MM-DD.',true);
@@ -8102,148 +8160,491 @@
   };
 })();
 </script>
-</body>
-</html>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <script>
-/* v1.4.47 — Robust outlet recovery + visibility.
-   If older versions created multiple B2B records for the same chain, keep the
-   first record as the business account and convert the additional locations into
-   independent outlet stock records. Always render every outlet under its parent. */
+/* v1.4.61 — Inventory staff delivery outcome updates */
 (function(){
-  const OUTLET_PATH='storeState/b2bOutlets';
-  const LEADS_PATH='storeState/b2bLeads';
-  const norm=v=>String(v||'').trim().toLowerCase();
-  const parentName=o=>String(o?.parentAccountName||o?.parentBusinessName||o?.shopName||'').trim();
-  const outletName=o=>String(o?.outletName||o?.name||o?.place||'Main Outlet').trim();
-  const makeId=()=> 'OUTLET-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);
-  const toArray=raw=>Array.isArray(raw)?raw.filter(Boolean):(raw&&typeof raw==='object'?Object.values(raw).filter(Boolean):[]);
-  const esc=v=>typeof escapeHtml==='function'?escapeHtml(v):String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-  async function recoverAndReadOutlets(){
-    if(!cloudDb) return [];
+  const INDIA_POST_TEMPLATE_B64='JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjEgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iagozIDAgb2JqCjw8Ci9CYXNlRm9udCAvSGVsdmV0aWNhLUJvbGQgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YyIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKNCAwIG9iago8PAovQ29udGVudHMgOCAwIFIgL01lZGlhQm94IFsgMCAwIDU5NS4yNzU2IDg0MS44ODk4IF0gL1BhcmVudCA3IDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago1IDAgb2JqCjw8Ci9QYWdlTW9kZSAvVXNlTm9uZSAvUGFnZXMgNyAwIFIgL1R5cGUgL0NhdGFsb2cKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL0F1dGhvciAoXChhbm9ueW1vdXNcKSkgL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MTExMDA3NTMxOCswMCcwMCcpIC9DcmVhdG9yIChcKHVuc3BlY2lmaWVkXCkpIC9LZXl3b3JkcyAoKSAvTW9kRGF0ZSAoRDoyMDI2MTExMDA3NTMxOCswMCcwMCcpIC9Qcm9kdWNlciAoUmVwb3J0TGFiIFBERiBMaWJyYXJ5IC0gXChvcGVuc291cmNlXCkpIAogIC9TdWJqZWN0IChcKHVuc3BlY2lmaWVkXCkpIC9UaXRsZSAoXChhbm9ueW1vdXNcKSkgL1RyYXBwZWQgL0ZhbHNlCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9Db3VudCAxIC9LaWRzIFsgNCAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjggMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMTExNwo+PgpzdHJlYW0KR2F1MENnUUw4WyY6Tl5scU44OW1QTmZWbC0+dFlRMl5CcWQ2IzBQdW5mZiU+P21BJ0E+YCZKRU5CZkZhPGU7VG5KalFScUk4OU5xXGYxY0koVC0oM0B0Nktdci00IUkhbEBgYE1DQWhPJjs3X11IWyVrbEE2X1lNXmYtUD1lL2tgZWEjbmRfcXFUQFduQzMqIz1BTCRUS1FeQyUvaEFbaF9PMTYsNWI3YlYjPSYxN0Eycy1ncUs8cHNtbTdrWXFRaUlBTDleYiopI2pUcChDNEBnYTwnUnEjVU1EPCdtXyIsaSZxJl1jW2FgbSwqUzBtLSQwQCglJVJjPCUrW2k5QGQmVkE4dWpPJ2BaPFlMTzZcRyQ3c1M0K0w3ZT1iKGFvS1VgQD9JUm8iOWFvXComL1AwNl0pZ3JmZFVvRTsuSFYwbUhsOlhOQVg9b19FTmo0aElWXV5OdUBPMik7T3AmOywiZCQiN0NfPi9OSVZuRkFxUTElUjI/JC5lJT0xJm83bkxAYzcsJyk7UkUxdHVgYXFRalFgUlo7dGtmUVw+KjRdRnQ4XEBWRC8+LEppUFAicTM9YmBeK2QsInFBI1A6MGBxbDllPGEvTk9IM2tQY1E9Il0sMz1sS2U2Zk9xNFU5KEJzIlhKbSYyUjFjJzZsWSNqTzcoOyZdIkYxVlJObUUtaGwyMF4vdTZMWXBOOUxmYTUsYDwuWFlkMzJjJ3Frb0tOUCVQRW9LP011cCgyXTFHMGxwZjovYFtcMGpVZS9mQj0nYSpKLEBcaF90P2E+QjZNZ0E9U251QWwmKGYock1Scj9NWFFHRDROMCEpN21QWD5kdEpHMVo8JUghRy9cWjcuRzVvRjlSb14xNj9RTlRWc2ltOUd0Y0YnOWxVPVBGNDBzQ0wpKDs4XkRIPU5AVmNDYDc3cz9WOixsYlhLPk9LSz81ZzdbMjJIYmlnPyE4JFJIXmdkPC9EajUqa2VnWktrSmYkazRDNic6ZTNBPmpqQk5tdDowKnJAJVRTT2VcanQ8WmNYc1xOWWhdZUxwOlo8YC4mSC9jUCdHKGQ/NDRJPFw3Rm1xRVFdNCUsZVhVVCpYMWxsMm4mKmshY1BhJ29NPl8mPkI3bTtZK0guQVExSmNpOipEOnVRVSU3RmVecGNZN1ZZVnA1NjRbUDE4aVIrTGk3aDlxTzJeU0NZOkpAZnJlbHM/VUYjUC5rdGQ6MFM6TE00QS1JPyFzdExqbmQrL25xbWlpcEQnZkc3IidWRCpDSlVRZW1PbStgWlhpQlB1Sl9xZnQvaUZEKys1V2JEaSxyPiNlKCYsaiw2J0xxb25nVWRzbUh1aUJUaFZrTyxwYmgkVzEkO2ZLY2UoWmJQYTNKNTsvSyZVPklVSjM3NW0nQkYtaExYIlpiUEdnQCVlRiUidDNhb1hDdV5hXDReSmBhM01AWCdkXGVoQHAtZ2M7QkVRMV0/KCo9SDtfIidWWTczQFgva1F+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDkKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDYxIDAwMDAwIG4gCjAwMDAwMDAxMDIgMDAwMDAgbiAKMDAwMDAwMDIwOSAwMDAwMCBuIAowMDAwMDAwMzIxIDAwMDAwIG4gCjAwMDAwMDA1MjQgMDAwMDAgbiAKMDAwMDAwMDU5MiAwMDAwMCBuIAowMDAwMDAwODcyIDAwMDAwIG4gCjAwMDAwMDA5MzEgMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8Zjk5MDlhNjIzZmU0NmFiZjJhMWMyNzYyYzIzMTZiNjU+PGY5OTA5YTYyM2ZlNDZhYmYyYTFjMjc2MmMyMzE2YjY1Pl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyA2IDAgUgovUm9vdCA1IDAgUgovU2l6ZSA5Cj4+CnN0YXJ0eHJlZgoyMTM5CiUlRU9GCjUgMSBvYmoKPDwKL1BhZ2VNb2RlIC9Vc2VOb25lIC9QYWdlcyA3IDAgUiAvVHlwZSAvQ2F0YWxvZwogL0FGIFsxMCAwIFJdIC9OYW1lcyA8PCAvRW1iZWRkZWRGaWxlcyA8PCAvTmFtZXMgWyhDb250ZW50IENyZWRlbnRpYWxzKSAxMCAwIFJdID4+ID4+ID4+CmVuZG9iago5IDAgb2JqCjw8IC9MZW5ndGggMjQyNzYgL1R5cGUgL0VtYmVkZGVkRmlsZSAvU3VidHlwZSAvYXBwbGljYXRpb24jMkZjMnBhID4+CnN0cmVhbQoAAF7UanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAXq5qdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOmE0MWU3NWRmLWJhMjktNGE0My04Yjc1LWM4OTQzYjI2ZWE1OAAAAAueanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAJuWp1bWIAAAAjanVtZEDLDDK7ikidpwsq1vR/Q2kDYzJwYS5pY29uAAAAABdiZmRiAGltYWdlL3N2Zyt4bWwAAAAJd2JpZGI8c3ZnIHdpZHRoPSI3MTYiIGhlaWdodD0iNzE2IiB2aWV3Qm94PSIwIDAgNzE2IDcxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTUwOC43NDkgMzE3LjM5OUM1MTYuNzc3IDI4Ny4zMTQgNTA4Ljk5MSAyNTMuODg0IDQ4NS4zODkgMjMwLjI4MkM0NjEuNzg4IDIwNi42ODEgNDI4LjM2IDE5OC44OTUgMzk4LjI3MyAyMDYuOTIzQzM3Ni4yMzEgMTg0LjkyOCAzNDMuMzkgMTc0Ljk1NiAzMTEuMTQ4IDE4My41OTZDMjc4LjkwNiAxOTIuMjM0IDI1NS40NSAyMTcuMjkyIDI0Ny4zNiAyNDcuMzYxQzIxNy4yOTEgMjU1LjQ1MSAxOTIuMjMzIDI3OC45MSAxODMuNTk1IDMxMS4xNDlDMTc0Ljk1NyAzNDMuMzkxIDE4NC45MjcgMzc2LjIzMiAyMDYuOTI0IDM5OC4yNzRDMTk4Ljg5NiA0MjguMzU5IDIwNi42ODMgNDYxLjc4OSAyMzAuMjg0IDQ4NS4zOTFDMjUzLjg4NSA1MDguOTkyIDI4Ny4zMTMgNTE2Ljc3OSAzMTcuNDAxIDUwOC43NUMzMzkuNDQyIDUzMC43NDUgMzcyLjI4NiA1NDAuNzE3IDQwNC41MjUgNTMyLjA3OUM0MzYuNzY3IDUyMy40NDEgNDYwLjIyMyA0OTguMzg0IDQ2OC4zMTMgNDY4LjMxNUM0OTguMzgzIDQ2MC4yMjQgNTIzLjQ0IDQzNi43NjYgNTMyLjA3OCA0MDQuNTI2QzU0MC43MTYgMzcyLjI4NSA1MzAuNzQ3IDMzOS40NDMgNTA4Ljc0OSAzMTcuNDAyVjMxNy4zOTlaTTQ3MC44OTkgMjQ0Ljc3NkM0ODYuODkyIDI2MC43NyA0OTMuNDg4IDI4Mi42MDEgNDkwLjY4NyAzMDMuNDEyTDQxNS41NzcgMjYwLjA0NkM0MTIuNDExIDI1OC4yMTggNDA4LjUwOSAyNTguMjE4IDQwNS4zNDUgMjYwLjA0NkwzMTcuNDAxIDMxMC44MlYyNzcuNTI2QzMxNy40MDEgMjc1LjE5MSAzMTguNjUyIDI3My4wMDUgMzIwLjY3NiAyNzEuODM3TDM4Ny42NDQgMjMzLjE3NEM0MTQuMTc4IDIxOC4zNTMgNDQ4LjM0NiAyMjIuMjIzIDQ3MC45MDEgMjQ0Ljc3Nkg0NzAuODk5Wk0zNTcuODM3IDMxMS4xNDRMMzk4LjI3NSAzMzQuNDkxVjM4MS4xODVMMzU3LjgzNyA0MDQuNTMyTDMxNy4zOTggMzgxLjE4NVYzMzQuNDkxTDM1Ny44MzcgMzExLjE0NFpNMjY0Ljc3NiAyNjkuNjkzQzI2NS4yMDcgMjM5LjMwNSAyODUuNjQ0IDIxMS42NDkgMzE2LjQ1MyAyMDMuMzkzQzMzOC4zIDE5Ny41NCAzNjAuNTA1IDIwMi43NDQgMzc3LjEyNyAyMTUuNTczTDMwMi4wMTQgMjU4LjkzN0MyOTguODQ4IDI2MC43NjQgMjk2Ljg5OCAyNjQuMTQ0IDI5Ni44OTggMjY3Ljc5OFYzNjkuMzQ2TDI2OC4wNjUgMzUyLjY5OUMyNjYuMDQzIDM1MS41MzEgMjY0Ljc3NiAzNDkuMzUzIDI2NC43NzYgMzQ3LjAxN1YyNjkuNjkxVjI2OS42OTNaTTIwMy4zOTEgMzE2LjQ1NEMyMDkuMjQ0IDI5NC42MDggMjI0Ljg1NCAyNzcuOTc4IDI0NC4yNzYgMjY5Ljk5OVYzNTYuNzNDMjQ0LjI3NiAzNjAuMzg0IDI0Ni4yMjYgMzYzLjc2MyAyNDkuMzkyIDM2NS41OTFMMzM3LjMzNyA0MTYuMzY1TDMwOC41MDMgNDMzLjAxM0MzMDYuNDgxIDQzNC4xODEgMzAzLjk2MSA0MzQuMTg4IDMwMS45MzkgNDMzLjAyTDIzNC45NzEgMzk0LjM1N0MyMDguODY4IDM3OC43ODkgMTk1LjEzOCAzNDcuMjYxIDIwMy4zOTEgMzE2LjQ1NFpNMjQ0Ljc3NSA0NzAuOUMyMjguNzgxIDQ1NC45MDYgMjIyLjE4NiA0MzMuMDc1IDIyNC45ODYgNDEyLjI2NEwzMDAuMDk2IDQ1NS42M0MzMDMuMjYzIDQ1Ny40NTcgMzA3LjE2NCA0NTcuNDU3IDMxMC4zMjggNDU1LjYzTDM5OC4yNzMgNDA0Ljg1NlY0MzguMTQ5QzM5OC4yNzMgNDQwLjQ4NSAzOTcuMDIyIDQ0Mi42NzEgMzk0Ljk5NyA0NDMuODM5TDMyOC4wMjkgNDgyLjUwMkMzMDEuNDk1IDQ5Ny4zMjIgMjY3LjMyNyA0OTMuNDUyIDI0NC43NzIgNDcwLjlIMjQ0Ljc3NVpNNDUwLjg5NyA0NDUuOTgyQzQ1MC40NjYgNDc2LjM3MSA0MzAuMDI5IDUwNC4wMjcgMzk5LjIyIDUxMi4yODNDMzc3LjM3MyA1MTguMTM2IDM1NS4xNjggNTEyLjkzMiAzMzguNTQ3IDUwMC4xMDJMNDEzLjY1OSA0NTYuNzM4QzQxNi44MjYgNDU0LjkxMSA0MTguNzc1IDQ1MS41MzIgNDE4Ljc3NSA0NDcuODc3VjM0Ni4zMjlMNDQ3LjYwOSAzNjIuOTc3QzQ0OS42MzEgMzY0LjE0NSA0NTAuODk3IDM2Ni4zMjMgNDUwLjg5NyAzNjguNjU5VjQ0NS45ODVWNDQ1Ljk4MlpNNTEyLjI4MiAzOTkuMjIxQzUwNi40MjkgNDIxLjA2OCA0OTAuODE5IDQzNy42OTcgNDcxLjM5NyA0NDUuNjc2VjM1OC45NDZDNDcxLjM5NyAzNTUuMjkyIDQ2OS40NDggMzUxLjkxMiA0NjYuMjgxIDM1MC4wODVMMzc4LjMzNiAyOTkuMzExTDQwNy4xNyAyODIuNjYzQzQwOS4xOTIgMjgxLjQ5NSA0MTEuNzEyIDI4MS40ODcgNDEzLjczNCAyODIuNjU1TDQ4MC43MDIgMzIxLjMxOEM1MDYuODA1IDMzNi44ODcgNTIwLjUzNiAzNjguNDE1IDUxMi4yODIgMzk5LjIyMVoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPgoAAAEQanVtYgAAAClqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFjdGlvbnMudjIAAAAA32Nib3KiZ2FjdGlvbnOBpGZhY3Rpb25sYzJwYS5jcmVhdGVkcWRpZ2l0YWxTb3VyY2VUeXBleEZodHRwOi8vY3YuaXB0Yy5vcmcvbmV3c2NvZGVzL2RpZ2l0YWxzb3VyY2V0eXBlL3RyYWluZWRBbGdvcml0aG1pY01lZGlhbXNvZnR3YXJlQWdlbnSiZG5hbWVlZ3B0LTZndmVyc2lvbmVncHQtNmR3aGVueBsyMDI2LTExLTEwVDA3OjUzOjE5LjQ5NjYxMFpyYWxsQWN0aW9uc0luY2x1ZGVk9AAAAKRqdW1iAAAAKGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaGFzaC5kYXRhAAAAAHRjYm9ypWpleGNsdXNpb25zgaJlc3RhcnQZCtBmbGVuZ3RoGV7UZG5hbWVuanVtYmYgbWFuaWZlc3RjYWxnZnNoYTI1NmRoYXNoWCCgoV3LW2T3ae6gcMUDpusxrnp2ppeKKo7zIkh9az81/mNwYWRAAAACiWp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAJaY2JvcqZqaW5zdGFuY2VJRHgseG1wOmlpZDo4Y2IwYzQzMi1mMmJhLTQ2ZTQtYTU5NS0xZTlmYjJiZTBjY2V0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVnQ2hhdEdQVGRpY29uomN1cmx4JHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaWNvbmRoYXNoWCB1PvA9VwUxkrOoTutMHvvBjBh0tyd31tA2AsdlNhHj8WtzcGVjVmVyc2lvbmUyLjIuMGlzaWduYXR1cmV4TXNlbGYjanVtYmY9L2MycGEvdXJuOmMycGE6YTQxZTc1ZGYtYmEyOS00YTQzLThiNzUtYzg5NDNiMjZlYTU4L2MycGEuc2lnbmF0dXJlcmNyZWF0ZWRfYXNzZXJ0aW9uc4OiY3VybHgkc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pY29uZGhhc2hYIHU+8D1XBTGSs6hO60we+8GMGHS3J3fW0DYCx2U2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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9lkBAGB3zTlGnD+9Rse2VK5KAM4ch8hAul3k0kEwIXwrs1I2n29+RSPRU8gmYMSdHRUmzfUhNgsYmyqK9oaSIz+R0NNOWQPJCoxOYGlBofpJsBVA9cq2Nnl1m3YDM9ZPJIDtYVjEoMmCEZpBPPPr32Yh8C+iIhtV8QdieBaV7brpwW/JVWBKw+JiWzLWearkAF3mjPiYLu5poNjsdY1n1DUSFRnc4DIrlQys8rebjAz7Gm9lKHogVYU1jMfNfkY5HPn3Sg6gao1H2O9/dNQjg3vBMH/3YYUIz3Wpw2Utjpatp8LeHLyqWLeuUmXeEJMdidxn6EGJHcIQhEGFA9KkFmNjTJgKZW5kc3RyZWFtCmVuZG9iagoxMCAwIG9iago8PCAvQUZSZWxhdGlvbnNoaXAgL0MyUEFfTWFuaWZlc3QgL0Rlc2MgKENvbnRlbnQgQ3JlZGVudGlhbHMpIC9GIChDb250ZW50IENyZWRlbnRpYWxzKSAvRUYgPDwgL0YgOSAwIFIgPj4gL1N1YnR5cGUgKGFwcGxpY2F0aW9uL2MycGEpIC9UeXBlIC9GaWxlc3BlYyAvVUYgKENvbnRlbnQgQ3JlZGVudGlhbHMpID4+CmVuZG9iagp4cmVmCjUgMQowMDAwMDAyNTMwIDAwMDAxIG4gCjkgMgowMDAwMDAyNjg0IDAwMDAwIG4gCjAwMDAwMjcwNjIgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSAxMSAvUm9vdCA1IDEgUiAvUHJldiAyMTM5IC9JRCBbPGY5OTA5YTYyM2ZlNDZhYmYyYTFjMjc2MmMyMzE2YjY1PjxmOTkwOWE2MjNmZTQ2YWJmMmExYzI3NjJjMjMxNmI2NT5dID4+CnN0YXJ0eHJlZgoyNzI1NwolJUVPRgo=';
+  const $=id=>document.getElementById(id);
+  const escD=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const moneyD=n=>'₹'+(Number(n)||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const inventoryRole=()=>{
+    if(!currentAuthUser)return false;
+    const candidates=[currentAuthUser];
+    const uid=String(currentAuthUser.id||'');
+    const phone=String(currentAuthUser.phone||'').replace(/\\D/g,'');
     try{
-      const [outSnap,leadSnap]=await Promise.all([
-        cloudDb.ref(OUTLET_PATH).once('value'),
-        cloudDb.ref(LEADS_PATH).once('value')
-      ]);
-      const existing=toArray(outSnap.val());
-      let leads=toArray(leadSnap.val());
-      const byId={};
-      existing.forEach(o=>{if(o?.id)byId[String(o.id)]={...o};});
-
-      const businessGroups=new Map();
-      leads.filter(l=>l&&!l.outletOnly).forEach(l=>{
-        const key=norm(parentName(l)||l.shopName);
-        if(!key)return;
-        if(!businessGroups.has(key))businessGroups.set(key,[]);
-        businessGroups.get(key).push(l);
-      });
-
-      const legacyOutletLeads=leads.filter(l=>l?.outletOnly);
-      const duplicateLeads=[];
-      businessGroups.forEach(records=>{if(records.length>1)records.slice(1).forEach(l=>duplicateLeads.push(l));});
-      const candidates=[...legacyOutletLeads,...duplicateLeads];
-      const candidateIds=new Set(candidates.map(x=>String(x.id)));
-
-      candidates.forEach(x=>{
-        const id=String(x.id||makeId());
-        if(!byId[id]){
-          byId[id]={
-            id,
-            parentBusinessId:x.parentBusinessId||'',
-            parentAccountName:parentName(x),
-            outletName:outletName(x),
-            city:x.city||'Mangalore',
-            place:x.place||'',
-            stockVisits:Array.isArray(x.stockVisits)?x.stockVisits:[],
-            lastStockCountDate:x.lastStockCountDate||'',
-            lastStockCountBy:x.lastStockCountBy||'',
-            createdAt:x.createdAt||new Date().toISOString(),
-            createdBy:x.createdBy||currentAuthUser?.id||'',
-            updatedAt:x.updatedAt||new Date().toISOString(),
-            updatedBy:x.updatedBy||currentAuthUser?.id||''
-          };
-        }
-      });
-
-      const normalized=Object.values(byId);
-      const outletObject=Object.fromEntries(normalized.map(o=>[String(o.id),o]));
-      const raw=outSnap.val();
-      const rawObj=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
-      if(JSON.stringify(rawObj)!==JSON.stringify(outletObject)){
-        await cloudDb.ref(OUTLET_PATH).set(outletObject);
+      const local=(appState?.employees||[]).find(e=>String(e.id||'')===uid||(phone&&String(e.phone||'').replace(/\\D/g,'')===phone));
+      if(local)candidates.push(local);
+      const cloud=(cloudUsers||[]).find(e=>String(e.id||'')===uid||(phone&&String(e.phone||'').replace(/\\D/g,'')===phone));
+      if(cloud)candidates.push(cloud);
+    }catch(e){}
+    return candidates.some(u=>{
+      const roles=[u.role,u.userRole,u.accessRole,u.roleName,u.employeeRole,u.designation,u.position]
+        .filter(Boolean).map(v=>String(v).trim().toUpperCase().replace(/[\\s-]+/g,'_'));
+      return roles.some(v=>v==='INVENTORY_STAFF'||v==='INVENTORY'||v.includes('INVENTORY_STAFF')||v.includes('INVENTORY_DISPATCH')||v.includes('INVENTORY_EXECUTIVE'));
+    });
+  };
+  const managementRole=()=>!!(currentAuthUser&&(isSuperAdmin()||currentAuthUser.role==='OWNER'||currentAuthUser.role==='MANAGER'||currentAuthUser.role==='ADMIN'));
+  const canProcess=()=>inventoryRole()||managementRole();
+  const statusName={RECEIVED:'Order Received',ACCEPTED:'Accepted',PACKING:'Packing',PACKED:'Packed',READY_DISPATCH:'Ready for Dispatch',DISPATCHED:'Dispatched',DELIVERED:'Delivered',DELIVERY_FAILED:'Delivery Failed',RTO:'Returned / RTO',CANCELLED:'Cancelled'};
+  const statusTone={RECEIVED:'bg-blue-50 text-blue-800',ACCEPTED:'bg-indigo-50 text-indigo-800',PACKING:'bg-amber-50 text-amber-800',PACKED:'bg-emerald-50 text-emerald-800',READY_DISPATCH:'bg-teal-50 text-teal-800',DISPATCHED:'bg-violet-50 text-violet-800',DELIVERED:'bg-green-50 text-green-800',DELIVERY_FAILED:'bg-rose-50 text-rose-800',RTO:'bg-red-50 text-red-800',CANCELLED:'bg-slate-100 text-slate-600'};
+  function orders(){appState=loadState();return appState.dispatchOrders||[];}
+  function saveOrders(){appState.dispatchOrders=appState.dispatchOrders||[];return saveState(appState);}
+  function logStatus(o,status,note=''){o.status=status;o.updatedAt=new Date().toISOString();o.updatedBy=currentAuthUser?.id||'';o.updatedByName=currentAuthUser?.name||'';o.timeline=o.timeline||[];o.timeline.push({status,at:o.updatedAt,by:o.updatedBy,byName:o.updatedByName,note});}
+  window.dispatchAddItem=function(name='',qty=1,price=0){const wrap=$('dispatch-item-rows');if(!wrap)return;const row=document.createElement('div');row.className='dispatch-item-row grid grid-cols-12 gap-2 items-center';row.innerHTML=`<input class="di-name col-span-6 px-3 py-2.5 border rounded-xl text-xs" placeholder="Product name / SKU" value="${escD(name)}"><input class="di-qty col-span-2 px-2 py-2.5 border rounded-xl text-xs" type="number" min="1" value="${qty}" aria-label="Quantity"><input class="di-price col-span-3 px-2 py-2.5 border rounded-xl text-xs" type="number" min="0" step="0.01" value="${price}" placeholder="Unit price"><button type="button" class="col-span-1 text-red-500 font-black" title="Remove" onclick="this.closest('.dispatch-item-row').remove();dispatchUpdateTotal()">×</button>`;row.querySelectorAll('input').forEach(x=>x.addEventListener('input',dispatchUpdateTotal));wrap.appendChild(row);dispatchUpdateTotal();};
+  window.dispatchUpdateTotal=function(){let subtotal=0;document.querySelectorAll('.dispatch-item-row').forEach(r=>subtotal+=(Number(r.querySelector('.di-qty').value)||0)*(Number(r.querySelector('.di-price').value)||0));const delivery=Math.max(0,Number($('dispatch-delivery-charge')?.value)||0);const total=subtotal+delivery;if($('dispatch-order-total'))$('dispatch-order-total').value=total.toFixed(2);const mode=$('dispatch-payment-mode')?.value||'COD';if($('dispatch-cod-preview'))$('dispatch-cod-preview').textContent=mode==='COD'?'COD collection amount: '+moneyD(total):'PREPAID — no amount to collect on delivery.';};
+  window.dispatchCreateOrder=function(){
+    if(!currentAuthUser)return showToast('Please sign in first.',true);if(inventoryRole()&&!managementRole())return showToast('Inventory staff cannot create store orders.',true);
+    const invoiceDigits=$('dispatch-invoice-number')?.value.trim().replace(/^ONL-/i,'').trim()||'';
+    const name=$('dispatch-customer-name').value.trim(),mobile=$('dispatch-customer-mobile').value.replace(/\D/g,''),address=$('dispatch-customer-address').value.trim(),city=$('dispatch-city').value.trim(),pin=$('dispatch-pin').value.trim();
+    if(!/^\d+$/.test(invoiceDigits))return showToast('Enter the invoice number. The ONL- prefix is added automatically.',true);
+    const invoiceNumber='ONL-'+invoiceDigits;
+    appState=loadState();const duplicate=(appState.dispatchOrders||[]).some(x=>String(x.invoiceNumber||'').toUpperCase()===invoiceNumber.toUpperCase());
+    if(duplicate)return showToast('This invoice number is already linked to a dispatch order.',true);
+    if(!name||!/^[6-9]\d{9}$/.test(mobile)||!address||!city||!/^\d{6}$/.test(pin))return showToast('Enter customer name, valid 10-digit mobile, full address, city and 6-digit PIN.',true);
+    const whatsappOptIn=!!$('dispatch-whatsapp-optin')?.checked;
+    const items=[...document.querySelectorAll('.dispatch-item-row')].map(r=>({name:r.querySelector('.di-name').value.trim(),quantity:Number(r.querySelector('.di-qty').value)||0,unitPrice:Number(r.querySelector('.di-price').value)||0})).filter(x=>x.name&&x.quantity>0);
+    if(!items.length)return showToast('Add at least one valid product.',true);
+    const subtotal=items.reduce((a,x)=>a+x.quantity*x.unitPrice,0),delivery=Math.max(0,Number($('dispatch-delivery-charge').value)||0),total=Math.round((subtotal+delivery)*100)/100,mode=$('dispatch-payment-mode').value;
+    if(total<=0)return showToast('Order total must be greater than zero.',true);
+    if(!cloudDb||!cloudStateLoaded)return showToast('Firebase is still connecting. Try again shortly.',true);
+    const now=new Date().toISOString(),id='WWD-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+    const o={id,invoiceNumber,customer:{name,mobile:'+91 '+mobile,address,landmark:$('dispatch-landmark').value.trim(),city,state:$('dispatch-state').value,pin},items,subtotal,deliveryCharge:delivery,total,paymentMode:mode,codAmount:mode==='COD'?total:0,instructions:$('dispatch-instructions').value.trim(),whatsappOptIn,whatsappOptInAt:whatsappOptIn?now:'',whatsappOptInBy:whatsappOptIn?currentAuthUser.id:'',whatsappOptInByName:whatsappOptIn?currentAuthUser.name:'',whatsappOptInSource:whatsappOptIn?'staff-confirmed-at-order-creation':'',status:'RECEIVED',createdAt:now,createdBy:currentAuthUser.id,createdByName:currentAuthUser.name,updatedAt:now,timeline:[{status:'RECEIVED',at:now,by:currentAuthUser.id,byName:currentAuthUser.name,note:'Order created at store'}],labelGeneratedAt:null,trackingId:'',courier:'India Post'};
+    appState.dispatchOrders=appState.dispatchOrders||[];appState.dispatchOrders.unshift(o);if(!saveState(appState))return;showToast('Dispatch order '+id+' created.');['dispatch-invoice-number','dispatch-customer-name','dispatch-customer-mobile','dispatch-customer-address','dispatch-landmark','dispatch-city','dispatch-pin','dispatch-instructions'].forEach(k=>$(k).value='');$('dispatch-whatsapp-optin').checked=false;$('dispatch-item-rows').innerHTML='';dispatchAddItem();$('dispatch-delivery-charge').value='0';dispatchUpdateTotal();renderDispatchDesk();
+  };
+  function actionButton(label,fn,cls='bg-[#05281b] text-white'){return `<button type="button" onclick="${fn}" class="px-3 py-2 rounded-xl text-[10px] font-black ${cls}">${label}</button>`;}
+  function updateOrder(id,fn){appState=loadState();const o=(appState.dispatchOrders||[]).find(x=>x.id===id);if(!o){showToast('Order not found. Refresh the page.',true);return false;}fn(o);if(!saveState(appState)){showToast('Could not save order. Check Firebase connection and try again.',true);return false;}renderDispatchDesk();return true;}
+  window.dispatchAccept=function(id){if(!canProcess())return showToast('Inventory staff or management access required.',true);updateOrder(id,o=>{if(o.status!=='RECEIVED')return; o.acceptedBy=currentAuthUser.id;o.acceptedByName=currentAuthUser.name;o.acceptedAt=new Date().toISOString();logStatus(o,'ACCEPTED','Accepted by inventory desk');});};
+  window.dispatchStartPacking=function(id){if(!canProcess())return;updateOrder(id,o=>{if(o.status==='ACCEPTED')logStatus(o,'PACKING','Packing started');});};
+  window.dispatchMarkPacked=function(id){if(!canProcess())return;updateOrder(id,o=>{if(o.status==='PACKING'||o.status==='ACCEPTED'){o.packedBy=currentAuthUser.id;o.packedByName=currentAuthUser.name;o.packedAt=new Date().toISOString();logStatus(o,'PACKED','Packing completed');}});};
+  window.dispatchReady=function(id){if(!canProcess())return;updateOrder(id,o=>{if(o.status!=='PACKED')return;o.labelGeneratedAt=o.labelGeneratedAt||null;logStatus(o,'READY_DISPATCH','Label generated / ready for handover');});};
+  window.dispatchSetDeliveryStatus=function(id,status){if(!canProcess())return showToast('Inventory staff or management access required to update delivery outcome.',true);if(!['DELIVERED','DELIVERY_FAILED','RTO'].includes(status))return showToast('Invalid delivery outcome.',true);const current=orders().find(x=>x.id===id);if(!current||!['DISPATCHED','DELIVERY_FAILED'].includes(current.status))return showToast('Only dispatched orders can receive delivery updates.',true);if(['DELIVERED','RTO'].includes(current.status))return showToast('This order already has a final delivery outcome.',true);updateOrder(id,o=>{if(!['DISPATCHED','DELIVERY_FAILED'].includes(o.status))return;const note=status==='DELIVERED'?'Delivery confirmed by inventory staff / management':status==='RTO'?'Parcel returned to origin (RTO) as updated by inventory staff / management':'Delivery attempt failed; follow-up required';o.deliveryOutcomeUpdatedAt=new Date().toISOString();o.deliveryOutcomeUpdatedBy=currentAuthUser.id;o.deliveryOutcomeUpdatedByName=currentAuthUser.name;logStatus(o,status,note);});};
+  const dispatchModalStyle=document.createElement('style');dispatchModalStyle.textContent='@keyframes dispatchModalIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}';document.head.appendChild(dispatchModalStyle);
+  // In-app India Post tracking dialog: avoid browser-native prompt() popups.
+  window.closeDispatchTrackingModal=function(){document.getElementById('dispatch-tracking-modal')?.remove();};
+  window.dispatchConfirmTracking=function(id){
+    const modal=document.getElementById('dispatch-tracking-modal');
+    const input=document.getElementById('dispatch-tracking-input');
+    const tracking=(input?.value||'').trim().toUpperCase();
+    if(!tracking){input?.focus();return showToast('Enter the India Post consignment / tracking ID.',true);}
+    const latest=orders().find(x=>x.id===id);
+    if(!latest||!['READY_DISPATCH','PACKED'].includes(latest.status)){window.closeDispatchTrackingModal();return showToast('This order is no longer ready for dispatch.',true);}
+    window.closeDispatchTrackingModal();
+    updateOrder(id,x=>{if(!['READY_DISPATCH','PACKED'].includes(x.status))return;x.trackingId=tracking;x.courier='India Post';x.dispatchedAt=new Date().toISOString();x.dispatchedBy=currentAuthUser.id;x.dispatchedByName=currentAuthUser.name;logStatus(x,'DISPATCHED','Handed over to India Post. Tracking: '+x.trackingId);});
+  };
+  window.dispatchMarkDispatched=function(id){
+    if(!canProcess())return showToast('Inventory staff or management access required.',true);
+    const o=orders().find(x=>x.id===id);if(!o)return showToast('Order not found.',true);
+    if(!['READY_DISPATCH','PACKED'].includes(o.status))return showToast('Only packed orders can be dispatched.',true);
+    window.closeDispatchTrackingModal();
+    const overlay=document.createElement('div');overlay.id='dispatch-tracking-modal';
+    overlay.className='fixed inset-0 z-[10000] flex items-center justify-center p-4';
+    overlay.style.background='rgba(15,23,42,.58)';
+    overlay.innerHTML=`<div role="dialog" aria-modal="true" aria-labelledby="dispatch-tracking-title" class="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 space-y-4" style="animation:dispatchModalIn .16s ease-out;">
+      <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-xl">📮</div><div class="flex-1"><h3 id="dispatch-tracking-title" class="font-black text-base text-slate-900">India Post Dispatch</h3><p class="text-xs text-slate-500 mt-1">Enter the consignment / tracking ID for this parcel.</p></div><button type="button" onclick="closeDispatchTrackingModal()" aria-label="Close" class="text-slate-400 hover:text-slate-800 text-xl leading-none">&times;</button></div>
+      <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2"><div class="text-[9px] uppercase tracking-wide font-bold text-slate-500">Order</div><div class="text-xs font-black text-slate-800">${escD(o.id)} · ${escD(o.customer?.name||'')}</div></div>
+      <label for="dispatch-tracking-input" class="block text-xs font-bold text-slate-700">India Post consignment / tracking ID <span class="text-red-600">*</span></label>
+      <input id="dispatch-tracking-input" type="text" maxlength="40" autocomplete="off" placeholder="e.g. EK123456789IN" class="w-full rounded-xl border-2 border-slate-300 focus:border-slate-800 focus:ring-2 focus:ring-slate-200 px-3 py-3 text-sm font-semibold uppercase outline-none" />
+      <p class="text-[10px] text-slate-500">The order will be marked as dispatched only after this ID is entered.</p>
+      <div class="flex gap-2 pt-1"><button type="button" onclick="closeDispatchTrackingModal()" class="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-xs font-bold text-slate-700">Cancel</button><button type="button" onclick="dispatchConfirmTracking('${String(o.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')" class="flex-1 rounded-xl bg-[#05281b] px-4 py-3 text-xs font-black text-white">Confirm Dispatch</button></div>
+    </div>`;
+    overlay.addEventListener('click',e=>{if(e.target===overlay)window.closeDispatchTrackingModal();});
+    document.body.appendChild(overlay);
+    const input=document.getElementById('dispatch-tracking-input');
+    input?.focus();
+    input?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();window.dispatchConfirmTracking(id);}if(e.key==='Escape')window.closeDispatchTrackingModal();});
+  };
+  // Inventory staff can correct essential order data after acceptance and before dispatch.
+  window.closeDispatchEditModal=function(){document.getElementById('dispatch-edit-modal')?.remove();};
+  window.dispatchEditAddItem=function(item={}){
+    const wrap=document.getElementById('dispatch-edit-items');if(!wrap)return;
+    const row=document.createElement('div');row.className='dispatch-edit-item grid grid-cols-12 gap-2 items-center';
+    const safe=(v)=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    row.innerHTML=`<input class="dei-name col-span-6 min-w-0 px-2 py-2 border rounded-lg text-xs" placeholder="Product / SKU" value="${safe(item.name)}"><input class="dei-qty col-span-2 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="1" step="1" value="${Number(item.quantity)||1}" aria-label="Quantity"><input class="dei-price col-span-3 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="0" step="0.01" value="${Number(item.unitPrice)||0}" aria-label="Unit price"><button type="button" class="col-span-1 text-red-600 font-black" aria-label="Remove item">×</button>`;
+    row.querySelector('button').addEventListener('click',()=>{row.remove();window.dispatchEditRecalc();});
+    row.querySelectorAll('input').forEach(x=>x.addEventListener('input',window.dispatchEditRecalc));wrap.appendChild(row);
+  };
+  window.dispatchEditRecalc=function(){
+    const rows=[...document.querySelectorAll('#dispatch-edit-items .dispatch-edit-item')];
+    const sub=rows.reduce((a,r)=>a+(Number(r.querySelector('.dei-qty').value)||0)*(Number(r.querySelector('.dei-price').value)||0),0);
+    const delivery=Math.max(0,Number(document.getElementById('dei-delivery')?.value)||0);
+    const total=Math.round((sub+delivery)*100)/100;
+    const totalEl=document.getElementById('dei-total');if(totalEl)totalEl.textContent=moneyD(total);
+    const mode=document.getElementById('dei-payment')?.value||'COD';
+    const preview=document.getElementById('dei-payment-preview');if(preview)preview.textContent=mode==='COD'?'COD collection: '+moneyD(total):'PREPAID — no amount to collect';
+  };
+  window.dispatchOpenEdit=function(id){
+    if(!canProcess())return showToast('Inventory staff access required.',true);
+    const o=orders().find(x=>x.id===id);if(!o)return showToast('Order not found.',true);
+    if(!['ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(o.status))return showToast('Only approved orders can be edited. New or cancelled orders are locked.',true);
+    window.closeDispatchEditModal();const c=o.customer||{};
+    const overlay=document.createElement('div');overlay.id='dispatch-edit-modal';overlay.className='fixed inset-0 z-[10000] flex items-center justify-center p-3';overlay.style.background='rgba(15,23,42,.62)';
+    const safe=(v)=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const invoice=String(o.invoiceNumber||'').replace(/^ONL-/i,'');
+    overlay.innerHTML=`<div role="dialog" aria-modal="true" aria-labelledby="dispatch-edit-title" class="w-full max-w-xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 space-y-3">
+      <div class="flex items-start justify-between gap-3"><div><h3 id="dispatch-edit-title" class="font-black text-base text-slate-900">Edit Dispatch Order</h3><p class="text-[10px] text-slate-500">${safe(o.id)} · ${safe(o.status)} · Correct important order details</p></div><button type="button" onclick="closeDispatchEditModal()" class="text-slate-500 text-2xl leading-none" aria-label="Close">&times;</button></div>
+      <div class="rounded-xl bg-amber-50 border border-amber-200 p-2 text-[10px] text-amber-900">If products or delivery details change before dispatch, the order returns to Packing for verification. For dispatched, delivered or RTO orders, enter a reason for the correction. Courier tracking and the actual delivery outcome are preserved; contact the courier separately if a dispatched parcel's address changes.</div>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="col-span-2 text-[10px] font-bold text-slate-600">Invoice number <span class="text-red-600">*</span><div class="flex mt-1"><span class="px-3 py-2.5 bg-slate-100 border border-r-0 rounded-l-lg font-black">ONL-</span><input id="dei-invoice" value="${safe(invoice)}" inputmode="numeric" class="min-w-0 flex-1 px-3 py-2.5 border rounded-r-lg text-xs" /></div></label>
+        <label class="text-[10px] font-bold text-slate-600">Customer name *<input id="dei-name" value="${safe(c.name)}" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs" /></label>
+        <label class="text-[10px] font-bold text-slate-600">Mobile number *<input id="dei-mobile" value="${safe(String(c.mobile||'').replace(/^\+91\s*/,''))}" maxlength="10" inputmode="numeric" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs" /></label>
+        <label class="col-span-2 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-[10px] text-emerald-950"><input id="dei-whatsapp-optin" type="checkbox" class="mt-0.5" ${o.whatsappOptIn===true?'checked':''} /><span><b>Customer has explicitly agreed to receive WhatsApp order updates</b><br/>Enable only with the customer's consent. Use this only when the customer has agreed to receive order updates on WhatsApp.</span></label>
+        <label class="col-span-2 text-[10px] font-bold text-slate-600">Full address *<textarea id="dei-address" rows="2" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs">${safe(c.address)}</textarea></label>
+        <label class="text-[10px] font-bold text-slate-600">Landmark<input id="dei-landmark" value="${safe(c.landmark)}" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs" /></label>
+        <label class="text-[10px] font-bold text-slate-600">City / District *<input id="dei-city" value="${safe(c.city)}" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs" /></label>
+        <label class="text-[10px] font-bold text-slate-600">State *<input id="dei-state" value="${safe(c.state)}" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs" /></label>
+        <label class="text-[10px] font-bold text-slate-600">PIN code *<input id="dei-pin" value="${safe(c.pin)}" maxlength="6" inputmode="numeric" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs" /></label>
+      </div>
+      <div class="border-t pt-3 space-y-2"><div class="flex items-center justify-between"><b class="text-xs">Products and quantities</b><button type="button" onclick="dispatchEditAddItem()" class="px-3 py-2 rounded-lg bg-emerald-50 text-emerald-800 text-[10px] font-black">＋ Add item</button></div><div id="dispatch-edit-items" class="space-y-2"></div>
+      <div class="grid grid-cols-2 gap-2"><label class="text-[10px] font-bold text-slate-600">Delivery charge (₹)<input id="dei-delivery" type="number" min="0" step="0.01" value="${Number(o.deliveryCharge)||0}" oninput="dispatchEditRecalc()" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs" /></label><label class="text-[10px] font-bold text-slate-600">Payment mode<select id="dei-payment" onchange="dispatchEditRecalc()" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs bg-white"><option value="COD" ${o.paymentMode==='COD'?'selected':''}>COD</option><option value="PREPAID" ${o.paymentMode==='PREPAID'?'selected':''}>PREPAID</option></select></label></div>
+      <div class="flex justify-between items-center rounded-lg bg-slate-50 p-3"><span class="text-xs font-bold">Recalculated order total</span><b id="dei-total" class="text-sm">${moneyD(o.total)}</b></div><div id="dei-payment-preview" class="text-[10px] font-bold text-slate-600">${o.paymentMode==='COD'?'COD collection: '+moneyD(o.codAmount):'PREPAID — no amount to collect'}</div>
+      <label class="block text-[10px] font-bold text-slate-600">Special instructions<textarea id="dei-instructions" rows="2" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs">${safe(o.instructions)}</textarea></label><label class="block text-[10px] font-bold text-slate-600">Reason for editing <span class="text-red-600" id="dei-reason-required"></span><textarea id="dei-reason" rows="2" placeholder="Explain why this order needs correction" class="w-full mt-1 px-3 py-2.5 border rounded-lg text-xs"></textarea><span class="text-[9px] text-slate-500">Mandatory for orders already dispatched, delivered or returned (RTO).</span></label></div>
+      <div class="flex gap-2 pt-1"><button type="button" onclick="closeDispatchEditModal()" class="flex-1 px-3 py-3 border rounded-xl text-xs font-bold">Cancel</button><button type="button" onclick="dispatchSaveEdit('${String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')" class="flex-1 px-3 py-3 rounded-xl bg-[#05281b] text-white text-xs font-black">Save Order Changes</button></div>
+    </div>`;
+    overlay.addEventListener('click',e=>{if(e.target===overlay)window.closeDispatchEditModal();});document.body.appendChild(overlay);
+    (o.items||[]).forEach(i=>window.dispatchEditAddItem(i));window.dispatchEditRecalc();
+  };
+  window.dispatchSaveEdit=function(id){
+    if(!canProcess())return showToast('Inventory staff access required.',true);
+    const current=orders().find(x=>x.id===id);if(!current||!['ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(current.status))return showToast('This order can no longer be edited.',true);
+    const invoiceDigits=(document.getElementById('dei-invoice')?.value||'').trim().replace(/^ONL-/i,'');
+    const name=(document.getElementById('dei-name')?.value||'').trim(),mobile=(document.getElementById('dei-mobile')?.value||'').replace(/\D/g,''),address=(document.getElementById('dei-address')?.value||'').trim(),city=(document.getElementById('dei-city')?.value||'').trim(),state=(document.getElementById('dei-state')?.value||'').trim(),pin=(document.getElementById('dei-pin')?.value||'').trim();
+    if(!/^\d+$/.test(invoiceDigits))return showToast('Enter a valid invoice number.',true);
+    const invoiceNumber='ONL-'+invoiceDigits;
+    if(orders().some(x=>x.id!==id&&String(x.invoiceNumber||'').toUpperCase()===invoiceNumber.toUpperCase()))return showToast('This invoice number is already used by another order.',true);
+    if(!name||!/^\d{10}$/.test(mobile)||!address||!city||!state||!/^\d{6}$/.test(pin))return showToast('Check customer name, 10-digit mobile, address, city, state and 6-digit PIN.',true);
+    const items=[...document.querySelectorAll('#dispatch-edit-items .dispatch-edit-item')].map(r=>({name:r.querySelector('.dei-name').value.trim(),quantity:Number(r.querySelector('.dei-qty').value)||0,unitPrice:Number(r.querySelector('.dei-price').value)||0})).filter(x=>x.name&&x.quantity>0);
+    if(!items.length)return showToast('At least one valid product is required.',true);
+    if([...document.querySelectorAll('#dispatch-edit-items .dispatch-edit-item')].some(r=>!r.querySelector('.dei-name').value.trim()||Number(r.querySelector('.dei-qty').value)<1||Number(r.querySelector('.dei-price').value)<0))return showToast('Check every product name, quantity and price.',true);
+    const subtotal=items.reduce((a,x)=>a+x.quantity*x.unitPrice,0),delivery=Math.max(0,Number(document.getElementById('dei-delivery').value)||0),total=Math.round((subtotal+delivery)*100)/100,paymentMode=document.getElementById('dei-payment').value;
+    if(total<=0)return showToast('Order total must be greater than zero.',true);
+    const landmarkValue=document.getElementById('dei-landmark')?.value.trim()||'';
+    const instructionsValue=document.getElementById('dei-instructions')?.value.trim()||'';
+    const whatsappOptIn=!!document.getElementById('dei-whatsapp-optin')?.checked;
+    const editReason=(document.getElementById('dei-reason')?.value||'').trim();
+    const postDispatchStates=['DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'];
+    if(postDispatchStates.includes(current.status)&&!editReason)return showToast('Please enter a reason for editing this dispatched, delivered or RTO order.',true);
+    const before={invoiceNumber:current.invoiceNumber,customer:JSON.parse(JSON.stringify(current.customer||{})),items:JSON.parse(JSON.stringify(current.items||[])),deliveryCharge:current.deliveryCharge,total:current.total,paymentMode:current.paymentMode,instructions:current.instructions||'',whatsappOptIn:current.whatsappOptIn===true};
+    const afterStatus=['PACKED','READY_DISPATCH','READY_FOR_DISPATCH'].includes(current.status)?'PACKING':current.status;
+    const saved=updateOrder(id,o=>{
+      o.invoiceNumber=invoiceNumber;o.customer={...(o.customer||{}),name,mobile:'+91 '+mobile,address,landmark:landmarkValue,city,state,pin};
+      o.items=items;o.subtotal=Math.round(subtotal*100)/100;o.deliveryCharge=delivery;o.total=total;o.paymentMode=paymentMode;o.codAmount=paymentMode==='COD'?total:0;o.instructions=instructionsValue;
+      const previousOptIn=o.whatsappOptIn===true;
+      if(whatsappOptIn!==previousOptIn){
+        o.whatsappConsentHistory=o.whatsappConsentHistory||[];
+        const consentAt=new Date().toISOString();
+        o.whatsappConsentHistory.push({optIn:whatsappOptIn,at:consentAt,by:currentAuthUser?.id||'',byName:currentAuthUser?.name||'',source:'staff-confirmed-during-order-edit'});
+        o.whatsappOptIn=whatsappOptIn;o.whatsappOptInAt=whatsappOptIn?consentAt:'';o.whatsappOptInBy=whatsappOptIn?(currentAuthUser?.id||''):'';o.whatsappOptInByName=whatsappOptIn?(currentAuthUser?.name||''):'';o.whatsappOptInSource=whatsappOptIn?'staff-confirmed-during-order-edit':'';
       }
+      o.lastEditedAt=new Date().toISOString();o.lastEditedBy=currentAuthUser?.id||'';o.lastEditedByName=currentAuthUser?.name||'';
+      o.editHistory=o.editHistory||[];o.editHistory.push({at:o.lastEditedAt,by:o.lastEditedBy,byName:o.lastEditedByName,reason:editReason||'Routine correction before dispatch',statusAtEdit:current.status,before,after:{invoiceNumber,customer:JSON.parse(JSON.stringify(o.customer)),items:JSON.parse(JSON.stringify(items)),deliveryCharge:delivery,total,paymentMode,instructions:o.instructions,whatsappOptIn:o.whatsappOptIn===true}});
+      if(['PACKED','READY_DISPATCH'].includes(o.status)){o.labelGeneratedAt=null;o.labelGeneratedBy='';o.labelGeneratedByName='';}
+      logStatus(o,afterStatus,'Order details edited by '+(currentAuthUser?.name||'inventory staff')+'. Reason: '+(editReason||'Routine correction before dispatch')+'. Changes recorded in edit history.'+(afterStatus==='PACKING'?' Packing verification required again.':(postDispatchStates.includes(current.status)?' Existing dispatch, tracking and delivery outcome retained.':'')));
+    });
+    if(saved){window.closeDispatchEditModal();showToast('Order changes saved successfully.');}
+  };
 
-      if(candidateIds.size){
-        const cleaned=leads.filter(l=>!candidateIds.has(String(l.id)));
-        await cloudDb.ref(LEADS_PATH).set(cleaned);
-        appState=loadState();appState.b2bLeads=cleaned;cloudBaselineState=cloneCloudSafe(appState);
-      }
-      return normalized;
-    }catch(e){console.error('Outlet recovery failed:',e);return []}
+  function dispatchAuditValue(value){
+    if(value===null||value===undefined||value==='')return '—';
+    if(Array.isArray(value))return value.map(x=>`${x.name||'Item'} × ${x.quantity||0} @ ${moneyD(x.unitPrice||0)}`).join('; ')||'—';
+    if(typeof value==='object')return Object.entries(value).filter(([k,v])=>!['id','sku'].includes(k)&&v!==undefined&&v!==null&&v!=='').map(([k,v])=>`${k}: ${v}`).join(', ')||'—';
+    return String(value);
   }
-
-  window.renderB2BStockOverview=async function(){
-    if(!isB2BOwner())return;
-    if(!cloudDb||!cloudStateLoaded)return;
-    appState=loadState();
-    const outlets=await recoverAndReadOutlets();
-    const businesses=(appState.b2bLeads||[]).filter(l=>!l?.outletOnly);
-    const cityFilter=window.b2bStockOverviewCityFilter||'ALL';
-    const q=(document.getElementById('b2b-stock-overview-search')?.value||'').trim().toLowerCase();
-
-    const locations=[];
-    const outletParentIds=new Set();
-    outlets.forEach(o=>{if(o.parentBusinessId)outletParentIds.add(String(o.parentBusinessId));});
-    businesses.forEach(b=>{
-      const own=outlets.filter(o=>String(o.parentBusinessId||'')===String(b.id)||norm(o.parentAccountName)===norm(parentName(b)));
-      if(own.length) own.forEach(o=>locations.push({type:'OUTLET',item:o,parent:b}));
-      else locations.push({type:'BUSINESS',item:b,parent:b});
-    });
-    outlets.filter(o=>!businesses.some(b=>String(b.id)===String(o.parentBusinessId)||norm(parentName(b))===norm(o.parentAccountName)))
-      .forEach(o=>locations.push({type:'OUTLET',item:o,parent:{id:o.parentBusinessId||('orphan-'+norm(o.parentAccountName)),shopName:o.parentAccountName,parentAccountName:o.parentAccountName}}));
-
-    const filtered=locations.filter(e=>{
-      const x=e.item;
-      const latest=(Array.isArray(x.stockVisits)?x.stockVisits:[]).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
-      const items=Array.isArray(latest?.items)?latest.items:[];
-      const hay=[parentName(e.parent),outletName(x),x.city,x.place,...items.map(i=>i.product)].join(' ').toLowerCase();
-      return (cityFilter==='ALL'||String(x.city||'Mangalore')===cityFilter)&&(!q||hay.includes(q));
-    });
-
-    const tabs=document.getElementById('b2b-stock-city-tabs');
-    if(tabs){const cities=[['ALL','All Cities'],['Mangalore','Mangalore'],['Mysore','Mysore'],['Udupi','Udupi'],['Bangalore','Bangalore']];tabs.innerHTML=cities.map(([v,label])=>`<button type="button" onclick="filterB2BStockOverviewCity('${v}'); haptic(6)" class="shrink-0 px-3 py-2 rounded-xl border text-[9px] font-black ${cityFilter===v?'bg-[#05281b] text-white border-[#05281b]':'bg-white text-slate-600 border-slate-200'}">${label}</button>`).join('');}
-    let productSet=new Set(),totalUnits=0,lastCount='—';
-    filtered.forEach(e=>{const latest=(Array.isArray(e.item.stockVisits)?e.item.stockVisits:[]).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];if(latest){if(String(latest.date||'')>String(lastCount))lastCount=latest.date||'—';(latest.items||[]).forEach(i=>{productSet.add(String(i.product||'').trim());totalUnits+=Number(i.quantity)||0;});}});
-    const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.innerText=v;};
-    setText('b2b-stock-store-count',filtered.length);setText('b2b-stock-product-count',productSet.size);setText('b2b-stock-unit-count',totalUnits);setText('b2b-stock-last-count',lastCount);
-    const list=document.getElementById('b2b-stock-overview-list');if(!list)return;
-    if(!filtered.length){list.innerHTML='<div class="p-5 text-center text-[10px] font-semibold text-slate-400 border border-dashed border-slate-200 rounded-2xl">No stock locations found.</div>';return;}
-    const grouped=new Map();
-    filtered.forEach(e=>{const key=String(e.parent?.id||norm(parentName(e.parent)));if(!grouped.has(key))grouped.set(key,{parent:e.parent,locations:[]});grouped.get(key).locations.push(e);});
-    list.innerHTML=[...grouped.values()].map(g=>{
-      const cards=g.locations.map(e=>{
-        const x=e.item;const visits=Array.isArray(x.stockVisits)?x.stockVisits:[];const latest=visits.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];const items=Array.isArray(latest?.items)?latest.items:[];const total=items.reduce((s,i)=>s+(Number(i.quantity)||0),0);
-        return `<div class="p-3 rounded-2xl border border-slate-200 bg-white"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><div class="text-sm font-black text-slate-900 truncate">🏪 ${esc(outletName(x))}</div><div class="text-[9px] text-slate-500 mt-0.5">📍 ${esc(x.city||'Mangalore')} · ${esc(x.place||'—')}</div></div><span class="text-[8px] font-black px-2 py-1 rounded-full ${e.type==='OUTLET'?'bg-blue-50 text-blue-700':'bg-emerald-50 text-emerald-700'}">${e.type==='OUTLET'?'OUTLET':'MAIN'}</span></div>${items.length?`<div class="mt-3 overflow-x-auto"><table class="w-full text-left"><tbody>${items.map(i=>`<tr class="border-t border-slate-100"><td class="py-2 text-[10px] font-bold text-slate-700">${esc(i.product||'—')}</td><td class="py-2 text-right text-sm font-black text-emerald-800">${Number(i.quantity)||0}</td></tr>`).join('')}</tbody></table></div><div class="mt-2 text-[8px] text-slate-400 flex justify-between"><span>Last count: ${esc(latest?.date||'—')}</span><span>${items.length} products · ${total} units</span></div>`:`<div class="mt-3 p-3 rounded-xl bg-slate-50 text-[9px] text-slate-400">No stock count recorded yet.</div>`}<div class="mt-2 flex gap-2"><button type="button" onclick="openB2BStockModal('${esc(x.id)}','','${e.type}')" class="flex-1 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-[9px] font-black">＋ Stock Count</button><button type="button" onclick="openB2BStockView('${esc(x.id)}','${e.type}')" class="flex-1 py-2 rounded-xl bg-slate-50 text-slate-700 text-[9px] font-black">📦 View Stock</button><button type="button" onclick="deleteB2BStockLocation('${esc(x.id)}')" class="py-2 px-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-[9px] font-black">🗑 Delete</button></div></div>`;
-      }).join('');
-      return `<div class="p-3 rounded-2xl border border-slate-200 bg-slate-50"><div class="text-sm font-black text-slate-900">${esc(parentName(g.parent)||'Business')}</div><div class="text-[9px] text-slate-400 mt-0.5">${g.locations.length} stock location${g.locations.length===1?'':'s'}</div><div class="mt-3 space-y-2">${cards}</div></div>`;
-    }).join('');
+  function dispatchEditChanges(edit){
+    const before=edit.before||{},after=edit.after||{},bc=before.customer||{},ac=after.customer||{};
+    const fields=[
+      ['Invoice number',before.invoiceNumber,after.invoiceNumber],
+      ['Customer name',bc.name,ac.name],
+      ['Mobile',bc.mobile,ac.mobile],
+      ['Address',bc.address,ac.address],
+      ['Landmark',bc.landmark,ac.landmark],
+      ['City / District',bc.city,ac.city],
+      ['State',bc.state,ac.state],
+      ['PIN code',bc.pin,ac.pin],
+      ['Products & quantities',before.items,after.items],
+      ['Delivery charge',before.deliveryCharge,after.deliveryCharge],
+      ['Order total',before.total,after.total],
+      ['Payment mode',before.paymentMode,after.paymentMode],
+      ['Special instructions',before.instructions,after.instructions]
+    ];
+    const changed=fields.filter(([label,a,b])=>JSON.stringify(a??'')!==JSON.stringify(b??''));
+    return changed.length?changed.map(([label,a,b])=>`<div class="grid grid-cols-1 gap-0.5 py-1 border-b border-slate-100 last:border-0"><div class="font-bold text-slate-700">${escD(label)}</div><div class="text-slate-500 break-words"><span class="text-rose-700">Before: ${escD(dispatchAuditValue(a))}</span><br><span class="text-emerald-700">After: ${escD(dispatchAuditValue(b))}</span></div></div>`).join(''):'<div class="text-slate-500 py-1">No field-level differences were recorded.</div>';
+  }
+  window.closeDispatchWhatsAppModal=function(){document.getElementById('dispatch-whatsapp-modal')?.remove();};
+  window.dispatchWhatsAppTemplate=function(id){
+    const o=orders().find(x=>x.id===id);if(!o)return '';
+    const c=o.customer||{},name=c.name||'Customer',total=moneyD(o.total),invoice=o.invoiceNumber||o.id;
+    const tracking=o.trackingId||'';
+    const templates={
+      CUSTOM:'',
+      ORDER:`Hello ${name}, thank you for placing your order with Wellwith. Your order ${invoice} has been received. Order amount: ${total}. We will keep you updated.`,
+      PACKED:`Hello ${name}, your Wellwith order ${invoice} has been packed and is being prepared for dispatch. Thank you for choosing Wellwith!`,
+      DISPATCHED:`Hello ${name}, your Wellwith order ${invoice} has been dispatched through India Post. Tracking ID: ${tracking||'[tracking ID]'}. Thank you!`,
+      DELIVERED:`Hello ${name}, we hope you have received your Wellwith order ${invoice}. Thank you for shopping with us!`,
+      RTO:`Hello ${name}, we are contacting you regarding your Wellwith order ${invoice}, which has been returned to origin. Please reply here so our team can assist you.`
+    };
+    return templates.CUSTOM;
   };
-
-  const originalOpen=window.openB2BOutletAdder;
-  // Create directly in b2bOutlets; never create a B2B lead.
-  window.createB2BOutletFromAdder=async function(){
-    if(!isB2BOwner())return showToast('B2B access required.',true);
-    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase connection is required.',true);
-    appState=loadState();
-    const parentId=document.getElementById('b2b-outlet-parent')?.value.trim()||'';const outlet=document.getElementById('b2b-outlet-adder-name')?.value.trim()||'';const city=document.getElementById('b2b-outlet-adder-city')?.value||'Mangalore';const place=document.getElementById('b2b-outlet-adder-place')?.value.trim()||'';
-    const parent=(appState.b2bLeads||[]).find(x=>String(x?.id)===String(parentId)&&!x?.outletOnly);if(!parent)return showToast('Select an existing business first.',true);if(!outlet||!place)return showToast('Enter outlet name and place/area.',true);
-    const now=new Date().toISOString();const id=makeId();const record={id,parentBusinessId:parent.id,parentAccountName:parentName(parent),outletName:outlet,city,place,stockVisits:[],lastStockCountDate:'',lastStockCountBy:'',createdAt:now,createdBy:currentAuthUser.id,updatedAt:now,updatedBy:currentAuthUser.id};
-    try{await cloudDb.ref(`${OUTLET_PATH}/${id}`).set(record);closeB2BOutletAdder();await window.renderB2BStockOverview();showToast(`${outlet} added under ${parentName(parent)}.`);}catch(e){console.error(e);showToast(`Could not create outlet: ${e?.code||e?.message||'unknown error'}`,true);}
+  window.dispatchOpenWhatsApp=function(id){
+    if(!canProcess())return showToast('Inventory staff or management access required.',true);
+    const o=orders().find(x=>x.id===id);if(!o)return showToast('Order not found.',true);
+    const c=o.customer||{};
+    let phone=String(c.mobile||'').replace(/\\D/g,'');
+    if(phone.length===10)phone='91'+phone;
+    if(phone.length<11||phone.length>15)return showToast('Customer mobile number is missing or invalid. Edit the order first.',true);
+    const overlay=document.createElement('div');overlay.id='dispatch-whatsapp-modal';
+    overlay.className='fixed inset-0 z-[10010] flex items-center justify-center p-3';
+    overlay.style.background='rgba(15,23,42,.62)';
+    const safe=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const templates=[
+      ['CURRENT','Current order status update'],
+      ['CUSTOM','Custom message'],
+      ['ORDER','Order received'],
+      ['PACKED','Packed'],
+      ['DISPATCHED','Dispatched with tracking'],
+      ['DELIVERED','Delivery follow-up'],
+      ['RTO','RTO follow-up']
+    ];
+    const tracking=String(o.trackingId||'');
+    const statusText=statusName[o.status]||String(o.status||'Order status unavailable').replace(/_/g,' ').toLowerCase().replace(/\b\w/g,ch=>ch.toUpperCase());
+    const itemLines=(o.items||[]).map(i=>{
+      const qty=Number(i.quantity)||0,unit=Number(i.unitPrice)||0,line=qty*unit;
+      return `• ${i.name||'Product'} × ${qty} — ${moneyD(line)}`;
+    }).join('\n')||'• Product details unavailable';
+    const paymentText=o.paymentMode==='COD'
+      ? `Payment: Cash on Delivery (COD)\nCOD amount to collect: ${moneyD(o.codAmount??o.total)}`
+      : `Payment: PREPAID\nOrder amount: ${moneyD(o.total)}`;
+    const orderSummary=`\n\nOrder details:\nInvoice: ${o.invoiceNumber||o.id}\n${itemLines}\nDelivery charge: ${moneyD(o.deliveryCharge||0)}\nOrder total: ${moneyD(o.total)}\n${paymentText}\nCurrent order status: ${statusText}${tracking?`\nIndia Post tracking ID: ${tracking}`:''}`;
+    const defaultKey='CURRENT';
+    const messageFor=key=>{
+      const name=c.name||'Customer',invoice=o.invoiceNumber||o.id;
+      let intro='';
+      if(key==='ORDER')intro=`Hello ${name}, thank you for placing your order with Wellwith. We have received your order ${invoice}.`;
+      else if(key==='PACKED')intro=`Hello ${name}, your Wellwith order ${invoice} has been packed and is being prepared for dispatch.`;
+      else if(key==='DISPATCHED')intro=`Hello ${name}, your Wellwith order ${invoice} has been dispatched through India Post.`;
+      else if(key==='DELIVERED')intro=`Hello ${name}, our records show that your Wellwith order ${invoice} is marked as delivered. Please let us know if you need any assistance.`;
+      else if(key==='RTO')intro=`Hello ${name}, your Wellwith order ${invoice} is currently marked as Returned to Origin (RTO). Please reply here so our team can assist you.`;
+      else if(key==='CUSTOM')intro=`Hello ${name}, an update regarding your Wellwith order ${invoice}:`;
+      else intro=`Hello ${name}, here is the latest update on your Wellwith order ${invoice}:`;
+      return intro+orderSummary+`\n\nThank you,\nWellwith`;
+    };
+    overlay.innerHTML=`<div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" style="animation:dispatchModalIn .18s ease-out">
+      <div class="p-4 border-b flex items-center justify-between"><div><div class="font-black text-base text-slate-900">WhatsApp Customer</div><div class="text-xs text-slate-500 mt-1">${safe(c.name||'Customer')} · +${safe(phone)}</div></div><button type="button" onclick="closeDispatchWhatsAppModal()" class="text-slate-500 text-xl px-2">×</button></div>
+      <div class="p-4 space-y-3">
+        <div><label class="block text-xs font-bold text-slate-700 mb-1">Message template</label><select id="dispatch-wa-template" class="w-full border rounded-xl p-3 text-sm bg-white">${templates.map(([v,l])=>`<option value="${v}" ${v===defaultKey?'selected':''}>${l}</option>`).join('')}</select></div>
+        <div><label class="block text-xs font-bold text-slate-700 mb-1">Message</label><textarea id="dispatch-wa-message" rows="6" class="w-full border rounded-xl p-3 text-sm" placeholder="Type your WhatsApp message...">${safe(messageFor(defaultKey))}</textarea><div class="text-[10px] text-slate-500 mt-1">You can edit this message before opening WhatsApp.</div></div>
+        <div class="flex gap-2"><button type="button" onclick="closeDispatchWhatsAppModal()" class="flex-1 border rounded-xl py-3 font-bold text-sm">Cancel</button><button type="button" onclick="dispatchLaunchWhatsApp('${safe(id)}','${phone}')" class="flex-1 bg-emerald-700 text-white rounded-xl py-3 font-bold text-sm">Open WhatsApp</button></div>
+        <div class="text-[10px] text-slate-500">WhatsApp opens with the customer's number and your message filled in. Review it and press Send in WhatsApp Business.</div>
+      </div></div>`;
+    document.body.appendChild(overlay);
+    const sel=overlay.querySelector('#dispatch-wa-template'),ta=overlay.querySelector('#dispatch-wa-message');
+    sel.addEventListener('change',()=>{ta.value=messageFor(sel.value);});
   };
+  window.dispatchLaunchWhatsApp=function(id,phone){
+    const ta=document.getElementById('dispatch-wa-message'),message=(ta?.value||'').trim();
+    if(!message)return showToast('Enter a message before opening WhatsApp.',true);
+    const number=String(phone||'').replace(/\\D/g,'');
+    if(number.length<11)return showToast('Customer WhatsApp number is invalid.',true);
+    const encodedText=encodeURIComponent(message);
+    const appUrl='whatsapp://send?phone='+number+'&text='+encodedText;
+    const webUrl='https://web.whatsapp.com/send?phone='+number+'&text='+encodedText;
 
-  // Ensure navigation does not reintroduce the old wrapper.
-  const nav=window.navigateTo;window.navigateTo=function(pageId){const r=nav.apply(this,arguments);if(pageId==='page-b2b-stock-overview')setTimeout(()=>window.renderB2BStockOverview(),0);return r;};
+    // Prefer the installed WhatsApp desktop app. Browsers may block custom
+    // protocol launches unless they are triggered directly by a user gesture.
+    const fallback=document.getElementById('dispatch-wa-fallback');
+    if(fallback)fallback.remove();
+    const launchLink=document.createElement('a');
+    launchLink.href=appUrl;
+    launchLink.style.display='none';
+    document.body.appendChild(launchLink);
+    try { launchLink.click(); } catch(e) {}
+    launchLink.remove();
+
+    // Keep the composer open and provide a reliable manual fallback if Windows
+    // has no registered WhatsApp app handler.
+    const modal=document.getElementById('dispatch-whatsapp-modal');
+    if(modal){
+      const note=document.createElement('div');
+      note.id='dispatch-wa-fallback';
+      note.className='mx-4 mb-4 p-3 rounded-xl border border-amber-200 bg-amber-50 text-xs text-slate-700';
+      note.innerHTML='<b>WhatsApp app launch requested.</b><br>If Windows asks, choose WhatsApp and allow Chrome to open it. If the app does not open, use the fallback below.';
+      const fallbackButton=document.createElement('button');
+      fallbackButton.type='button';
+      fallbackButton.className='mt-2 w-full bg-emerald-700 text-white rounded-lg py-2.5 font-bold';
+      fallbackButton.textContent='Open WhatsApp Web instead';
+      fallbackButton.addEventListener('click',()=>window.open(webUrl,'_blank','noopener,noreferrer'));
+      note.appendChild(fallbackButton);
+      modal.querySelector('.w-full.max-w-md')?.appendChild(note);
+    }
+  };
+  window.closeDispatchStatusModal=function(){document.getElementById('dispatch-status-modal')?.remove();};
+  window.dispatchOpenStatusModal=function(id){
+    if(!canProcess())return showToast('Inventory staff or management access required to change order status.',true);
+    const o=orders().find(x=>x.id===id);if(!o)return showToast('Order not found.',true);
+    const statuses=['RECEIVED','ACCEPTED','PACKING','PACKED','READY_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO','CANCELLED'];
+    const current=o.status||'RECEIVED';
+    const options=statuses.map(st=>`<option value="${st}" ${st===current?'selected':''}>${escD(statusName[st]||st)}</option>`).join('');
+    const overlay=document.createElement('div');overlay.id='dispatch-status-modal';
+    overlay.className='fixed inset-0 z-[10020] flex items-center justify-center p-3';
+    overlay.style.background='rgba(15,23,42,.62)';
+    overlay.innerHTML=`<div role="dialog" aria-modal="true" class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" style="animation:dispatchModalIn .18s ease-out">
+      <div class="p-4 border-b flex items-center justify-between"><div><div class="font-black text-base text-slate-900">Update Order Status</div><div class="text-xs text-slate-500 mt-1">${escD(o.id)} · ${escD(o.customer?.name||'Customer')}</div></div><button type="button" onclick="closeDispatchStatusModal()" class="text-slate-500 text-xl px-2">×</button></div>
+      <div class="p-4 space-y-3">
+        <div class="rounded-xl bg-slate-50 p-3 text-xs"><span class="text-slate-500">Current status:</span> <b>${escD(statusName[current]||current)}</b></div>
+        <label class="block text-xs font-bold text-slate-700">New status<select id="dispatch-new-status" class="mt-1 w-full border rounded-xl p-3 text-sm bg-white">${options}</select></label>
+        <label class="block text-xs font-bold text-slate-700">Reason for status change <span class="text-red-600">*</span><textarea id="dispatch-status-reason" rows="3" maxlength="500" placeholder="e.g. Customer confirmed delivery; courier updated parcel as RTO..." class="mt-1 w-full border rounded-xl p-3 text-sm"></textarea></label>
+        <div class="text-[10px] text-slate-500">The previous status, new status, employee name, date/time and reason will be recorded in the order timeline.</div>
+        <div class="flex gap-2"><button type="button" onclick="closeDispatchStatusModal()" class="flex-1 border rounded-xl py-3 font-bold text-sm">Cancel</button><button type="button" onclick="dispatchSaveStatus('${String(id).replace(/'/g,"\\'")}')" class="flex-1 bg-slate-900 text-white rounded-xl py-3 font-bold text-sm">Save Status</button></div>
+      </div></div>`;
+    document.body.appendChild(overlay);
+  };
+  window.dispatchSaveStatus=function(id){
+    if(!canProcess())return showToast('Inventory staff or management access required.',true);
+    const latest=orders().find(x=>x.id===id);if(!latest)return showToast('Order not found. Refresh and retry.',true);
+    const next=document.getElementById('dispatch-new-status')?.value;
+    const reason=(document.getElementById('dispatch-status-reason')?.value||'').trim();
+    if(!next||!statusName[next])return showToast('Select a valid order status.',true);
+    if(!reason)return showToast('Enter a reason for changing the order status.',true);
+    if(next===latest.status)return showToast('The selected status is already current.',true);
+    if(next==='DISPATCHED'&&!latest.trackingId)return showToast('Enter the India Post tracking ID before marking this order dispatched.',true);
+    if(['DELIVERED','RTO','DELIVERY_FAILED'].includes(next)&&!latest.trackingId&&!['DISPATCHED','DELIVERY_FAILED'].includes(latest.status))return showToast('A tracking ID and dispatch record are required for delivery outcomes.',true);
+    const from=latest.status;
+    const saved=updateOrder(id,o=>{
+      o.statusChangeHistory=o.statusChangeHistory||[];
+      const entry={from,to:next,reason,at:new Date().toISOString(),by:currentAuthUser?.id||'',byName:currentAuthUser?.name||'Inventory Staff'};
+      o.statusChangeHistory.push(entry);
+      if(next==='DISPATCHED'&&!o.dispatchedAt)o.dispatchedAt=entry.at;
+      if(next==='DELIVERED'||next==='RTO'||next==='DELIVERY_FAILED'){
+        o.deliveryOutcomeUpdatedAt=entry.at;o.deliveryOutcomeUpdatedBy=entry.by;o.deliveryOutcomeUpdatedByName=entry.byName;
+      }
+      logStatus(o,next,`Status changed from ${statusName[from]||from} to ${statusName[next]||next}. Reason: ${reason}`);
+    });
+    if(saved){window.closeDispatchStatusModal();showToast('Order status updated and added to timeline.');}
+  };
+  function orderCard(o){const can=canProcess(),c=o.customer||{},items=(o.items||[]).map(i=>`${escD(i.name)} × ${i.quantity}`).join(' · ');let actions='';if(can)actions+=actionButton('Update Status',`dispatchOpenStatusModal('${o.id}')`,'bg-slate-100 text-slate-900 border border-slate-300');if(can)actions+=actionButton('WhatsApp Customer',`dispatchOpenWhatsApp('${o.id}')`,'bg-emerald-100 text-emerald-900 border border-emerald-300');if(can&&['ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(o.status))actions+=actionButton('✎ Edit Order',`dispatchOpenEdit('${o.id}')`,'bg-amber-300 text-amber-950 border border-amber-500 shadow-sm');if(can&&o.status==='RECEIVED')actions+=actionButton('Accept Order',`dispatchAccept('${o.id}')`);if(can&&o.status==='ACCEPTED')actions+=actionButton('Start Packing',`dispatchStartPacking('${o.id}')`);if(can&&o.status==='PACKING')actions+=actionButton('Mark Packed',`dispatchMarkPacked('${o.id}')`);if(can&&o.status==='PACKED')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white');if(can&&o.status==='READY_DISPATCH')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white')+actionButton('Mark Dispatched',`dispatchMarkDispatched('${o.id}')`,'bg-violet-700 text-white');if(can&&['DISPATCHED','DELIVERY_FAILED'].includes(o.status))actions+=`<select onchange="if(this.value)dispatchSetDeliveryStatus('${o.id}',this.value);this.value=''" class="px-3 py-2 border border-slate-300 rounded-xl text-[10px] font-bold bg-white"><option value="">Update delivery outcome…</option><option value="DELIVERED">Mark Delivered</option><option value="DELIVERY_FAILED">Delivery Failed</option><option value="RTO">Mark Returned / RTO</option></select>`;
+    return `<article class="border border-slate-200 rounded-2xl p-3 space-y-2"><div class="flex flex-wrap justify-between gap-2"><div><div class="font-black text-xs text-slate-900">${escD(o.id)} · ${escD(c.name)}</div><div class="text-[10px] text-slate-500 mt-1">${escD(c.mobile)} · ${escD(c.city)}, ${escD(c.state)} – ${escD(c.pin)}</div><div class="text-[10px] font-bold text-slate-700 mt-1">Invoice: ${escD(o.invoiceNumber||'—')}</div></div><span class="px-2.5 py-1 rounded-full text-[9px] font-black ${statusTone[o.status]||'bg-slate-100'}">${statusName[o.status]||o.status}</span></div><div class="text-[10px] text-slate-600">${items}</div><div class="flex flex-wrap justify-between gap-2 text-[10px]"><span class="font-bold">${moneyD(o.total)} · ${o.paymentMode==='COD'?'COD '+moneyD(o.codAmount):'PREPAID'}</span><span class="text-slate-400">Created ${new Date(o.createdAt).toLocaleString('en-IN')}</span></div>${o.trackingId?`<div class="p-2 bg-violet-50 rounded-lg text-[10px]">India Post tracking: <b>${escD(o.trackingId)}</b></div>`:''}<div class="flex flex-wrap gap-2">${actions}</div><details class="text-[10px] text-slate-500"><summary class="cursor-pointer font-bold">Order details &amp; timeline</summary><div class="mt-2 space-y-2">${escD(c.address)} ${escD(c.landmark)}<br><div class="font-bold text-slate-700 pt-1">Status history</div>${(o.timeline||[]).map(t=>`<div>• ${escD(statusName[t.status]||t.status)} — ${escD(t.byName)} — ${new Date(t.at).toLocaleString('en-IN')}${t.note?`<div class="pl-3 text-slate-400">${escD(t.note)}</div>`:''}</div>`).join('')}<div class="font-bold text-slate-700 pt-2 border-t">Manual status changes (${(o.statusChangeHistory||[]).length})</div>${(o.statusChangeHistory||[]).length?(o.statusChangeHistory||[]).slice().reverse().map(h=>`<div class="rounded-lg border border-indigo-200 bg-indigo-50/60 p-2"><div class="font-bold text-slate-800">${escD(statusName[h.from]||h.from)} → ${escD(statusName[h.to]||h.to)}</div><div class="text-slate-600">By ${escD(h.byName||"Staff")} · ${h.at?new Date(h.at).toLocaleString("en-IN"):"Time unavailable"}</div><div class="text-slate-600">Reason: ${escD(h.reason||"—")}</div></div>`).join(""):'<div class="text-slate-400">No manual status changes.</div>'}<div class="font-bold text-slate-700 pt-2 border-t">Order edit history (${(o.editHistory||[]).length})</div>${(o.editHistory||[]).length?(o.editHistory||[]).slice().reverse().map((e,i)=>`<div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2 space-y-1"><div class="font-bold text-slate-800">Edited by ${escD(e.byName||'Staff')} — ${e.at?new Date(e.at).toLocaleString('en-IN'):'Time unavailable'}</div><div class="text-slate-600">Reason: ${escD(e.reason||'Not provided')}</div><div class="mt-1">${dispatchEditChanges(e)}</div></div>`).join(''):'<div class="text-slate-400">No order edits recorded.</div>'}</div></details></article>`;}
+  window.renderDispatchDesk=function(){if(!$('page-dispatch'))return;appState=loadState();const inv=inventoryRole(),manage=managementRole();$('dispatch-role-chip').textContent=inv?'INVENTORY WORKSPACE':manage?'MANAGEMENT VIEW':'STORE ORDER DESK';$('dispatch-create-panel').classList.toggle('hidden',inv&&!manage);const all=appState.dispatchOrders||[];const counts={RECEIVED:0,PACKING:0,READY_DISPATCH:0,DISPATCHED:0};all.forEach(o=>{if(counts[o.status]!==undefined)counts[o.status]++;});$('dispatch-kpis').innerHTML=[['New Orders',counts.RECEIVED,'bg-blue-50 text-blue-800'],['Packing',counts.PACKING,'bg-amber-50 text-amber-800'],['Ready',counts.READY_DISPATCH,'bg-emerald-50 text-emerald-800'],['Dispatched',counts.DISPATCHED,'bg-violet-50 text-violet-800']].map(x=>`<div class="p-3 rounded-2xl ${x[2]}"><div class="text-xl font-black">${x[1]}</div><div class="text-[9px] font-black uppercase">${x[0]}</div></div>`).join('');const filter=$('dispatch-filter')?.value||'ALL';const list=all.filter(o=>filter==='ALL'||o.status===filter);$('dispatch-orders-list').innerHTML=list.length?list.map(orderCard).join(''):'<div class="text-center text-xs text-slate-400 py-8">No dispatch orders in this view.</div>';};
+  async function buildLabel(id){
+    const o=orders().find(x=>x.id===id);
+    if(!o)throw new Error('Order not found');
+    if(!['PACKED','READY_DISPATCH','DISPATCHED'].includes(o.status))throw new Error('Order must be packed before generating its India Post label.');
+    if(!window.PDFLib)throw new Error('PDF generator library could not load. Check internet connection and retry.');
+    const {PDFDocument,StandardFonts}=PDFLib;
+    const bytes=Uint8Array.from(atob(INDIA_POST_TEMPLATE_B64),c=>c.charCodeAt(0));
+    const doc=await PDFDocument.load(bytes);
+    const page=doc.getPages()[0];
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const H=page.getHeight(),W=page.getWidth();
+    const black=PDFLib.rgb(0,0,0);
+    const c=o.customer||{},cod=o.paymentMode==='COD';
+    const amount=Number(o.codAmount||o.total||0).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});
+    const header=cod?`COD – Rs. ${amount}`:'PREPAID';
+    // Coordinates are calibrated to the redesigned A4 black-and-white master PDF.
+    // The master contains all fixed table rules, labels, customer ID and sender details.
+    function draw(value,x,top,size=10.5,isBold=false){
+      const text=String(value??'').replace(/[\r\n]+/g,' ').trim();
+      if(!text)return;
+      const f=isBold?bold:font;
+      page.drawText(text,{x,y:H-top-size,size,font:f,color:black});
+    }
+    function wrap(value,maxWidth=378,size=10.5){
+      const words=String(value||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+      const lines=[];let line='';
+      for(const word of words){
+        const test=line?line+' '+word:word;
+        if(font.widthOfTextAtSize(test,size)<=maxWidth){line=test;continue;}
+        if(line)lines.push(line);
+        if(font.widthOfTextAtSize(word,size)<=maxWidth)line=word;
+        else{let part='';for(const ch of word){const next=part+ch;if(font.widthOfTextAtSize(next,size)>maxWidth&&part){lines.push(part);part=ch;}else part=next;}line=part;}
+      }
+      if(line)lines.push(line);
+      return lines;
+    }
+    // Header right aligned within the existing heading band.
+    const hw=bold.widthOfTextAtSize(header,17);
+    page.drawText(header,{x:544.25-hw-2,y:H-70-17,size:17,font:bold,color:black});
+    // Recipient values: draw inside the existing blank value cells; no borders are repainted.
+    draw(c.name,155.9,170.5,10.5);
+    draw(c.mobile,155.9,201.7,10.5);
+    const addressParts=[c.address,c.landmark,c.city,c.state].map(v=>String(v||'').trim()).filter(Boolean);
+    const addressLines=wrap(addressParts.join(', '),378,10.5);
+    if(addressLines.length>7)throw new Error('Customer address is too long for the label. Shorten the address or use the address notes field.');
+    addressLines.forEach((line,i)=>draw(line,155.9,238.5+i*13.2,10.5));
+    draw(c.pin,155.9,337.0,10.5);
+    draw(cod?'CASH ON DELIVERY (COD)':'PREPAID',155.9,369.0,10.5);
+    if(cod)draw('Rs. '+amount,155.9,403.0,10.5,true);
+    const out=await doc.save();
+    return new Blob([out],{type:'application/pdf'});
+  }
+  async function markLabel(id){appState=loadState();const o=(appState.dispatchOrders||[]).find(x=>x.id===id);if(!o)return;const now=new Date().toISOString();o.labelGeneratedAt=now;o.labelGeneratedBy=currentAuthUser?.id||'';o.labelGeneratedByName=currentAuthUser?.name||'';o.timeline=o.timeline||[];o.timeline.push({status:'LABEL_GENERATED',at:now,by:o.labelGeneratedBy,byName:o.labelGeneratedByName,note:'India Post label generated'});if(o.status==='PACKED'){o.status='READY_DISPATCH';o.updatedAt=now;}saveState(appState);}
+  window.dispatchDownloadLabel=async function(id){if(!canProcess())return showToast('Inventory staff access required.',true);try{const blob=await buildLabel(id);const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`India-Post-${id}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);await markLabel(id);renderDispatchDesk();showToast('India Post label downloaded.');}catch(e){showToast(e.message||'Could not generate label.',true);}};
+  window.dispatchPrintLabel=async function(id){if(!canProcess())return showToast('Inventory staff access required.',true);try{const blob=await buildLabel(id),url=URL.createObjectURL(blob),w=window.open(url,'_blank');if(!w){URL.revokeObjectURL(url);return showToast('Allow pop-ups to print the label.',true);}await markLabel(id);renderDispatchDesk();setTimeout(()=>{try{w.focus();w.print();}catch(e){}},900);}catch(e){showToast(e.message||'Could not prepare label.',true);}};
+  // Initialize first product row and keep navigation refresh hooks compatible with existing wrappers.
+  document.addEventListener('DOMContentLoaded',()=>{if($('dispatch-item-rows')&&!$('dispatch-item-rows').children.length)dispatchAddItem();});
+  const priorNav=window.navigateTo;window.navigateTo=function(pageId){const result=priorNav.apply(this,arguments);if(pageId==='page-dispatch')setTimeout(renderDispatchDesk,0);return result;};
+  const priorRefresh=window.refreshActiveScreen;window.refreshActiveScreen=function(){const result=priorRefresh.apply(this,arguments);if(window.currentActivePage==='page-dispatch'||document.getElementById('page-dispatch')?.classList.contains('hidden')===false)renderDispatchDesk();return result;};
 })();
 </script>
+
+
+<script>
+/* v1.4.60 — dedicated dispatch-only inventory staff workspace */
+(function(){
+  const inventoryOnly = () => {
+    try {
+      if(typeof inventoryRole==='function' && inventoryRole()) return true;
+      if(typeof currentAuthUser==='undefined'||!currentAuthUser)return false;
+      const uid=String(currentAuthUser.id||''), phone=String(currentAuthUser.phone||'').replace(/\\D/g,'');
+      const records=[...(appState?.employees||[]),...(cloudUsers||[])];
+      return records.some(e=>(String(e.id||'')===uid||(phone&&String(e.phone||'').replace(/\\D/g,'')===phone)) &&
+        (String(e.role||'').toUpperCase()==='INVENTORY_STAFF'||String(e.designation||'').toLowerCase().includes('inventory')));
+    } catch(e){ return false; }
+  };
+  const style=document.createElement('style');
+  style.id='inventory-staff-access-style';
+  style.textContent=`
+    body.inventory-staff-only #app-sidebar nav > *:not(#nav-item-dispatch){display:none!important}
+    body.inventory-staff-only #sidebar-notification-button{display:none!important}
+    body.inventory-staff-only #app-bottom-nav{display:none!important}
+    body.inventory-staff-only #page-dispatch #dispatch-create-panel{display:none!important}
+  `;
+  document.head.appendChild(style);
+  function applyInventoryOnlyMode(){
+    const restricted=inventoryOnly();
+    document.body.classList.toggle('inventory-staff-only',restricted);
+    const dispatchNav=document.getElementById('nav-item-dispatch');
+    if(dispatchNav)dispatchNav.classList.remove('hidden');
+    const bottom=document.getElementById('app-bottom-nav');
+    if(restricted&&bottom)bottom.classList.add('hidden');
+  }
+  const originalNavigate=window.navigateTo;
+  if(typeof originalNavigate==='function'){
+    window.navigateTo=function(pageId){
+      if(inventoryOnly()&&!['page-dispatch','page-login','page-welcome'].includes(pageId)){
+        applyInventoryOnlyMode();
+        pageId='page-dispatch';
+      }
+      const result=originalNavigate.apply(this,[pageId]);
+      applyInventoryOnlyMode();
+      if(inventoryOnly()&&pageId==='page-dispatch')setTimeout(()=>window.renderDispatchDesk?.(),0);
+      return result;
+    };
+  }
+  const originalSetup=window.setupSession;
+  if(typeof originalSetup==='function'){
+    window.setupSession=function(){const result=originalSetup.apply(this,arguments);applyInventoryOnlyMode();return result;};
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    applyInventoryOnlyMode();
+    const observer=new MutationObserver(()=>applyInventoryOnlyMode());
+    observer.observe(document.body,{attributes:true,attributeFilter:['class']});
+  });
+  // The employee account is created by Super Admin in People > Add. The INVENTORY_STAFF
+  // role grants the dedicated dispatch queue; order creation remains a store/management task.
+})();
+</script>
+
+</body>
