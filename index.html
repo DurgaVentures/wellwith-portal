@@ -1473,7 +1473,7 @@
       <input id="dispatch-pin" class="px-3 py-3 border rounded-xl text-xs" placeholder="PIN code *" maxlength="6" inputmode="numeric" />
     </div>
     <div class="border-t pt-3 space-y-2">
-      <div class="flex justify-between items-center"><b class="text-xs">Order products</b><button type="button" onclick="dispatchAddItem()" class="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-[10px] font-black">＋ Add product</button></div>
+      <div class="flex flex-wrap justify-between items-center gap-2"><b class="text-xs">Order products</b><div class="flex gap-2"><button type="button" onclick="openDispatchProductManager()" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-700 text-[10px] font-black">＋ Manage product names</button><button type="button" onclick="dispatchAddItem()" class="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-[10px] font-black">＋ Add product</button></div></div>
       <div id="dispatch-item-rows" class="space-y-2"></div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
         <div><label class="text-[9px] font-bold text-slate-500">Delivery charge (₹)</label><input id="dispatch-delivery-charge" type="number" min="0" step="0.01" value="0" oninput="dispatchUpdateTotal()" class="w-full px-3 py-2.5 border rounded-xl text-xs" /></div>
@@ -1486,9 +1486,27 @@
     </div>
   </div>
 
-  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-    <div class="flex flex-wrap justify-between items-center gap-2"><div><h3 class="font-black text-sm">Order Queue</h3><p class="text-[10px] text-slate-500">Live order status and fulfilment actions.</p></div><select id="dispatch-filter" onchange="renderDispatchDesk()" class="px-3 py-2 border rounded-xl text-[10px] bg-white"><option value="ALL">All orders</option><option value="RECEIVED">New / Received</option><option value="ACCEPTED">Accepted</option><option value="PACKING">Packing</option><option value="PACKED">Packed</option><option value="READY_DISPATCH">Ready to Dispatch</option><option value="DISPATCHED">Dispatched</option><option value="DELIVERED">Delivered</option><option value="DELIVERY_FAILED">Delivery Failed</option><option value="RTO">Returned / RTO</option></select></div>
-    <div id="dispatch-orders-list" class="space-y-3"><div class="text-center text-xs text-slate-400 py-8">Loading orders…</div></div>
+
+  <div id="dispatch-queue-page" class="hidden bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+    <div class="flex items-center justify-between gap-2">
+      <button type="button" onclick="closeDispatchQueue()" class="px-3 py-2 rounded-xl border text-xs font-bold">← Back</button>
+      <h3 id="dispatch-queue-title" class="font-black text-sm flex-1 text-right">New Orders</h3>
+    </div>
+    <div class="flex items-center justify-end gap-1">
+      <button type="button" onclick="toggleDispatchQueueFilter('dispatch-queue-date-panel',this)" aria-label="Show date filters" aria-expanded="false" title="Date filter" class="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 text-sm hover:bg-slate-50">▦</button>
+      <button type="button" onclick="toggleDispatchQueueFilter('dispatch-queue-status-panel',this)" aria-label="Show status filter" aria-expanded="false" title="Status filter" class="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 text-sm hover:bg-slate-50">☷</button>
+      <button type="button" onclick="clearDispatchQueueFilters()" aria-label="Clear filters" title="Clear filters" class="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 text-sm hover:bg-slate-50">↺</button>
+    </div>
+    <div id="dispatch-queue-date-panel" class="hidden grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-2">
+      <div><label class="block text-[9px] font-bold text-slate-500 mb-1">From date</label><input type="date" id="dispatch-queue-from" onchange="renderDispatchQueue()" class="w-full px-2 py-1.5 border rounded-lg text-[11px] bg-white"></div>
+      <div><label class="block text-[9px] font-bold text-slate-500 mb-1">To date</label><input type="date" id="dispatch-queue-to" onchange="renderDispatchQueue()" class="w-full px-2 py-1.5 border rounded-lg text-[11px] bg-white"></div>
+    </div>
+    <div id="dispatch-queue-status-panel" class="hidden">
+      <select id="dispatch-queue-status" onchange="renderDispatchQueue()" class="w-full px-2 py-1.5 border rounded-lg text-[11px] bg-white">
+        <option value="RECEIVED">New Orders</option><option value="PACKING">Packing</option><option value="READY_DISPATCH">Ready</option><option value="DISPATCHED">Dispatched</option><option value="ALL">All orders</option>
+      </select>
+    </div>
+    <div id="dispatch-queue-results" class="space-y-3"><div class="text-center text-xs text-slate-400 py-8">Select a queue.</div></div>
   </div>
 </section>
 
@@ -2604,6 +2622,7 @@
       }
 
       currentAuthUser = { ...user, sessionId };
+      try { localStorage.setItem('wellwith_active_session_v1', JSON.stringify({ userId: user.id, sessionId })); } catch(e) { console.warn('Could not persist session on this browser.', e); }
       phoneInput.value = '';
       pinInput.value = '';
 
@@ -2659,6 +2678,7 @@
           const expiredUser = currentAuthUser;
           stopSessionHeartbeat();
           currentAuthUser = null;
+          try { localStorage.removeItem('wellwith_active_session_v1'); } catch(e) {}
           stopCamera();
           toggleSidebar(false);
           navigateTo('page-login');
@@ -2693,6 +2713,7 @@
       stopSessionHeartbeat();
       stopCamera();
       currentAuthUser = null;
+      try { localStorage.removeItem('wellwith_active_session_v1'); } catch(e) {}
       toggleSidebar(false);
       navigateTo('page-welcome');
       if (user?.sessionId) endCurrentSessionOnCloudForUser(user);
@@ -6543,6 +6564,39 @@
       }
     }
 
+    let sessionRestoreAttempted = false;
+    async function restoreRememberedSession() {
+      if (sessionRestoreAttempted || currentAuthUser || !cloudDb || !cloudStateLoaded || !firebaseUsersLoaded) return;
+      let remembered = null;
+      try { remembered = JSON.parse(localStorage.getItem('wellwith_active_session_v1') || 'null'); } catch(e) {}
+      if (!remembered?.userId || !remembered?.sessionId) return;
+      sessionRestoreAttempted = true;
+      try {
+        const [storeSnap, usersSnap] = await Promise.all([
+          cloudDb.ref('storeState').once('value'),
+          cloudDb.ref('users').once('value')
+        ]);
+        const store = ensureStateArrays(storeSnap.val() || {});
+        const users = normalizeFirebaseUsers(usersSnap.val());
+        const session = (store.storeSessions || []).find(s =>
+          s.id === remembered.sessionId && String(s.userId) === String(remembered.userId) && s.active !== false
+        );
+        const user = users.find(u => String(u.id) === String(remembered.userId));
+        if (!session || !user || user.disabled || user.archived) {
+          localStorage.removeItem('wellwith_active_session_v1');
+          return;
+        }
+        currentAuthUser = { ...user, sessionId: remembered.sessionId };
+        appState = store;
+        cloudBaselineState = JSON.parse(JSON.stringify(store));
+        setupSession();
+      } catch(error) {
+        console.warn('Remembered session restore deferred; user may sign in manually.', error);
+        // Keep the remembered token during a transient network failure; do not log the user out.
+        sessionRestoreAttempted = false;
+      }
+    }
+
     function initFirebaseSync() {
       try {
         if (typeof firebase === 'undefined') {
@@ -6588,6 +6642,7 @@
             firebaseUsersLoaded = true;
             mergeFirebaseUsers(users);
             refreshActiveScreen();
+            restoreRememberedSession();
           } else if (!snapshot.exists()) {
             // Firebase is empty: initialize the shared account source from the
             // protected default accounts, never from device-local storage.
@@ -6624,6 +6679,7 @@
             appState = ensureStateArrays(rawStoreState);
             cloudBaselineState = JSON.parse(JSON.stringify(appState));
             cloudStateLoaded = true;
+            restoreRememberedSession();
             // Repair legacy duplicate employee records once the authoritative snapshot is loaded.
             // The reconciliation is deterministic and preserves fixed historical employee codes.
             if (JSON.stringify(rawStoreState?.employees || []) !== JSON.stringify(appState.employees || [])) {
@@ -8193,7 +8249,7 @@
   function orders(){appState=loadState();return appState.dispatchOrders||[];}
   function saveOrders(){appState.dispatchOrders=appState.dispatchOrders||[];return saveState(appState);}
   function logStatus(o,status,note=''){o.status=status;o.updatedAt=new Date().toISOString();o.updatedBy=currentAuthUser?.id||'';o.updatedByName=currentAuthUser?.name||'';o.timeline=o.timeline||[];o.timeline.push({status,at:o.updatedAt,by:o.updatedBy,byName:o.updatedByName,note});}
-  window.dispatchAddItem=function(name='',qty=1,price=0){const wrap=$('dispatch-item-rows');if(!wrap)return;const row=document.createElement('div');row.className='dispatch-item-row grid grid-cols-12 gap-2 items-center';row.innerHTML=`<input class="di-name col-span-6 px-3 py-2.5 border rounded-xl text-xs" placeholder="Product name / SKU" value="${escD(name)}"><input class="di-qty col-span-2 px-2 py-2.5 border rounded-xl text-xs" type="number" min="1" value="${qty}" aria-label="Quantity"><input class="di-price col-span-3 px-2 py-2.5 border rounded-xl text-xs" type="number" min="0" step="0.01" value="${price}" placeholder="Unit price"><button type="button" class="col-span-1 text-red-500 font-black" title="Remove" onclick="this.closest('.dispatch-item-row').remove();dispatchUpdateTotal()">×</button>`;row.querySelectorAll('input').forEach(x=>x.addEventListener('input',dispatchUpdateTotal));wrap.appendChild(row);dispatchUpdateTotal();};
+  window.dispatchAddItem=function(name='Wellwith Seabuckthorn Pulp Concentrate 300ml',qty=1,price=0){const wrap=$('dispatch-item-rows');if(!wrap)return;const row=document.createElement('div');row.className='dispatch-item-row grid grid-cols-12 gap-2 items-center';const product='Wellwith Seabuckthorn Pulp Concentrate 300ml';const selected=String(name||product);row.innerHTML=`<select class="di-name col-span-6 min-w-0 px-3 py-2.5 border rounded-xl text-xs bg-white" aria-label="Product name"><option value="${escD(product)}" ${selected===product?'selected':''}>${product}</option>${selected!==product?`<option value="${escD(selected)}" selected>${escD(selected)}</option>`:''}</select><input class="di-qty col-span-2 px-2 py-2.5 border rounded-xl text-xs" type="number" min="1" value="${qty}" aria-label="Quantity"><input class="di-price col-span-3 px-2 py-2.5 border rounded-xl text-xs" type="number" min="0" step="0.01" value="${price}" placeholder="Unit price"><button type="button" class="col-span-1 text-red-500 font-black" title="Remove" onclick="this.closest('.dispatch-item-row').remove();dispatchUpdateTotal()">×</button>`;row.querySelectorAll('input').forEach(x=>x.addEventListener('input',dispatchUpdateTotal));wrap.appendChild(row);dispatchUpdateTotal();};
   window.dispatchUpdateTotal=function(){let subtotal=0;document.querySelectorAll('.dispatch-item-row').forEach(r=>subtotal+=(Number(r.querySelector('.di-qty').value)||0)*(Number(r.querySelector('.di-price').value)||0));const delivery=Math.max(0,Number($('dispatch-delivery-charge')?.value)||0);const total=subtotal+delivery;if($('dispatch-order-total'))$('dispatch-order-total').value=total.toFixed(2);const mode=$('dispatch-payment-mode')?.value||'COD';if($('dispatch-cod-preview'))$('dispatch-cod-preview').textContent=mode==='COD'?'COD collection amount: '+moneyD(total):'PREPAID — no amount to collect on delivery.';};
   window.dispatchCreateOrder=function(){
     if(!currentAuthUser)return showToast('Please sign in first.',true);if(inventoryRole()&&!managementRole())return showToast('Inventory staff cannot create store orders.',true);
@@ -8262,7 +8318,7 @@
     const wrap=document.getElementById('dispatch-edit-items');if(!wrap)return;
     const row=document.createElement('div');row.className='dispatch-edit-item grid grid-cols-12 gap-2 items-center';
     const safe=(v)=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    row.innerHTML=`<input class="dei-name col-span-6 min-w-0 px-2 py-2 border rounded-lg text-xs" placeholder="Product / SKU" value="${safe(item.name)}"><input class="dei-qty col-span-2 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="1" step="1" value="${Number(item.quantity)||1}" aria-label="Quantity"><input class="dei-price col-span-3 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="0" step="0.01" value="${Number(item.unitPrice)||0}" aria-label="Unit price"><button type="button" class="col-span-1 text-red-600 font-black" aria-label="Remove item">×</button>`;
+    const product='Wellwith Seabuckthorn Pulp Concentrate 300ml',selected=String(item.name||product);row.innerHTML=`<select class="dei-name col-span-6 min-w-0 px-2 py-2 border rounded-lg text-xs bg-white" aria-label="Product name"><option value="${safe(product)}" ${selected===product?'selected':''}>${product}</option>${selected!==product?`<option value="${safe(selected)}" selected>${safe(selected)}</option>`:''}</select><input class="dei-qty col-span-2 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="1" step="1" value="${Number(item.quantity)||1}" aria-label="Quantity"><input class="dei-price col-span-3 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="0" step="0.01" value="${Number(item.unitPrice)||0}" aria-label="Unit price"><button type="button" class="col-span-1 text-red-600 font-black" aria-label="Remove item">×</button>`;
     row.querySelector('button').addEventListener('click',()=>{row.remove();window.dispatchEditRecalc();});
     row.querySelectorAll('input').forEach(x=>x.addEventListener('input',window.dispatchEditRecalc));wrap.appendChild(row);
   };
@@ -8523,9 +8579,138 @@
     });
     if(saved){window.closeDispatchStatusModal();showToast('Order status updated and added to timeline.');}
   };
-  function orderCard(o){const can=canProcess(),c=o.customer||{},items=(o.items||[]).map(i=>`${escD(i.name)} × ${i.quantity}`).join(' · ');let actions='';if(can)actions+=actionButton('Update Status',`dispatchOpenStatusModal('${o.id}')`,'bg-slate-100 text-slate-900 border border-slate-300');if(can)actions+=actionButton('WhatsApp Customer',`dispatchOpenWhatsApp('${o.id}')`,'bg-emerald-100 text-emerald-900 border border-emerald-300');if(can&&['ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(o.status))actions+=actionButton('✎ Edit Order',`dispatchOpenEdit('${o.id}')`,'bg-amber-300 text-amber-950 border border-amber-500 shadow-sm');if(can&&o.status==='RECEIVED')actions+=actionButton('Accept Order',`dispatchAccept('${o.id}')`);if(can&&o.status==='ACCEPTED')actions+=actionButton('Start Packing',`dispatchStartPacking('${o.id}')`);if(can&&o.status==='PACKING')actions+=actionButton('Mark Packed',`dispatchMarkPacked('${o.id}')`);if(can&&o.status==='PACKED')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white');if(can&&o.status==='READY_DISPATCH')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white')+actionButton('Mark Dispatched',`dispatchMarkDispatched('${o.id}')`,'bg-violet-700 text-white');if(can&&['DISPATCHED','DELIVERY_FAILED'].includes(o.status))actions+=`<select onchange="if(this.value)dispatchSetDeliveryStatus('${o.id}',this.value);this.value=''" class="px-3 py-2 border border-slate-300 rounded-xl text-[10px] font-bold bg-white"><option value="">Update delivery outcome…</option><option value="DELIVERED">Mark Delivered</option><option value="DELIVERY_FAILED">Delivery Failed</option><option value="RTO">Mark Returned / RTO</option></select>`;
+  // All signed-in staff can delete an order from the active queue. The full record is archived for audit.
+  window.dispatchOpenDelete=function(id){
+    if(!currentAuthUser)return showToast('Please sign in first.',true);
+    const o=orders().find(x=>String(x.id)===String(id));if(!o)return showToast('Order not found. Refresh and retry.',true);
+    document.getElementById('dispatch-delete-modal')?.remove();
+    const overlay=document.createElement('div');overlay.id='dispatch-delete-modal';overlay.className='fixed inset-0 z-[10000] flex items-center justify-center p-4';overlay.style.background='rgba(15,23,42,.65)';
+    overlay.innerHTML=`<div role="dialog" aria-modal="true" class="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-3"><div class="flex items-start justify-between gap-3"><div><h3 class="text-base font-black text-red-700">Delete Dispatch Order</h3><p class="text-xs text-slate-500 mt-1">This removes the order from the active queue and stores it in the deleted-order archive.</p></div><button type="button" onclick="closeDispatchDeleteModal()" class="text-2xl leading-none text-slate-400">×</button></div><div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs"><b>${escD(o.id)} · ${escD(o.customer?.name||'')}</b><div class="mt-1 text-slate-600">Invoice: ${escD(o.invoiceNumber||'—')} · ${escD(statusName[o.status]||o.status)}</div><div class="mt-1 font-bold">Total: ${moneyD(o.total)}</div></div><label class="block text-xs font-bold text-slate-700">Reason for deletion <span class="text-red-600">*</span><textarea id="dispatch-delete-reason" maxlength="500" rows="3" class="mt-1 w-full rounded-xl border p-3 text-sm" placeholder="e.g. Duplicate order, entered by mistake, customer cancelled..."></textarea></label><p class="text-[10px] text-slate-500">Deleted by, date/time, and reason will be saved with the archived order.<div id="dispatch-delete-error" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-semibold text-red-700"></div></p><div class="flex gap-2"><button type="button" onclick="closeDispatchDeleteModal()" class="flex-1 rounded-xl border px-4 py-3 text-xs font-bold">Cancel</button><button type="button" data-confirm-delete="true" onclick="dispatchConfirmDelete('${id}')" class="flex-1 rounded-xl bg-red-700 px-4 py-3 text-xs font-black text-white">Confirm Delete</button></div></div>`;
+    overlay.addEventListener('click',e=>{if(e.target===overlay)window.closeDispatchDeleteModal();});document.body.appendChild(overlay);document.getElementById('dispatch-delete-reason')?.focus();
+  };
+  window.closeDispatchDeleteModal=function(){document.getElementById('dispatch-delete-modal')?.remove();};
+  function showDispatchDeleteError(message){
+    const box=document.getElementById('dispatch-delete-error');
+    if(box){box.textContent=message;box.classList.remove('hidden');}
+    else showToast(message,true);
+  }
+    window.dispatchConfirmDelete=async function(id){
+    const button=document.querySelector('#dispatch-delete-modal button[data-confirm-delete]');
+    const reason=(document.getElementById('dispatch-delete-reason')?.value||'').trim();
+    if(!currentAuthUser){showDispatchDeleteError('Please sign in first.');return;}
+    if(!reason){showDispatchDeleteError('Enter a reason before deleting the order.');return;}
+    // Any non-empty reason is accepted; short reasons are valid.
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline){
+      showDispatchDeleteError('Firebase is not connected yet. Check the connection indicator and try again.');return;
+    }
+    const actor={id:currentAuthUser.id||'',name:currentAuthUser.name||'Staff',role:currentAuthUser.role||'STAFF'};
+    const now=new Date().toISOString();
+    if(button){button.disabled=true;button.textContent='Deleting…';button.classList.add('opacity-60','cursor-not-allowed');}
+    try{
+      const result=await cloudDb.ref('storeState').transaction(serverValue=>{
+        if(!serverValue)return;
+        const latest=ensureStateArrays(serverValue);
+        const active=Array.isArray(latest.dispatchOrders)?latest.dispatchOrders:[];
+        const index=active.findIndex(x=>String(x.id)===String(id));
+        if(index<0)return;
+        const order=active[index];
+        const archived={...cloneCloudSafe(order),deletedAt:now,deletedBy:actor.id,deletedByName:actor.name,deletedByRole:actor.role,deletionReason:reason};
+        active.splice(index,1);
+        latest.dispatchOrders=active;
+        latest.deletedDispatchOrders=Array.isArray(latest.deletedDispatchOrders)?latest.deletedDispatchOrders:[];
+        latest.deletedDispatchOrders.push(archived);
+        return latest;
+      });
+      if(!result.committed){
+        showDispatchDeleteError('Order was not deleted. It may already be removed. Refresh the order list and try again.');
+        if(button){button.disabled=false;button.textContent='Confirm Delete';button.classList.remove('opacity-60','cursor-not-allowed');}
+        return;
+      }
+      appState=ensureStateArrays(result.snapshot.val());
+      cloudBaselineState=cloneCloudSafe(appState);
+      window.closeDispatchDeleteModal();
+      window.renderDispatchDesk();
+      showToast('Order deleted and safely archived.');
+    }catch(error){
+      console.error('Dispatch order delete failed:',error);
+      const detail=error?.message?String(error.message):'Unknown Firebase error';
+      showDispatchDeleteError('Delete failed: '+detail);
+      if(button){button.disabled=false;button.textContent='Confirm Delete';button.classList.remove('opacity-60','cursor-not-allowed');}
+    }
+  };
+  function orderCard(o){const can=canProcess(),c=o.customer||{},items=(o.items||[]).map(i=>`${escD(i.name)} × ${i.quantity}`).join(' · ');let actions='';if(currentAuthUser)actions+=actionButton('Delete Order',`dispatchOpenDelete('${o.id}')`,'bg-red-50 text-red-700 border border-red-200');if(can)actions+=actionButton('Update Status',`dispatchOpenStatusModal('${o.id}')`,'bg-slate-100 text-slate-900 border border-slate-300');if(can)actions+=actionButton('WhatsApp Customer',`dispatchOpenWhatsApp('${o.id}')`,'bg-emerald-100 text-emerald-900 border border-emerald-300');if(can&&['ACCEPTED','PACKING','PACKED','READY_DISPATCH','READY_FOR_DISPATCH','DISPATCHED','DELIVERY_FAILED','DELIVERED','RTO'].includes(o.status))actions+=actionButton('✎ Edit Order',`dispatchOpenEdit('${o.id}')`,'bg-amber-300 text-amber-950 border border-amber-500 shadow-sm');if(can&&o.status==='RECEIVED')actions+=actionButton('Accept Order',`dispatchAccept('${o.id}')`);if(can&&o.status==='ACCEPTED')actions+=actionButton('Start Packing',`dispatchStartPacking('${o.id}')`);if(can&&o.status==='PACKING')actions+=actionButton('Mark Packed',`dispatchMarkPacked('${o.id}')`);if(can&&o.status==='PACKED')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white');if(can&&o.status==='READY_DISPATCH')actions+=actionButton('Download Label',`dispatchDownloadLabel('${o.id}')`,'bg-emerald-700 text-white')+actionButton('Print Label',`dispatchPrintLabel('${o.id}')`,'bg-slate-800 text-white')+actionButton('Mark Dispatched',`dispatchMarkDispatched('${o.id}')`,'bg-violet-700 text-white');if(can&&['DISPATCHED','DELIVERY_FAILED'].includes(o.status))actions+=`<select onchange="if(this.value)dispatchSetDeliveryStatus('${o.id}',this.value);this.value=''" class="px-3 py-2 border border-slate-300 rounded-xl text-[10px] font-bold bg-white"><option value="">Update delivery outcome…</option><option value="DELIVERED">Mark Delivered</option><option value="DELIVERY_FAILED">Delivery Failed</option><option value="RTO">Mark Returned / RTO</option></select>`;
     return `<article class="border border-slate-200 rounded-2xl p-3 space-y-2"><div class="flex flex-wrap justify-between gap-2"><div><div class="font-black text-xs text-slate-900">${escD(o.id)} · ${escD(c.name)}</div><div class="text-[10px] text-slate-500 mt-1">${escD(c.mobile)} · ${escD(c.city)}, ${escD(c.state)} – ${escD(c.pin)}</div><div class="text-[10px] font-bold text-slate-700 mt-1">Invoice: ${escD(o.invoiceNumber||'—')}</div></div><span class="px-2.5 py-1 rounded-full text-[9px] font-black ${statusTone[o.status]||'bg-slate-100'}">${statusName[o.status]||o.status}</span></div><div class="text-[10px] text-slate-600">${items}</div><div class="flex flex-wrap justify-between gap-2 text-[10px]"><span class="font-bold">${moneyD(o.total)} · ${o.paymentMode==='COD'?'COD '+moneyD(o.codAmount):'PREPAID'}</span><span class="text-slate-400">Created ${new Date(o.createdAt).toLocaleString('en-IN')}</span></div>${o.trackingId?`<div class="p-2 bg-violet-50 rounded-lg text-[10px]">India Post tracking: <b>${escD(o.trackingId)}</b></div>`:''}<div class="flex flex-wrap gap-2">${actions}</div><details class="text-[10px] text-slate-500"><summary class="cursor-pointer font-bold">Order details &amp; timeline</summary><div class="mt-2 space-y-2">${escD(c.address)} ${escD(c.landmark)}<br><div class="font-bold text-slate-700 pt-1">Status history</div>${(o.timeline||[]).map(t=>`<div>• ${escD(statusName[t.status]||t.status)} — ${escD(t.byName)} — ${new Date(t.at).toLocaleString('en-IN')}${t.note?`<div class="pl-3 text-slate-400">${escD(t.note)}</div>`:''}</div>`).join('')}<div class="font-bold text-slate-700 pt-2 border-t">Manual status changes (${(o.statusChangeHistory||[]).length})</div>${(o.statusChangeHistory||[]).length?(o.statusChangeHistory||[]).slice().reverse().map(h=>`<div class="rounded-lg border border-indigo-200 bg-indigo-50/60 p-2"><div class="font-bold text-slate-800">${escD(statusName[h.from]||h.from)} → ${escD(statusName[h.to]||h.to)}</div><div class="text-slate-600">By ${escD(h.byName||"Staff")} · ${h.at?new Date(h.at).toLocaleString("en-IN"):"Time unavailable"}</div><div class="text-slate-600">Reason: ${escD(h.reason||"—")}</div></div>`).join(""):'<div class="text-slate-400">No manual status changes.</div>'}<div class="font-bold text-slate-700 pt-2 border-t">Order edit history (${(o.editHistory||[]).length})</div>${(o.editHistory||[]).length?(o.editHistory||[]).slice().reverse().map((e,i)=>`<div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2 space-y-1"><div class="font-bold text-slate-800">Edited by ${escD(e.byName||'Staff')} — ${e.at?new Date(e.at).toLocaleString('en-IN'):'Time unavailable'}</div><div class="text-slate-600">Reason: ${escD(e.reason||'Not provided')}</div><div class="mt-1">${dispatchEditChanges(e)}</div></div>`).join(''):'<div class="text-slate-400">No order edits recorded.</div>'}</div></details></article>`;}
-  window.renderDispatchDesk=function(){if(!$('page-dispatch'))return;appState=loadState();const inv=inventoryRole(),manage=managementRole();$('dispatch-role-chip').textContent=inv?'INVENTORY WORKSPACE':manage?'MANAGEMENT VIEW':'STORE ORDER DESK';$('dispatch-create-panel').classList.toggle('hidden',inv&&!manage);const all=appState.dispatchOrders||[];const counts={RECEIVED:0,PACKING:0,READY_DISPATCH:0,DISPATCHED:0};all.forEach(o=>{if(counts[o.status]!==undefined)counts[o.status]++;});$('dispatch-kpis').innerHTML=[['New Orders',counts.RECEIVED,'bg-blue-50 text-blue-800'],['Packing',counts.PACKING,'bg-amber-50 text-amber-800'],['Ready',counts.READY_DISPATCH,'bg-emerald-50 text-emerald-800'],['Dispatched',counts.DISPATCHED,'bg-violet-50 text-violet-800']].map(x=>`<div class="p-3 rounded-2xl ${x[2]}"><div class="text-xl font-black">${x[1]}</div><div class="text-[9px] font-black uppercase">${x[0]}</div></div>`).join('');const filter=$('dispatch-filter')?.value||'ALL';const list=all.filter(o=>filter==='ALL'||o.status===filter);$('dispatch-orders-list').innerHTML=list.length?list.map(orderCard).join(''):'<div class="text-center text-xs text-slate-400 py-8">No dispatch orders in this view.</div>';};
+  let activeDispatchQueue='RECEIVED';
+  window.openDispatchQueue=function(status){
+    activeDispatchQueue=status||'RECEIVED';
+    const q=$('dispatch-queue-status');if(q)q.value=activeDispatchQueue;
+    $('dispatch-create-panel')?.classList.add('hidden');
+    $('dispatch-kpis')?.classList.add('hidden');
+    $('dispatch-queue-page')?.classList.remove('hidden');
+    renderDispatchQueue();
+    $('dispatch-queue-page')?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.closeDispatchQueue=function(){
+    $('dispatch-queue-page')?.classList.add('hidden');
+    $('dispatch-create-panel')?.classList.toggle('hidden',inventoryRole()&&!managementRole());
+    $('dispatch-kpis')?.classList.remove('hidden');
+  };
+  window.toggleDispatchQueueFilter=function(panelId,button){
+    const panel=$(panelId);
+    if(!panel)return;
+    const willOpen=panel.classList.contains('hidden');
+    panel.classList.toggle('hidden',!willOpen);
+    if(button)button.setAttribute('aria-expanded',willOpen?'true':'false');
+  };
+  window.clearDispatchQueueFilters=function(){
+    const from=$('dispatch-queue-from'),to=$('dispatch-queue-to'),status=$('dispatch-queue-status');
+    if(from)from.value='';
+    if(to)to.value='';
+    if(status)status.value=activeDispatchQueue||'RECEIVED';
+    renderDispatchQueue();
+  };
+  window.renderDispatchQueue=function(){
+    if(!$('dispatch-queue-results'))return;
+    appState=loadState();
+    const status=$('dispatch-queue-status')?.value||activeDispatchQueue;
+    activeDispatchQueue=status;
+    const from=$('dispatch-queue-from')?.value||'';
+    const to=$('dispatch-queue-to')?.value||'';
+    const titleMap={RECEIVED:'New Orders',PACKING:'Packing Queue',READY_DISPATCH:'Ready to Dispatch',DISPATCHED:'Dispatched Orders',ALL:'All Orders'};
+    $('dispatch-queue-title').textContent=titleMap[status]||'Order Queue';
+    const list=(appState.dispatchOrders||[]).filter(o=>{
+      if(status!=='ALL'&&o.status!==status)return false;
+      const date=new Date(o.createdAt||0);
+      if(from){const d=new Date(from+'T00:00:00');if(date<d)return false;}
+      if(to){const d=new Date(to+'T23:59:59.999');if(date>d)return false;}
+      return true;
+    }).sort((a,b)=>{
+      // In All Orders, new/received orders are always shown first, then newest first.
+      if(status==='ALL'){
+        const ap=a.status==='RECEIVED'?0:1,bp=b.status==='RECEIVED'?0:1;
+        if(ap!==bp)return ap-bp;
+      }
+      return new Date(b.createdAt||0)-new Date(a.createdAt||0);
+    });
+    $('dispatch-queue-results').innerHTML=list.length?list.map(orderCard).join(''):'<div class="text-center text-xs text-slate-400 py-8">No orders match this queue and date range.</div>';
+  };
+  window.renderDispatchDesk=function(){
+    if(!$('page-dispatch'))return;
+    appState=loadState();
+    const inv=inventoryRole(),manage=managementRole();
+    $('dispatch-role-chip').textContent=inv?'INVENTORY WORKSPACE':manage?'MANAGEMENT VIEW':'STORE ORDER DESK';
+    $('dispatch-create-panel').classList.toggle('hidden',inv&&!manage);
+    const all=appState.dispatchOrders||[];
+    const counts={RECEIVED:0,PACKING:0,READY_DISPATCH:0,DISPATCHED:0};
+    all.forEach(o=>{if(counts[o.status]!==undefined)counts[o.status]++;});
+    $('dispatch-kpis').innerHTML=[
+      ['New Orders',counts.RECEIVED,'bg-blue-50 text-blue-800','RECEIVED'],
+      ['Packing',counts.PACKING,'bg-amber-50 text-amber-800','PACKING'],
+      ['Ready',counts.READY_DISPATCH,'bg-emerald-50 text-emerald-800','READY_DISPATCH'],
+      ['Dispatched',counts.DISPATCHED,'bg-violet-50 text-violet-800','DISPATCHED']
+    ].map(x=>`<button type="button" onclick="openDispatchQueue('${x[3]}')" aria-label="Open ${x[0]} queue" class="w-full text-left p-3 rounded-2xl ${x[2]} border border-transparent hover:border-current focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] transition"><div class="text-xl font-black">${x[1]}</div><div class="text-[9px] font-black uppercase">${x[0]} <span aria-hidden="true">→</span></div></button>`).join('');
+    if(!$('dispatch-queue-page').classList.contains('hidden'))renderDispatchQueue();
+  };
   async function buildLabel(id){
     const o=orders().find(x=>x.id===id);
     if(!o)throw new Error('Order not found');
@@ -8647,4 +8832,53 @@
 })();
 </script>
 
-</body>
+<script>
+/* v1.4.76 — safe product-name manager; appended after the core portal scripts */
+(function(){
+  'use strict';
+  const DEFAULT_PRODUCT='Wellwith Seabuckthorn Pulp Concentrate 300ml';
+  const escapeHtml=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function names(){
+    const raw=Array.isArray(appState?.dispatchProductNames)?appState.dispatchProductNames:[];
+    return [...new Set([DEFAULT_PRODUCT,...raw].map(v=>String(v??'').trim()).filter(Boolean))];
+  }
+  window.dispatchProductNames=names;
+  function options(selected){
+    const list=names(); const value=String(selected||DEFAULT_PRODUCT);
+    if(value && !list.some(n=>n.toLowerCase()===value.toLowerCase())) list.push(value);
+    return list.map(n=>`<option value="${escapeHtml(n)}" ${n===value?'selected':''}>${escapeHtml(n)}</option>`).join('');
+  }
+  const oldAdd=window.dispatchAddItem;
+  window.dispatchAddItem=function(name=DEFAULT_PRODUCT,qty=1,price=0){
+    const wrap=document.getElementById('dispatch-item-rows'); if(!wrap)return;
+    const row=document.createElement('div'); row.className='dispatch-item-row grid grid-cols-12 gap-2 items-center';
+    row.innerHTML=`<select class="di-name col-span-6 min-w-0 px-3 py-2.5 border rounded-xl text-xs bg-white" aria-label="Product name">${options(name)}</select><input class="di-qty col-span-2 px-2 py-2.5 border rounded-xl text-xs" type="number" min="1" value="${Number(qty)||1}" aria-label="Quantity"><input class="di-price col-span-3 px-2 py-2.5 border rounded-xl text-xs" type="number" min="0" step="0.01" value="${Number(price)||0}" placeholder="Unit price"><button type="button" class="col-span-1 text-red-500 font-black" title="Remove" onclick="this.closest('.dispatch-item-row').remove();dispatchUpdateTotal()">×</button>`;
+    row.querySelectorAll('input').forEach(el=>el.addEventListener('input',window.dispatchUpdateTotal)); wrap.appendChild(row); window.dispatchUpdateTotal?.();
+  };
+  window.dispatchEditAddItem=function(item={}){
+    const wrap=document.getElementById('dispatch-edit-items'); if(!wrap)return;
+    const row=document.createElement('div'); row.className='dispatch-edit-item grid grid-cols-12 gap-2 items-center';
+    row.innerHTML=`<select class="dei-name col-span-6 min-w-0 px-2 py-2 border rounded-lg text-xs bg-white" aria-label="Product name">${options(item.name||DEFAULT_PRODUCT)}</select><input class="dei-qty col-span-2 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="1" step="1" value="${Number(item.quantity)||1}" aria-label="Quantity"><input class="dei-price col-span-3 min-w-0 px-2 py-2 border rounded-lg text-xs" type="number" min="0" step="0.01" value="${Number(item.unitPrice)||0}" aria-label="Unit price"><button type="button" class="col-span-1 text-red-600 font-black" aria-label="Remove item">×</button>`;
+    row.querySelector('button').addEventListener('click',()=>{row.remove();window.dispatchEditRecalc?.();}); row.querySelectorAll('input').forEach(el=>el.addEventListener('input',window.dispatchEditRecalc)); wrap.appendChild(row);
+  };
+  window.openDispatchProductManager=function(){
+    if(!currentAuthUser)return showToast('Please log in first.',true);
+    document.getElementById('dispatch-product-manager')?.remove();
+    const overlay=document.createElement('div'); overlay.id='dispatch-product-manager'; overlay.className='fixed inset-0 z-[10020] flex items-center justify-center p-3'; overlay.style.background='rgba(15,23,42,.62)';
+    overlay.innerHTML=`<div role="dialog" aria-modal="true" class="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl space-y-4"><div class="flex items-start justify-between gap-3"><div><h3 class="text-base font-black text-slate-900">Manage product names</h3><p class="text-xs text-slate-500 mt-1">Add or remove names used in new and edited dispatch orders.</p></div><button type="button" id="dpm-close" class="text-2xl leading-none text-slate-500">×</button></div><div class="flex gap-2"><input id="dpm-new-name" maxlength="100" class="min-w-0 flex-1 rounded-xl border px-3 py-3 text-sm" placeholder="Enter another product name"><button type="button" id="dpm-add" class="rounded-xl bg-[#05281b] px-4 text-xs font-black text-white">＋ Add</button></div><p id="dpm-error" class="hidden text-xs text-red-600"></p><div><div class="mb-2 text-[10px] font-black uppercase tracking-wide text-slate-500">Available products</div><div id="dpm-list" class="space-y-2"></div></div><div class="flex justify-end"><button type="button" id="dpm-done" class="rounded-xl border px-4 py-2.5 text-xs font-bold">Done</button></div></div>`;
+    document.body.appendChild(overlay);
+    const render=()=>{const list=overlay.querySelector('#dpm-list');list.innerHTML=names().map(n=>`<div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2"><span class="min-w-0 break-words text-xs font-semibold text-slate-800">${escapeHtml(n)}</span>${n===DEFAULT_PRODUCT?'<span class="shrink-0 text-[9px] font-bold text-slate-400">DEFAULT</span>':`<button type="button" data-remove="${escapeHtml(n)}" class="shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold text-red-600">Remove</button>`}</div>`).join('');};
+    const close=()=>overlay.remove(); overlay.querySelector('#dpm-close').onclick=close; overlay.querySelector('#dpm-done').onclick=close; overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
+    const refreshDropdowns=()=>{document.querySelectorAll('#dispatch-item-rows select.di-name').forEach(sel=>{const v=sel.value;sel.innerHTML=options(v);});document.querySelectorAll('#dispatch-edit-items select.dei-name').forEach(sel=>{const v=sel.value;sel.innerHTML=options(v);});};
+    const persist=()=>{appState.dispatchProductNames=names();return saveState(appState);};
+    const add=()=>{const input=overlay.querySelector('#dpm-new-name'),value=input.value.trim(),err=overlay.querySelector('#dpm-error');err.classList.add('hidden');if(!value){err.textContent='Enter a product name.';err.classList.remove('hidden');return;}if(names().some(n=>n.toLowerCase()===value.toLowerCase())){err.textContent='This product name already exists.';err.classList.remove('hidden');return;}appState.dispatchProductNames=[...names(),value];if(!persist()){err.textContent='Could not save. Check Firebase connection and try again.';err.classList.remove('hidden');return;}input.value='';render();refreshDropdowns();window.showToast?.('Product name added.');};
+    overlay.querySelector('#dpm-add').onclick=add; overlay.querySelector('#dpm-new-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add();}});
+    overlay.querySelector('#dpm-list').addEventListener('click',e=>{const btn=e.target.closest('[data-remove]');if(!btn)return;const name=btn.getAttribute('data-remove');if(!window.confirm(`Remove "${name}" from the dropdown? Existing orders will keep this name.`))return;appState.dispatchProductNames=names().filter(n=>n!==name);if(!persist()){window.showToast?.('Could not save. Check Firebase connection.',true);return;}render();refreshDropdowns();window.showToast?.('Product name removed.');});
+    render(); overlay.querySelector('#dpm-new-name').focus();
+  };
+  // Keep the first-entry product row initialized with the managed list.
+  document.addEventListener('DOMContentLoaded',()=>{const wrap=document.getElementById('dispatch-item-rows');if(wrap&&!wrap.children.length)window.dispatchAddItem();});
+})();
+</script>
+
+</body></html>
