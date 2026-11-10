@@ -2622,7 +2622,9 @@
       }
 
       currentAuthUser = { ...user, sessionId };
-      try { localStorage.setItem('wellwith_active_session_v1', JSON.stringify({ userId: user.id, sessionId })); } catch(e) { console.warn('Could not persist session on this browser.', e); }
+      if (!saveRememberedSession({ userId: String(user.id), sessionId: String(sessionId), savedAt: new Date().toISOString() })) {
+        console.warn('Persistent session storage is unavailable in this browser. Refresh login may not be retained.');
+      }
       phoneInput.value = '';
       pinInput.value = '';
 
@@ -2678,7 +2680,7 @@
           const expiredUser = currentAuthUser;
           stopSessionHeartbeat();
           currentAuthUser = null;
-          try { localStorage.removeItem('wellwith_active_session_v1'); } catch(e) {}
+          clearRememberedSession();
           stopCamera();
           toggleSidebar(false);
           navigateTo('page-login');
@@ -2713,7 +2715,7 @@
       stopSessionHeartbeat();
       stopCamera();
       currentAuthUser = null;
-      try { localStorage.removeItem('wellwith_active_session_v1'); } catch(e) {}
+      clearRememberedSession();
       toggleSidebar(false);
       navigateTo('page-welcome');
       if (user?.sessionId) endCurrentSessionOnCloudForUser(user);
@@ -6564,11 +6566,38 @@
       }
     }
 
+    const WELLWITH_SESSION_KEY = 'wellwith_active_session_v1';
+    function saveRememberedSession(record) {
+      const value = JSON.stringify(record);
+      let saved = false;
+      try { localStorage.setItem(WELLWITH_SESSION_KEY, value); saved = localStorage.getItem(WELLWITH_SESSION_KEY) === value; } catch(e) {}
+      try {
+        document.cookie = WELLWITH_SESSION_KEY + '=' + encodeURIComponent(value) + '; Max-Age=' + (30*24*60*60) + '; Path=/; SameSite=Lax; Secure';
+        saved = saved || document.cookie.split('; ').some(x => x.startsWith(WELLWITH_SESSION_KEY + '='));
+      } catch(e) {}
+      return saved;
+    }
+    function readRememberedSession() {
+      try {
+        const raw = localStorage.getItem(WELLWITH_SESSION_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch(e) {}
+      try {
+        const prefix = WELLWITH_SESSION_KEY + '=';
+        const part = document.cookie.split('; ').find(x => x.startsWith(prefix));
+        if (part) return JSON.parse(decodeURIComponent(part.slice(prefix.length)));
+      } catch(e) {}
+      return null;
+    }
+    function clearRememberedSession() {
+      try { localStorage.removeItem(WELLWITH_SESSION_KEY); } catch(e) {}
+      try { document.cookie = WELLWITH_SESSION_KEY + '=; Max-Age=0; Path=/; SameSite=Lax; Secure'; } catch(e) {}
+    }
+
     let sessionRestoreAttempted = false;
     async function restoreRememberedSession() {
       if (sessionRestoreAttempted || currentAuthUser || !cloudDb || !cloudStateLoaded || !firebaseUsersLoaded) return;
-      let remembered = null;
-      try { remembered = JSON.parse(localStorage.getItem('wellwith_active_session_v1') || 'null'); } catch(e) {}
+      const remembered = readRememberedSession();
       if (!remembered?.userId || !remembered?.sessionId) return;
       sessionRestoreAttempted = true;
       try {
@@ -6583,7 +6612,7 @@
         );
         const user = users.find(u => String(u.id) === String(remembered.userId));
         if (!session || !user || user.disabled || user.archived) {
-          localStorage.removeItem('wellwith_active_session_v1');
+          clearRememberedSession();
           return;
         }
         currentAuthUser = { ...user, sessionId: remembered.sessionId };
@@ -6595,6 +6624,15 @@
         // Keep the remembered token during a transient network failure; do not log the user out.
         sessionRestoreAttempted = false;
       }
+    }
+
+    let sessionRestoreRetryCount = 0;
+    function retryRememberedSessionRestore() {
+      if (currentAuthUser || sessionRestoreRetryCount >= 40) return;
+      if (!readRememberedSession()) return;
+      sessionRestoreRetryCount++;
+      restoreRememberedSession();
+      if (!currentAuthUser) setTimeout(retryRememberedSessionRestore, 750);
     }
 
     function initFirebaseSync() {
@@ -6643,6 +6681,7 @@
             mergeFirebaseUsers(users);
             refreshActiveScreen();
             restoreRememberedSession();
+            retryRememberedSessionRestore();
           } else if (!snapshot.exists()) {
             // Firebase is empty: initialize the shared account source from the
             // protected default accounts, never from device-local storage.
@@ -6680,6 +6719,7 @@
             cloudBaselineState = JSON.parse(JSON.stringify(appState));
             cloudStateLoaded = true;
             restoreRememberedSession();
+            retryRememberedSessionRestore();
             // Repair legacy duplicate employee records once the authoritative snapshot is loaded.
             // The reconciliation is deterministic and preserves fixed historical employee codes.
             if (JSON.stringify(rawStoreState?.employees || []) !== JSON.stringify(appState.employees || [])) {
