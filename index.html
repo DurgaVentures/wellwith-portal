@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.4.55 -->
+<!-- Wellwith Mangaluru Store Portal v1.5.2 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -9054,7 +9054,7 @@
     if(!['PACKED','READY_DISPATCH','DISPATCHED'].includes(o.status))throw new Error('Order must be packed before generating its India Post label.');
     if(!window.PDFLib)throw new Error('PDF generator library could not load. Check internet connection and retry.');
 
-    // Build a completely new A4 PDF. Do not load, copy, or overlay the old template.
+    // Fresh A4 monochrome label. All sections are drawn directly into a new PDF.
     const {PDFDocument,StandardFonts,rgb}=PDFLib;
     const doc=await PDFDocument.create();
     const page=doc.addPage([595.28,841.89]);
@@ -9065,101 +9065,133 @@
     const c=o.customer||{};
     const cod=o.paymentMode==='COD';
     const amount=Number(o.codAmount||o.total||0).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});
-    const paymentHeading=cod?`COD – Rs. ${amount}`:'PREPAID';
-    const margin=42,tableW=W-margin*2,labelW=112,valueX=margin+labelW;
-    const valueW=tableW-labelW;
-    const fontSize=10.5,lineH=14;
+    const margin=30,innerW=W-margin*2;
 
     const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
-    function drawText(value,x,top,size=fontSize,isBold=false){
-      const valueText=String(value??'');
-      if(!valueText)return;
-      page.drawText(valueText,{
-        x,y:H-top-size,size,font:isBold?bold:regular,color:black
-      });
+    function drawText(value,x,top,size=12,isBold=false){
+      const s=String(value??'');
+      if(!s)return;
+      page.drawText(s,{x,y:H-top-size,size,font:isBold?bold:regular,color:black});
     }
-    function wrapText(value,maxWidth,size=fontSize,font=regular){
+    function line(x1,top1,x2,top2,width=1){
+      page.drawLine({start:{x:x1,y:H-top1},end:{x:x2,y:H-top2},thickness:width,color:black});
+    }
+    function rect(x,top,w,h,width=1.2){
+      page.drawRectangle({x,y:H-top-h,width:w,height:h,borderColor:black,borderWidth:width});
+    }
+    function wrapText(value,maxWidth,size,font=regular){
       const words=clean(value).split(' ').filter(Boolean);
-      const lines=[];let line='';
+      const lines=[];let current='';
       for(const word of words){
-        const test=line?line+' '+word:word;
-        if(font.widthOfTextAtSize(test,size)<=maxWidth){line=test;continue;}
-        if(line)lines.push(line);
-        if(font.widthOfTextAtSize(word,size)<=maxWidth){line=word;continue;}
+        const candidate=current?current+' '+word:word;
+        if(font.widthOfTextAtSize(candidate,size)<=maxWidth){current=candidate;continue;}
+        if(current)lines.push(current);
+        if(font.widthOfTextAtSize(word,size)<=maxWidth){current=word;continue;}
         let part='';
         for(const ch of word){
           const next=part+ch;
           if(font.widthOfTextAtSize(next,size)>maxWidth&&part){lines.push(part);part=ch;}
           else part=next;
         }
-        line=part;
+        current=part;
       }
-      if(line)lines.push(line);
+      if(current)lines.push(current);
       return lines;
     }
-    function sectionTitle(label,top){
-      drawText(label,margin,top,11.5,true);
-      return top+19;
-    }
-    function drawTable(rows,top){
-      const prepared=rows.map(row=>{
-        const isAddress=row.label==='Address';
-        const lines=Array.isArray(row.valueLines)?row.valueLines:wrapText(row.value,valueW-22,fontSize,row.bold?bold:regular);
-        const height=isAddress?Math.max(52,lines.length*lineH+20):Math.max(34,lines.length*lineH+14);
-        return {...row,lines,height};
-      });
-      const totalH=prepared.reduce((s,r)=>s+r.height,0);
-      // Outer border and internal rules are drawn as vector paths for clean print output.
-      page.drawRectangle({x:margin,y:H-top-totalH,width:tableW,height:totalH,borderColor:black,borderWidth:0.8});
-      page.drawLine({start:{x:valueX,y:H-top},end:{x:valueX,y:H-top-totalH},thickness:0.8,color:black});
-      let cursor=top;
-      for(let i=0;i<prepared.length;i++){
-        const row=prepared[i],mid=cursor+row.height/2;
-        if(i>0)page.drawLine({start:{x:margin,y:H-cursor},end:{x:margin+tableW,y:H-cursor},thickness:0.65,color:black});
-        drawText(row.label,margin+10,mid-6.5,10.5,true);
-        const valueFont=row.bold?bold:regular;
-        const textTop=row.lines.length>1?cursor+(row.height-row.lines.length*lineH)/2:mid-6.5;
-        row.lines.forEach((line,j)=>{
-          const textW=valueFont.widthOfTextAtSize(line,fontSize);
-          drawText(line,valueX+10,textTop+j*lineH,fontSize,!!row.bold);
-        });
-        cursor+=row.height;
+    function fitLines(value,maxWidth,size,font=regular,maxLines=8){
+      let lines=wrapText(value,maxWidth,size,font);
+      if(lines.length>maxLines){
+        lines=lines.slice(0,maxLines);
+        let last=lines[maxLines-1];
+        while(last.length&&font.widthOfTextAtSize(last+'...',size)>maxWidth)last=last.slice(0,-1);
+        lines[maxLines-1]=last+'...';
       }
-      return top+totalH;
+      return lines;
     }
 
-    // Header band and India Post customer identifier.
-    drawText('INDIA POST – PARCEL LABEL',margin,22,17,true);
-    const statusW=bold.widthOfTextAtSize(paymentHeading,17);
-    drawText(paymentHeading,W-margin-statusW,22,17,true);
-    let top=57;
-    page.drawRectangle({x:margin,y:H-top-37,width:tableW,height:37,borderColor:black,borderWidth:0.9});
-    drawText('India Post Customer ID: 1309075351',margin+12,top+12,10.5,false);
+    // Outer frame
+    rect(18,18,W-36,H-36,1.5);
 
-    top=top+51;
-    top=sectionTitle('RECIPIENT',top);
+    // 1. India Post Customer ID — first and most prominent element
+    rect(margin,28,innerW,58,2);
+    const idLabel='INDIA POST CUSTOMER ID';
+    const idLabelW=bold.widthOfTextAtSize(idLabel,11);
+    drawText(idLabel,(W-idLabelW)/2,35,11,true);
+    const idValue='1309075351';
+    const idValueW=bold.widthOfTextAtSize(idValue,27);
+    drawText(idValue,(W-idValueW)/2,50,27,true);
+
+    // 2. Document heading
+    drawText('INDIA POST',margin,96,17,true);
+    const parcelLabel='PARCEL LABEL';
+    drawText(parcelLabel,W-margin-bold.widthOfTextAtSize(parcelLabel,12),99,12,true);
+    line(margin,119,W-margin,119,1.4);
+
+    // 3. Payment status and collection instruction
+    const payTop=132,payH=91;
+    rect(margin,payTop,innerW,payH,2);
+    if(cod){
+      const heading='CASH ON DELIVERY';
+      drawText(heading,(W-bold.widthOfTextAtSize(heading,18))/2,payTop+8,18,true);
+      const money='Rs. '+amount;
+      drawText(money,(W-bold.widthOfTextAtSize(money,32))/2,payTop+30,32,true);
+      const collect='COLLECT FROM RECIPIENT';
+      drawText(collect,(W-bold.widthOfTextAtSize(collect,11))/2,payTop+69,11,true);
+    }else{
+      const heading='PREPAID';
+      drawText(heading,(W-bold.widthOfTextAtSize(heading,29))/2,payTop+13,29,true);
+      const noCollect='NO PAYMENT TO BE COLLECTED';
+      drawText(noCollect,(W-bold.widthOfTextAtSize(noCollect,11))/2,payTop+56,11,true);
+    }
+
+    // 4. Destination PIN code
+    const pinTop=235,pinH=58;
+    rect(margin,pinTop,innerW,pinH,1.5);
+    drawText('DESTINATION PIN CODE',margin+12,pinTop+7,10,true);
+    const pin=clean(c.pin);
+    const pinW=bold.widthOfTextAtSize(pin,25);
+    drawText(pin,(W-pinW)/2,pinTop+22,25,true);
+
+    // 5. Recipient name and customer mobile in separate, clearly labelled rows
+    const recipientTop=304,recipientH=83;
+    rect(margin,recipientTop,innerW,recipientH,1.5);
+    drawText('RECIPIENT NAME',margin+12,recipientTop+7,10,true);
+    drawText(clean(c.name),margin+12,recipientTop+21,16,true);
+    line(margin+10,recipientTop+46,W-margin-10,recipientTop+46,0.8);
+    drawText('CUSTOMER MOBILE',margin+12,recipientTop+53,10,true);
+    const mobile=clean(c.mobile);
+    const mobileW=bold.widthOfTextAtSize(mobile,19);
+    drawText(mobile,W-margin-12-mobileW,recipientTop+50,19,true);
+
+    // 6. Delivery address — large, bold and given the greatest reading area
     const addressParts=[c.address,c.landmark,c.city,c.state].map(clean).filter(Boolean);
-    top=drawTable([
-      {label:'Name',value:clean(c.name)},
-      {label:'Mobile',value:clean(c.mobile)},
-      {label:'Address',value:addressParts.join(', ')},
-      {label:'PIN Code',value:clean(c.pin)},
-      {label:'Payment Type',value:cod?'CASH ON DELIVERY (COD)':'PREPAID'},
-      {label:'COD Amount',value:cod?'Rs. '+amount:'',bold:cod}
-    ],top);
-    top+=12;
-    top=sectionTitle('SENDER',top);
-    top=drawTable([
-      {label:'Store',value:'WELLWITH'},
-      {label:'Firm',value:'DURGA VENTURES'},
-      {label:'Mobile',value:'8618486377'},
-      {label:'Address',value:'Shop No. 6, Upper Ground Floor, Kadri Mallikatta Market Complex, Mangalore'},
-      {label:'GSTIN',value:'29ADAFD3264A1ZV'},
-      {label:'PIN Code',value:'575002'}
-    ],top);
+    const addressText=addressParts.join(', ');
+    const addressTop=398,addressSize=15,addressLineH=22;
+    const addressLines=fitLines(addressText,innerW-30,addressSize,bold,7);
+    const addressH=48+addressLines.length*addressLineH;
+    rect(margin,addressTop,innerW,addressH,2);
+    drawText('DELIVERY ADDRESS',margin+12,addressTop+8,12,true);
+    line(margin+10,addressTop+31,W-margin-10,addressTop+31,0.8);
+    addressLines.forEach((s,i)=>drawText(s,margin+14,addressTop+40+i*addressLineH,addressSize,true));
 
-    if(top>H-28)throw new Error('This address is too long to fit on one A4 label. Shorten the address and generate again.');
-    // Classic cross-reference table (no object streams) for broad reader compatibility.
+    // 7. Complete sender / return address with phone and GSTIN
+    const senderTop=addressTop+addressH+12;
+    const senderBottom=H-27;
+    const senderH=senderBottom-senderTop;
+    if(senderH<126)throw new Error('This address is too long to fit on one A4 label. Shorten the delivery address and generate again.');
+    rect(margin,senderTop,innerW,senderH,1.3);
+    drawText('SENDER / RETURN ADDRESS',margin+12,senderTop+8,10,true);
+    drawText('WELLWITH  |  DURGA VENTURES',margin+12,senderTop+25,13,true);
+    const senderLines=[
+      'Shop No. 6, Upper Ground Floor,',
+      'Kadri Mallikatta Market Complex,',
+      'Mangalore, Karnataka – 575002'
+    ];
+    senderLines.forEach((s,i)=>drawText(s,margin+12,senderTop+45+i*17,11,true));
+    drawText('Phone: 8618486377',margin+12,senderTop+101,10,true);
+    drawText('GSTIN: 29ADAFD3264A1ZV',margin+190,senderTop+101,10,true);
+
+    // Classic cross-reference table for broad PDF reader compatibility.
     const bytes=await doc.save({useObjectStreams:false,addDefaultPage:false});
     return new Blob([bytes],{type:'application/pdf'});
   }
