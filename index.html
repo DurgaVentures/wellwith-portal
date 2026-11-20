@@ -1,4 +1,4 @@
-<!-- Wellwith Mangaluru Store Portal v1.5.2 -->
+<!-- Wellwith Mangaluru Store Portal v1.4.55 -->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -8485,6 +8485,70 @@
       if(resultButton){resultButton.disabled=false;resultButton.textContent='Confirm Dispatch';}
     }
   };
+  // Camera barcode scanner for India Post consignment labels.
+  let dispatchBarcodeStream=null,dispatchBarcodeFrame=null,dispatchBarcodeDetector=null;
+  window.closeDispatchBarcodeScanner=function(){
+    if(dispatchBarcodeFrame)cancelAnimationFrame(dispatchBarcodeFrame);
+    dispatchBarcodeFrame=null;
+    if(dispatchBarcodeStream){dispatchBarcodeStream.getTracks().forEach(track=>track.stop());dispatchBarcodeStream=null;}
+    dispatchBarcodeDetector=null;
+    document.getElementById('dispatch-barcode-scanner')?.remove();
+  };
+  window.dispatchStartBarcodeScan=async function(){
+    if(!navigator.mediaDevices?.getUserMedia)return showToast('Camera access requires HTTPS and a supported browser. Enter the tracking ID manually.',true);
+    if(!('BarcodeDetector' in window))return showToast('Barcode scanning is not supported by this browser. Try Chrome on Android or enter the ID manually.',true);
+    window.closeDispatchBarcodeScanner();
+    const scan=document.createElement('div');
+    scan.id='dispatch-barcode-scanner';
+    scan.className='fixed inset-0 z-[10001] flex items-center justify-center p-4';
+    scan.style.background='rgba(15,23,42,.78)';
+    scan.innerHTML=`<div role="dialog" aria-modal="true" aria-labelledby="dispatch-barcode-title" class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-4 space-y-3">
+      <div class="flex items-center justify-between gap-3"><div><h3 id="dispatch-barcode-title" class="text-base font-black text-slate-900">Scan India Post Barcode</h3><p class="text-[10px] text-slate-500 mt-1">Allow camera access and hold the barcode inside the frame.</p></div><button type="button" onclick="closeDispatchBarcodeScanner()" class="text-2xl text-slate-500" aria-label="Close scanner">&times;</button></div>
+      <div class="relative overflow-hidden rounded-xl bg-black aspect-[4/3]"><video id="dispatch-barcode-video" class="w-full h-full object-cover" autoplay muted playsinline></video><div class="absolute left-[8%] right-[8%] top-[34%] h-[32%] border-2 border-white rounded-lg shadow-[0_0_0_999px_rgba(0,0,0,.18)] pointer-events-none"></div></div>
+      <p id="dispatch-barcode-status" class="text-xs text-center font-semibold text-slate-700">Starting camera…</p>
+      <button type="button" onclick="closeDispatchBarcodeScanner()" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-xs font-bold text-slate-700">Cancel Scan</button>
+    </div>`;
+    scan.addEventListener('click',e=>{if(e.target===scan)window.closeDispatchBarcodeScanner();});
+    document.body.appendChild(scan);
+    try{
+      const supported=await window.BarcodeDetector.getSupportedFormats();
+      const preferred=['code_128','code_39','ean_13','ean_8','itf','upc_a','upc_e','qr_code','data_matrix'];
+      const formats=preferred.filter(x=>supported.includes(x));
+      if(!formats.length)throw new Error('This browser cannot read common barcode formats.');
+      dispatchBarcodeDetector=new window.BarcodeDetector({formats});
+      dispatchBarcodeStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+      const video=document.getElementById('dispatch-barcode-video');
+      if(!video)return window.closeDispatchBarcodeScanner();
+      video.srcObject=dispatchBarcodeStream;
+      await video.play();
+      const status=document.getElementById('dispatch-barcode-status');
+      if(status)status.textContent='Camera ready — align the barcode within the white frame.';
+      const scanFrame=async()=>{
+        if(!document.getElementById('dispatch-barcode-scanner')||!video||video.readyState<2){dispatchBarcodeFrame=requestAnimationFrame(scanFrame);return;}
+        try{
+          const codes=await dispatchBarcodeDetector.detect(video);
+          const raw=String(codes?.[0]?.rawValue||'').trim();
+          if(raw){
+            const trackingInput=document.getElementById('dispatch-tracking-input');
+            if(trackingInput){
+              trackingInput.value=raw.toUpperCase();
+              trackingInput.dispatchEvent(new Event('input',{bubbles:true}));
+            }
+            window.closeDispatchBarcodeScanner();
+            showToast('Barcode scanned. Verify the tracking ID, then confirm dispatch.');
+            trackingInput?.focus();
+            return;
+          }
+        }catch(scanError){console.warn('Barcode scan frame failed:',scanError);}
+        dispatchBarcodeFrame=requestAnimationFrame(scanFrame);
+      };
+      dispatchBarcodeFrame=requestAnimationFrame(scanFrame);
+    }catch(error){
+      window.closeDispatchBarcodeScanner();
+      const message=error?.name==='NotAllowedError'?'Camera permission was denied. Allow camera access in browser settings.':error?.name==='NotFoundError'?'No camera was found on this device.':(error?.message||'Could not start barcode scanner.');
+      showToast(message,true);
+    }
+  };
   window.dispatchMarkDispatched=function(id){
     if(!canProcess())return showToast('Inventory staff or management access required.',true);
     const o=orders().find(x=>x.id===id);if(!o)return showToast('Order not found.',true);
@@ -8498,7 +8562,9 @@
       <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2"><div class="text-[9px] uppercase tracking-wide font-bold text-slate-500">Order</div><div class="text-xs font-black text-slate-800">${escD(o.id)} · ${escD(o.customer?.name||'')}</div></div>
       <label for="dispatch-tracking-input" class="block text-xs font-bold text-slate-700">India Post consignment / tracking ID <span class="text-red-600">*</span></label>
       <input id="dispatch-tracking-input" type="text" maxlength="40" autocomplete="off" placeholder="e.g. EK123456789IN" class="w-full rounded-xl border-2 border-slate-300 focus:border-slate-800 focus:ring-2 focus:ring-slate-200 px-3 py-3 text-sm font-semibold uppercase outline-none" />
-      <p class="text-[10px] text-slate-500">The order will be marked as dispatched only after this ID is entered.</p>
+      <button type="button" onclick="dispatchStartBarcodeScan()" class="w-full rounded-xl border-2 border-slate-900 bg-white px-4 py-3 text-xs font-black text-slate-900 hover:bg-slate-50">▦ Scan Barcode with Camera</button>
+      <p id="dispatch-scan-support-note" class="text-[10px] text-slate-500">Scan the India Post barcode or enter the consignment number manually.</p>
+      <p class="text-[10px] text-slate-500">The order will be marked as dispatched only after you confirm the tracking ID.</p>
       <div class="flex gap-2 pt-1"><button type="button" onclick="closeDispatchTrackingModal()" class="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-xs font-bold text-slate-700">Cancel</button><button type="button" onclick="dispatchConfirmTracking('${String(o.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')" class="flex-1 rounded-xl bg-[#05281b] px-4 py-3 text-xs font-black text-white">Confirm Dispatch</button></div>
     </div>`;
     overlay.addEventListener('click',e=>{if(e.target===overlay)window.closeDispatchTrackingModal();});
