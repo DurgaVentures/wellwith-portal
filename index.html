@@ -1514,20 +1514,86 @@
 </section>
 
 
-<section class="hidden space-y-4" id="page-wallet">
-  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-    <div class="flex items-center justify-between"><div><div class="text-[9px] uppercase tracking-widest font-black text-amber-700">Inventory Dispatch Incentive</div><h2 class="text-lg font-black text-slate-900">My Wallet</h2></div><span class="text-2xl">👛</span></div>
-    <div class="rounded-2xl bg-[#05281b] text-white p-5"><div class="text-[10px] uppercase tracking-widest text-emerald-200 font-bold">Available Balance</div><div id="wallet-current-balance" class="text-3xl font-black mt-1">₹0.00</div><div class="text-[10px] text-emerald-100 mt-2">₹35 for each successfully dispatched order</div></div>
-    <div class="grid grid-cols-2 gap-2"><div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100"><div class="text-[9px] uppercase font-black text-emerald-700">Total Earned</div><div id="wallet-total-earned" class="text-base font-black text-emerald-900">₹0.00</div></div><div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><div class="text-[9px] uppercase font-black text-slate-500">Total Paid Out</div><div id="wallet-total-paid" class="text-base font-black text-slate-900">₹0.00</div></div></div>
+<section class="hidden space-y-5" id="page-wallet">
+  <div id="wallet-self-panel" class="space-y-3">
+  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-emerald-50 to-teal-50 p-3 text-slate-900 shadow-sm border border-emerald-100">
+    <div class="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-emerald-400/10 blur-3xl"></div>
+    <div class="relative flex items-start justify-between gap-3">
+      <div><div class="text-[9px] uppercase tracking-[.22em] font-black text-emerald-700">WELLWITH · FINANCIALS</div><h2 class="mt-1 text-xl font-black tracking-tight">My Wallet</h2><p class="mt-1 text-[10px] text-slate-500">Dispatch incentives · Payouts · Transaction ledger</p></div>
+      <span class="rounded-xl border border-emerald-300/20 bg-white/10 px-3 py-2 text-[9px] font-black tracking-wider text-emerald-700">LIVE LEDGER</span>
+    </div>
+    <div class="relative mt-4 rounded-xl border border-emerald-100 bg-white p-3">
+      <div class="text-[9px] uppercase tracking-[.16em] font-bold text-emerald-800">AVAILABLE BALANCE</div>
+      <div id="wallet-current-balance" class="mt-1 text-3xl font-black tracking-tight text-slate-900 tabular-nums">₹0.00</div>
+      <div id="wallet-transaction-subtitle" class="mt-1 text-[9px] text-slate-500">From your recorded wallet transactions</div>
+    </div>
+    <div class="relative mt-2 grid grid-cols-2 gap-2">
+      <div class="rounded-lg border border-emerald-100 bg-white p-2"><div class="text-[8px] font-bold text-emerald-700">TOTAL EARNED</div><div id="wallet-total-earned" class="mt-0.5 text-sm font-black tabular-nums text-slate-900">₹0.00</div></div>
+      <div class="rounded-lg border border-rose-100 bg-white p-2"><div class="text-[8px] font-bold text-rose-700">NET PAID OUT</div><div id="wallet-total-paid" class="mt-0.5 text-sm font-black tabular-nums text-slate-900">₹0.00</div></div>
+    </div>
+    <details class="relative mt-3 rounded-lg border border-emerald-100 bg-white/80 px-3 py-2">
+      <summary class="cursor-pointer text-[9px] font-bold text-slate-700">View wallet breakdown · <span id="wallet-history-count">0</span> transactions</summary>
+      <div class="mt-2 grid grid-cols-2 gap-2 text-[9px] text-slate-600"><div>Payouts reversed: <b id="wallet-total-payout-reversed">₹0.00</b></div><div>Incentives reversed: <b id="wallet-total-reversed">₹0.00</b></div></div>
+    </details>
   </div>
-  <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3"><div class="flex items-center justify-between"><h3 class="font-black text-sm">Wallet History</h3><span id="wallet-history-count" class="text-[9px] text-slate-400 font-bold">0 transactions</span></div><div id="wallet-history-list" class="space-y-2"><div class="text-center text-xs text-slate-400 py-5">No wallet transactions yet.</div></div></div>
-  <div id="wallet-admin-panel" class="hidden bg-white p-4 rounded-3xl border border-amber-200 shadow-sm space-y-3">
-    <div><div class="text-[9px] uppercase tracking-widest font-black text-amber-700">Super Admin</div><h3 class="font-black text-sm">Staff Wallet Payout</h3><p class="text-[10px] text-slate-500 mt-1">Record payment to a staff member. Paying the full available balance resets their wallet to ₹0.</p></div>
-    <select id="wallet-admin-employee" onchange="renderWalletAdminBalance()" class="w-full px-3 py-3 border rounded-xl text-xs bg-white"><option value="">Select inventory staff</option></select>
-    <div class="rounded-xl bg-slate-50 border p-3 flex justify-between"><span class="text-[10px] text-slate-500 font-bold">Available wallet</span><b id="wallet-admin-balance" class="text-sm">₹0.00</b></div>
-    <input id="wallet-payout-reference" class="w-full px-3 py-3 border rounded-xl text-xs" placeholder="Payment reference / UTR (optional)">
-    <input id="wallet-payout-note" class="w-full px-3 py-3 border rounded-xl text-xs" placeholder="Note (optional)">
-    <button type="button" onclick="walletPayFullBalance()" class="w-full py-3 rounded-xl bg-amber-600 text-white text-xs font-black">Record Full Payout &amp; Clear Wallet</button>
+
+  <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <div class="flex items-center justify-between gap-3"><div><h3 class="text-sm font-black text-slate-900">My transaction history</h3><p class="mt-1 text-[10px] text-slate-500">Your credits and debits, with running balance.</p></div><button type="button" onclick="renderStaffWallet()" class="rounded-lg border border-slate-200 px-3 py-2 text-[9px] font-black text-slate-600">↻ Refresh</button></div>
+    <div id="wallet-history-list" class="mt-2 space-y-1.5"><div class="py-4 text-center text-xs text-slate-400">Loading wallet history…</div></div>
+  </div>
+
+  </div>
+  <div id="wallet-admin-panel" class="hidden space-y-3">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm">
+      <div class="border-b border-slate-100 p-3">
+        <div><div class="text-[9px] uppercase tracking-[.16em] font-black text-emerald-700">SUPER ADMIN</div><h3 class="mt-0.5 text-base font-black">Staff Payout</h3></div>
+        <details class="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+          <summary class="cursor-pointer text-[9px] font-bold text-slate-600">All-staff financial summary</summary>
+          <div class="mt-2 grid grid-cols-3 gap-2 text-[9px]">
+            <div><span class="block text-slate-500">Earned</span><b id="wallet-ledger-earned" class="text-emerald-700">₹0.00</b></div>
+            <div><span class="block text-slate-500">Paid out</span><b id="wallet-ledger-payouts" class="text-rose-700">₹0.00</b></div>
+            <div><span class="block text-slate-500">Available</span><b id="wallet-ledger-liability" class="text-slate-900">₹0.00</b></div>
+            <div><span class="block text-slate-500">Payouts reversed</span><b id="wallet-ledger-payout-reversed" class="text-emerald-700">₹0.00</b></div>
+            <div><span class="block text-slate-500">Incentives reversed</span><b id="wallet-ledger-incentive-reversed" class="text-rose-700">₹0.00</b></div>
+            <div><span class="block text-slate-500">Staff with balance</span><b id="wallet-ledger-positive-staff" class="text-slate-900">0</b></div>
+          </div>
+        </details>
+      </div>
+      <div class="space-y-2 p-3 bg-white">
+        <div class="space-y-2">
+          <label class="block"><span class="mb-1 block text-[9px] font-bold text-slate-600">1 · Select staff member</span><select id="wallet-admin-employee" onchange="renderWalletAdminBalance()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900"><option value="">Choose staff member</option></select></label>
+          <div class="flex items-center justify-between gap-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
+            <div><div class="text-[8px] font-bold text-emerald-800">AVAILABLE BALANCE</div><div id="wallet-admin-employee-meta" class="mt-0.5 text-[9px] text-slate-500">Select a staff member</div></div>
+            <div id="wallet-admin-balance" class="text-lg font-black text-slate-900 tabular-nums">—</div>
+          </div>
+          <label class="block"><span class="mb-1 block text-[9px] font-bold text-slate-600">2 · Enter payout amount (₹)</span><input id="wallet-payout-amount" type="number" min="0.01" step="0.01" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 placeholder:text-slate-400" placeholder="Enter amount"></label>
+          <details class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+            <summary class="cursor-pointer text-[9px] font-semibold text-slate-600">Payment details (optional)</summary>
+            <div class="mt-2 space-y-2">
+              <select id="wallet-payout-method" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900"><option value="UPI">UPI</option><option value="BANK_TRANSFER">Bank transfer</option><option value="CASH">Cash</option><option value="OTHER">Other</option></select>
+              <input id="wallet-payout-reference" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-500" placeholder="UTR / payment reference (optional)">
+              <input id="wallet-payout-note" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-500" placeholder="Note (optional)">
+            </div>
+          </details>
+          <button type="button" onclick="walletRecordPayout()" class="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700">3 · Record payout</button>
+          <p class="text-center text-[8px] text-slate-500">Record only payments already made. No money is transferred.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="text-sm font-black text-slate-900">Wallet transaction history</h3><p class="mt-1 text-[10px] text-slate-500">Credits, payouts and reversals.</p></div><button type="button" onclick="renderWalletPayoutHistory()" class="rounded-lg border border-slate-200 px-3 py-2 text-[9px] font-black text-slate-600">↻ Refresh ledger</button></div>
+      <details class="mt-2 rounded-lg border border-slate-200 px-3 py-2">
+        <summary class="cursor-pointer text-[10px] font-bold text-slate-600">Search and filters (optional)</summary>
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input id="wallet-ledger-search" oninput="renderWalletPayoutHistory()" class="rounded-xl border border-slate-200 px-3 py-2.5 text-[10px]" placeholder="Search staff, invoice, UTR…">
+          <select id="wallet-ledger-type" onchange="renderWalletPayoutHistory()" class="rounded-xl border border-slate-200 px-3 py-2.5 text-[10px]"><option value="ALL">All transactions</option><option value="CREDIT">Credits only</option><option value="DEBIT">Debits only</option></select>
+          <select id="wallet-ledger-category" onchange="renderWalletPayoutHistory()" class="rounded-xl border border-slate-200 px-3 py-2.5 text-[10px]"><option value="ALL">All categories</option><option value="DISPATCH">Dispatch incentives</option><option value="PAYOUT">Staff payouts</option><option value="REVERSAL">Reversals</option></select>
+          <div class="grid grid-cols-2 gap-2"><input id="wallet-ledger-from" type="date" onchange="renderWalletPayoutHistory()" class="min-w-0 rounded-xl border border-slate-200 px-2 py-2 text-[9px]"><input id="wallet-ledger-to" type="date" onchange="renderWalletPayoutHistory()" class="min-w-0 rounded-xl border border-slate-200 px-2 py-2 text-[9px]"></div>
+        </div>
+      </details>
+      <div id="wallet-payout-history" class="mt-2 space-y-1.5"><div class="py-4 text-center text-xs text-slate-400">Loading the wallet ledger…</div></div>
+    </div>
   </div>
 </section>
 
@@ -9034,63 +9100,259 @@
       try{addAuditLog('UPDATE_DISPATCH_INCENTIVE_RATES','WALLET',JSON.stringify(rates),'dispatchIncentiveRates');}catch(e){}
     }catch(error){console.error('Dispatch incentive rates save failed:',error);showToast('Could not save rates: '+(error?.message||'Firebase error'),true);}
   };
+  // WALLET LEDGER — one transaction source and one set of accounting rules.
+  const walletMoneyToPaise=value=>Math.round((Number(value)||0)*100);
+  const walletPaiseToRupees=paise=>(Number(paise)||0)/100;
+  const walletFmt=paise=>'₹'+walletPaiseToRupees(paise).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const walletIsCredit=t=>['CREDIT','PAYOUT_REVERSAL'].includes(String(t?.type||'').toUpperCase());
+  const walletIsDebit=t=>['PAYOUT','REVERSAL'].includes(String(t?.type||'').toUpperCase());
+  function walletDeltaPaise(t){const n=walletMoneyToPaise(t?.amount);return walletIsCredit(t)?n:(walletIsDebit(t)?-n:0);}
+  function walletBalancePaise(transactions){return transactions.reduce((sum,t)=>sum+walletDeltaPaise(t),0);}
+  function walletIdentityIds(user){
+    const ids=new Set([String(user?.id||'')].filter(Boolean));
+    if(!user)return ids;
+    const phone=String(user.phone||'').replace(/\D/g,'');
+    const code=String(user.employeeCode||'').trim().toUpperCase();
+    (appState.employees||[]).concat(Array.isArray(cloudUsers)?cloudUsers:[]).forEach(e=>{
+      const samePhone=phone&&String(e.phone||'').replace(/\D/g,'')===phone;
+      const sameCode=code&&String(e.employeeCode||'').trim().toUpperCase()===code;
+      if((samePhone||sameCode)&&e.id)ids.add(String(e.id));
+    });
+    return ids;
+  }
   function walletTransactionsFor(employeeId){
     appState=loadState();
-    return (appState.walletTransactions||[]).filter(t=>String(t.employeeId)===String(employeeId)).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+    const ids=employeeId instanceof Set?employeeId:new Set([String(employeeId||'')]);
+    return (appState.walletTransactions||[]).filter(t=>ids.has(String(t.employeeId||''))).sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.id||'').localeCompare(String(b.id||'')));
   }
   function walletTotals(employeeId){
     const tx=walletTransactionsFor(employeeId);
-    const earned=tx.filter(t=>t.type==='CREDIT').reduce((s,t)=>s+Number(t.amount||0),0);
-    const paid=tx.filter(t=>t.type==='PAYOUT').reduce((s,t)=>s+Number(t.amount||0),0);
-    const reversed=tx.filter(t=>t.type==='REVERSAL').reduce((s,t)=>s+Number(t.amount||0),0);
-    return {earned,paid,reversed,balance:Math.max(0,earned-paid-reversed),tx};
+    const earned=tx.filter(t=>t.type==='CREDIT').reduce((s,t)=>s+walletMoneyToPaise(t.amount),0);
+    const paidGross=tx.filter(t=>t.type==='PAYOUT').reduce((s,t)=>s+walletMoneyToPaise(t.amount),0);
+    const payoutReversed=tx.filter(t=>t.type==='PAYOUT_REVERSAL').reduce((s,t)=>s+walletMoneyToPaise(t.amount),0);
+    const incentiveReversed=tx.filter(t=>t.type==='REVERSAL').reduce((s,t)=>s+walletMoneyToPaise(t.amount),0);
+    return {earned,paid:Math.max(0,paidGross-payoutReversed),paidGross,payoutReversed,incentiveReversed,balance:walletBalancePaise(tx),tx};
+  }
+  function walletTransactionTitle(t){
+    return t.type==='CREDIT'?'Dispatch incentive earned':t.type==='PAYOUT'?'Staff payout':t.type==='REVERSAL'?'Dispatch incentive reversed':t.type==='PAYOUT_REVERSAL'?'Mistaken payout reversed':'Wallet transaction';
+  }
+  function walletTransactionDetail(t){
+    const ref=t.invoiceNumber||t.orderId||t.reference||'';
+    const bits=[];
+    if(ref)bits.push('Ref: '+ref);
+    if(t.productName)bits.push(t.productName);
+    if(t.paymentMethod)bits.push(String(t.paymentMethod).replace('_',' '));
+    if(t.description)bits.push(t.description);
+    if(t.note)bits.push(t.note);
+    return bits.join(' · ');
+  }
+  function walletBuildRunningBalances(transactions,mergeAllForOneWallet=false){
+    const running=new Map(),balances=new Map();
+    [...transactions].sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.id||'').localeCompare(String(b.id||''))).forEach(t=>{
+      const key=mergeAllForOneWallet?'__ONE_WALLET__':String(t.employeeId||'');
+      const next=(running.get(key)||0)+walletDeltaPaise(t);
+      running.set(key,next);balances.set(String(t.id||''),next);
+    });
+    return balances;
+  }
+  function walletTransactionCard(t,runningBalance,admin=false){
+    const credit=walletIsCredit(t),debit=walletIsDebit(t);
+    const toneClass=credit
+      ?{card:'border-emerald-100 bg-emerald-50/70',label:'text-emerald-700',amount:'text-emerald-800'}
+      :debit
+        ?{card:'border-rose-100 bg-rose-50/70',label:'text-rose-700',amount:'text-rose-800'}
+        :{card:'border-slate-200 bg-slate-50',label:'text-slate-600',amount:'text-slate-800'};
+    const amountSign=credit?'+':debit?'−':'';
+    const empMeta=(appState.employees||[]).find(e=>String(e.id)===String(t.employeeId));
+    const staffName=admin?`<div class="text-[9px] font-black text-slate-500">${escD(t.employeeName||empMeta?.name||'Staff')} · ${escD(t.employeeCode||empMeta?.employeeCode||t.employeeId||'')}</div>`:'';
+    const date=t.createdAt?new Date(t.createdAt).toLocaleString('en-IN'):'Date unavailable';
+    const detail=walletTransactionDetail(t);
+    const reversed=admin&&t.type==='PAYOUT'&&(appState.walletTransactions||[]).some(x=>x.type==='PAYOUT_REVERSAL'&&String(x.reversesTransactionId)===String(t.id));
+    const action=admin&&t.type==='PAYOUT'?(reversed?'<span class="mt-2 inline-flex rounded-md bg-emerald-100 px-2 py-1 text-[8px] font-black text-emerald-800">REVERSED</span>':`<button type="button" onclick="walletReversePayout('${escD(t.id)}')" class="mt-2 rounded-lg border border-rose-200 bg-white px-2.5 py-1.5 text-[8px] font-black text-rose-700">Reverse mistaken payout</button>`):'';
+    return `<article class="rounded-xl border ${toneClass.card} p-3"><div class="flex items-start justify-between gap-3"><div class="min-w-0 flex-1">${staffName}<div class="text-[10px] font-black text-slate-900">${walletTransactionTitle(t)}</div><div class="mt-1 text-[9px] text-slate-500">${date}</div>${detail?`<div class="mt-1 break-words text-[9px] text-slate-600">${escD(detail)}</div>`:''}<div class="mt-1 text-[8px] text-slate-400">Recorded by ${escD(t.createdByName||'System')}</div>${action}</div><div class="shrink-0 text-right"><div class="text-[8px] font-black uppercase tracking-wider ${toneClass.label}">${credit?'CREDIT':debit?'DEBIT':'INFO'}</div><div class="mt-0.5 whitespace-nowrap text-sm font-black tabular-nums ${toneClass.amount}">${amountSign}${walletFmt(walletMoneyToPaise(t.amount))}</div><div class="mt-1 whitespace-nowrap text-[8px] text-slate-500">Balance ${walletFmt(runningBalance)}</div></div></div></article>`;
   }
   window.renderStaffWallet=function(){
     if(!currentAuthUser)return;
-    appState=loadState();const mine=walletTotals(currentAuthUser.id);
+    appState=loadState();
+    const ids=walletIdentityIds(currentAuthUser);
+    const mine=walletTotals(ids);
     const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
-    set('wallet-current-balance','₹'+mine.balance.toFixed(2));set('wallet-total-earned','₹'+mine.earned.toFixed(2));set('wallet-total-paid','₹'+mine.paid.toFixed(2));set('wallet-history-count',mine.tx.length+' transactions');
+    set('wallet-current-balance',walletFmt(mine.balance));
+    set('wallet-total-earned',walletFmt(mine.earned));
+    set('wallet-total-paid',walletFmt(mine.paid));
+    set('wallet-total-payout-reversed',walletFmt(mine.payoutReversed));
+    set('wallet-total-reversed',walletFmt(mine.incentiveReversed));
+    set('wallet-history-count',String(mine.tx.length));
+    set('wallet-transaction-subtitle',mine.balance<0?'Warning: recorded debits exceed credits. Please contact Super Admin.':'Calculated from your recorded wallet transactions');
     const list=document.getElementById('wallet-history-list');
-    if(list)list.innerHTML=mine.tx.length?mine.tx.map(t=>{
-      const credit=t.type==='CREDIT',reversal=t.type==='REVERSAL',sign=credit?'+':'−',title=credit?'Dispatch incentive':(reversal?'Dispatch incentive reversed':'Wallet payout');
-      const detail=credit?`Order ${escD(t.invoiceNumber||t.orderId||'')}${t.productName?' · '+escD(t.productName):''}`:(reversal?`Order ${escD(t.invoiceNumber||t.orderId||'')} · ${escD(t.note||'Order returned to pre-dispatch status')}`:`Paid by ${escD(t.createdByName||'Super Admin')}${t.reference?' · Ref: '+escD(t.reference):''}`);
-      return `<div class="p-3 rounded-xl border ${credit?'border-emerald-100 bg-emerald-50':'border-slate-200 bg-slate-50'}"><div class="flex justify-between gap-2"><div><div class="text-[10px] font-black text-slate-800">${title}</div><div class="text-[9px] text-slate-500 mt-1">${detail}</div><div class="text-[8px] text-slate-400 mt-1">${t.createdAt?new Date(t.createdAt).toLocaleString('en-IN'):'—'}${t.note?' · '+escD(t.note):''}</div></div><div class="text-xs font-black ${credit?'text-emerald-700':'text-slate-800'}">${sign}₹${Number(t.amount||0).toFixed(2)}</div></div></div>`;
-    }).join(''):'<div class="text-center text-xs text-slate-400 py-5">No wallet transactions yet.</div>';
-    const panel=document.getElementById('wallet-admin-panel');if(panel)panel.classList.toggle('hidden',!isSuperAdmin());if(isSuperAdmin())renderWalletAdminEmployees();
+    if(list){
+      const running=walletBuildRunningBalances(mine.tx,true);
+      const ordered=[...mine.tx].reverse();
+      list.innerHTML=ordered.length?ordered.map(t=>walletTransactionCard(t,running.get(String(t.id||''))||0,false)).join(''):'<div class="rounded-xl border border-dashed border-slate-200 py-8 text-center"><div class="text-xs font-bold text-slate-500">No wallet transactions yet</div><div class="mt-1 text-[9px] text-slate-400">Dispatch incentives and recorded payouts will appear here.</div></div>';
+    }
+    const admin=isSuperAdmin();
+    const panel=document.getElementById('wallet-admin-panel');
+    const selfPanel=document.getElementById('wallet-self-panel');
+    if(panel)panel.classList.toggle('hidden',!admin);
+    if(selfPanel)selfPanel.classList.toggle('hidden',admin);
+    if(admin)renderWalletAdminEmployees();
   };
   function renderWalletAdminEmployees(){
     const select=document.getElementById('wallet-admin-employee');if(!select)return;
     appState=loadState();const previous=select.value;
     const employees=(appState.employees||[]).filter(e=>!e.disabled&&!e.archived&&['INVENTORY_STAFF','INVENTORY'].includes(String(e.role||'').toUpperCase()));
-    select.innerHTML='<option value="">Select inventory staff</option>'+employees.map(e=>`<option value="${escD(e.id)}">${escD(e.name)} · ${escD(e.employeeCode||'')}</option>`).join('');
-    if(employees.some(e=>e.id===previous))select.value=previous;renderWalletAdminBalance();
+    select.innerHTML='<option value="">All Staff · Consolidated ledger</option>'+employees.map(e=>`<option value="${escD(e.id)}">${escD(e.name)} · ${escD(e.employeeCode||e.id||'')}</option>`).join('');
+    if(employees.some(e=>String(e.id)===String(previous)))select.value=previous;
+    renderWalletAdminBalance();
+    window.renderWalletPayoutHistory();
   }
   window.renderWalletAdminBalance=function(){
-    const id=document.getElementById('wallet-admin-employee')?.value||'',el=document.getElementById('wallet-admin-balance');if(!el)return;
-    el.textContent='₹'+(id?walletTotals(id).balance:0).toFixed(2);
+    const id=document.getElementById('wallet-admin-employee')?.value||'';
+    const el=document.getElementById('wallet-admin-balance');
+    const meta=document.getElementById('wallet-admin-employee-meta');
+    const amount=document.getElementById('wallet-payout-amount');
+    if(!el)return;
+    appState=loadState();
+    if(id){
+      const employee=(appState.employees||[]).find(e=>String(e.id)===String(id));
+      const totals=walletTotals(id);
+      el.textContent=walletFmt(totals.balance);
+      if(meta)meta.textContent=(employee?.name||'Selected staff')+' · '+(employee?.employeeCode||employee?.id||'');
+      if(amount&&!amount.value)amount.value=totals.balance>0?walletPaiseToRupees(totals.balance).toFixed(2):'';
+    }else{
+      el.textContent='All staff';
+      if(meta)meta.textContent='Select one staff member before recording a payout.';
+      if(amount)amount.value='';
+    }
+    renderWalletPayoutHistory();
   };
-  window.walletPayFullBalance=async function(){
+  window.walletSetFullPayoutAmount=function(){
+    const id=document.getElementById('wallet-admin-employee')?.value||'';
+    if(!id)return showToast('Select one staff member first.',true);
+    const balance=walletTotals(id).balance;
+    if(balance<=0)return showToast('This staff wallet has no positive available balance.',true);
+    const amount=document.getElementById('wallet-payout-amount');if(amount)amount.value=walletPaiseToRupees(balance).toFixed(2);
+  };
+  window.renderWalletPayoutHistory=function(){
+    const list=document.getElementById('wallet-payout-history');if(!list||!isSuperAdmin())return;
+    try{
+    appState=loadState();
+    const selectedId=document.getElementById('wallet-admin-employee')?.value||'';
+    const safeTransactions=Array.isArray(appState.walletTransactions)?appState.walletTransactions.filter(t=>t&&typeof t==='object'&&!Array.isArray(t)):[];
+    let transactions=[...safeTransactions];
+    if(selectedId)transactions=transactions.filter(t=>String(t.employeeId||'')===String(selectedId));
+    const typeFilter=document.getElementById('wallet-ledger-type')?.value||'ALL';
+    const categoryFilter=document.getElementById('wallet-ledger-category')?.value||'ALL';
+    const query=(document.getElementById('wallet-ledger-search')?.value||'').trim().toLowerCase();
+    const from=document.getElementById('wallet-ledger-from')?.value||'';
+    const to=document.getElementById('wallet-ledger-to')?.value||'';
+    const allTransactions=[...safeTransactions];
+    const allRunning=walletBuildRunningBalances(allTransactions);
+    const totals=transactions.reduce((acc,t)=>{
+      const amount=walletMoneyToPaise(t.amount);
+      if(t.type==='CREDIT')acc.earned+=amount;
+      else if(t.type==='PAYOUT')acc.payouts+=amount;
+      else if(t.type==='PAYOUT_REVERSAL')acc.payoutReversed+=amount;
+      else if(t.type==='REVERSAL')acc.incentiveReversed+=amount;
+      return acc;
+    },{earned:0,payouts:0,payoutReversed:0,incentiveReversed:0});
+    const allEmployeeIds=new Set(allTransactions.map(t=>String(t.employeeId||'')));
+    const liability=[...allEmployeeIds].reduce((sum,id)=>sum+Math.max(0,walletBalancePaise(allTransactions.filter(t=>String(t.employeeId||'')===id))),0);
+    const positiveStaff=[...allEmployeeIds].filter(id=>walletBalancePaise(allTransactions.filter(t=>String(t.employeeId||'')===id))>0).length;
+    const selectedBalance=selectedId?walletBalancePaise(transactions):liability;
+    const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+    set('wallet-ledger-earned',walletFmt(totals.earned));
+    set('wallet-ledger-payouts',walletFmt(totals.payouts));
+    set('wallet-ledger-payout-reversed',walletFmt(totals.payoutReversed));
+    set('wallet-ledger-incentive-reversed',walletFmt(totals.incentiveReversed));
+    set('wallet-ledger-liability',walletFmt(Math.max(0,selectedBalance)));
+    set('wallet-ledger-positive-staff',selectedId?(selectedBalance>0?'1':'0'):String(positiveStaff));
+    transactions=transactions.filter(t=>{
+      const isCredit=walletIsCredit(t),isDebit=walletIsDebit(t);
+      if(typeFilter==='CREDIT'&&!isCredit)return false;
+      if(typeFilter==='DEBIT'&&!isDebit)return false;
+      if(categoryFilter==='DISPATCH'&&!['CREDIT','REVERSAL'].includes(t.type))return false;
+      if(categoryFilter==='PAYOUT'&&!['PAYOUT','PAYOUT_REVERSAL'].includes(t.type))return false;
+      if(categoryFilter==='REVERSAL'&&!['REVERSAL','PAYOUT_REVERSAL'].includes(t.type))return false;
+      const date=String(t.createdAt||'').slice(0,10);
+      if(from&&date<from)return false;if(to&&date>to)return false;
+      if(query){
+        const hay=[t.employeeName,t.employeeCode,t.employeeId,t.invoiceNumber,t.orderId,t.id,t.reference,t.description,t.note].join(' ').toLowerCase();
+        if(!hay.includes(query))return false;
+      }
+      return true;
+    });
+    if(!transactions.length){
+      list.innerHTML='<div class="rounded-xl border border-dashed border-slate-200 py-8 text-center"><div class="text-xs font-bold text-slate-500">No matching wallet transactions</div><div class="mt-1 text-[9px] text-slate-400">'+(selectedId?'No transactions found for this staff member.':'Try another filter or search term.')+'</div></div>';
+      return;
+    }
+    transactions.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))||String(b.id||'').localeCompare(String(a.id||'')));
+    list.innerHTML=transactions.map(t=>walletTransactionCard(t,allRunning.get(String(t.id||''))||0,true)).join('');
+    }catch(error){
+      console.error('Wallet history render failed:',error);
+      list.innerHTML='<div class="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-800">Could not load wallet history. Please refresh the ledger. If this continues, check the browser console for the error.</div>';
+    }
+  };
+  window.walletReversePayout=async function(payoutId){
     if(!isSuperAdmin())return showToast('Super Admin access required.',true);
-    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase is not connected. Payout was not saved.',true);
-    const employeeId=document.getElementById('wallet-admin-employee')?.value||'',reference=(document.getElementById('wallet-payout-reference')?.value||'').trim(),note=(document.getElementById('wallet-payout-note')?.value||'').trim();
-    if(!employeeId)return showToast('Select an inventory staff member.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase is not connected. Payout was not reversed.',true);
+    const reason=(window.prompt('Reason for reversing this mistaken payout:','Recorded by mistake')||'').trim();
+    if(!reason)return showToast('Enter a reason. No changes were made.',true);
+    if(!window.confirm('Reverse this payout entry? The amount will be credited back to the staff wallet. The original payout remains in the ledger.'))return;
     const now=new Date().toISOString(),actor={id:currentAuthUser.id,name:currentAuthUser.name};
     try{
       const result=await cloudDb.ref('storeState').transaction(serverState=>{
         if(!serverState)return;
-        const latest=ensureStateArrays(serverState),emp=(latest.employees||[]).find(e=>String(e.id)===String(employeeId));if(!emp)return;
-        latest.walletTransactions=Array.isArray(latest.walletTransactions)?latest.walletTransactions:[];
-        const tx=latest.walletTransactions.filter(t=>String(t.employeeId)===String(employeeId));
-        const balance=Math.max(0,tx.filter(t=>t.type==='CREDIT').reduce((s,t)=>s+Number(t.amount||0),0)-tx.filter(t=>t.type==='PAYOUT').reduce((s,t)=>s+Number(t.amount||0),0));
-        if(balance<=0)return;
-        latest.walletTransactions.push({id:'WAL-P-'+Date.now()+'-'+employeeId,type:'PAYOUT',employeeId,employeeName:emp.name,amount:balance,description:'Full wallet payout',reference,note,createdAt:now,createdBy:actor.id,createdByName:actor.name});
+        const latest=ensureStateArrays(serverState);latest.walletTransactions=Array.isArray(latest.walletTransactions)?latest.walletTransactions:[];
+        const payout=latest.walletTransactions.find(t=>t.type==='PAYOUT'&&String(t.id)===String(payoutId));
+        if(!payout)return;
+        if(latest.walletTransactions.some(t=>t.type==='PAYOUT_REVERSAL'&&String(t.reversesTransactionId)===String(payoutId)))return;
+        latest.walletTransactions.push({id:'WAL-PR-'+Date.now()+'-'+payout.employeeId,type:'PAYOUT_REVERSAL',employeeId:payout.employeeId,employeeName:payout.employeeName||'Inventory staff',employeeCode:payout.employeeCode||'',amount:Number(payout.amount||0),description:'Mistaken payout reversed; amount returned to wallet',reversesTransactionId:payout.id,reference:payout.reference||'',paymentMethod:payout.paymentMethod||'',note:reason,createdAt:now,createdBy:actor.id,createdByName:actor.name});
         return latest;
       },undefined,false);
-      if(!result.committed)return showToast('No available balance to pay, or the payout could not be committed.',true);
+      if(!result.committed)return showToast('Payout was already reversed or could not be found.',true);
       appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);
-      document.getElementById('wallet-payout-reference').value='';document.getElementById('wallet-payout-note').value='';
-      renderStaffWallet();renderWalletAdminBalance();showToast('Payout recorded. Staff wallet balance is now ₹0.00.');
+      renderStaffWallet();renderWalletAdminBalance();showToast('Payout reversal recorded and wallet balance updated.');
+    }catch(error){console.error('Wallet payout reversal failed:',error);showToast('Reversal failed: '+(error?.message||'Firebase error'),true);}
+  };
+  window.walletRecordPayout=async function(){
+    if(!isSuperAdmin())return showToast('Super Admin access required.',true);
+    if(!cloudDb||!cloudStateLoaded||!firebaseConnectionOnline)return showToast('Firebase is not connected. Payout was not saved.',true);
+    const employeeId=document.getElementById('wallet-admin-employee')?.value||'';
+    const amountRupees=Number(document.getElementById('wallet-payout-amount')?.value||0);
+    const amountPaise=walletMoneyToPaise(amountRupees);
+    const method=document.getElementById('wallet-payout-method')?.value||'OTHER';
+    const reference=(document.getElementById('wallet-payout-reference')?.value||'').trim();
+    const note=(document.getElementById('wallet-payout-note')?.value||'').trim();
+    if(!employeeId)return showToast('Select one inventory staff member.',true);
+    if(!Number.isFinite(amountRupees)||amountPaise<=0)return showToast('Enter a valid payout amount greater than zero.',true);
+    const employee=(appState.employees||[]).find(e=>String(e.id)===String(employeeId));
+    if(!employee)return showToast('Selected staff member could not be found.',true);
+    const available=walletTotals(employeeId).balance;
+    if(amountPaise>available)return showToast('Payout cannot exceed the available wallet balance of '+walletFmt(available)+'.',true);
+    if(!window.confirm('Record a '+walletFmt(amountPaise)+' '+method.replace('_',' ')+' payout for '+employee.name+'? Confirm only if the payment has already been made externally.'))return;
+    const now=new Date().toISOString(),actor={id:currentAuthUser.id,name:currentAuthUser.name};
+    const button=document.querySelector('button[onclick="walletRecordPayout()"]');
+    if(button){if(button.dataset.busy==='1')return;button.dataset.busy='1';button.disabled=true;button.textContent='Recording…';}
+    try{
+      const result=await cloudDb.ref('storeState').transaction(serverState=>{
+        if(!serverState)return;
+        const latest=ensureStateArrays(serverState);latest.walletTransactions=Array.isArray(latest.walletTransactions)?latest.walletTransactions:[];
+        const tx=latest.walletTransactions.filter(t=>String(t.employeeId)===String(employeeId));
+        const balance=walletBalancePaise(tx);
+        if(amountPaise<=0||amountPaise>balance)return;
+        const emp=(latest.employees||[]).find(e=>String(e.id)===String(employeeId));if(!emp)return;
+        const txId='WAL-P-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+        latest.walletTransactions.push({id:txId,type:'PAYOUT',employeeId,employeeName:emp.name,employeeCode:emp.employeeCode||'',amount:walletPaiseToRupees(amountPaise),description:(amountPaise===balance?'Wallet payout':'Partial wallet payout'),paymentMethod:method,reference,note,createdAt:now,createdBy:actor.id,createdByName:actor.name});
+        return latest;
+      },undefined,false);
+      if(!result.committed)return showToast('Payout was not recorded. The balance may have changed; refresh and retry.',true);
+      appState=ensureStateArrays(result.snapshot.val());cloudBaselineState=cloneCloudSafe(appState);
+      ['wallet-payout-amount','wallet-payout-reference','wallet-payout-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      renderStaffWallet();renderWalletAdminBalance();
+      showToast('Payout record saved. Wallet ledger updated.');
     }catch(error){console.error('Wallet payout failed:',error);showToast('Payout failed: '+(error?.message||'Firebase error'),true);}
+    finally{if(button){button.dataset.busy='0';button.disabled=false;button.textContent='Confirm & record payout';}}
   };
   window.renderDispatchDesk=function(){
     if(!$('page-dispatch'))return;
@@ -9120,144 +9382,179 @@
     if(!['PACKED','READY_DISPATCH','DISPATCHED'].includes(o.status))throw new Error('Order must be packed before generating its India Post label.');
     if(!window.PDFLib)throw new Error('PDF generator library could not load. Check internet connection and retry.');
 
-    // Fresh A4 monochrome label. All sections are drawn directly into a new PDF.
+    // Full-area A5 portrait postal label with recipient-first visual hierarchy.
     const {PDFDocument,StandardFonts,rgb}=PDFLib;
     const doc=await PDFDocument.create();
-    const page=doc.addPage([595.28,841.89]);
+    const page=doc.addPage([419.53,595.28]);
     const regular=await doc.embedFont(StandardFonts.Helvetica);
     const bold=await doc.embedFont(StandardFonts.HelveticaBold);
-    const black=rgb(0,0,0);
-    const W=page.getWidth(),H=page.getHeight();
-    const c=o.customer||{};
-    const cod=o.paymentMode==='COD';
+    const black=rgb(0,0,0),white=rgb(1,1,1);
+    const W=page.getWidth(),H=page.getHeight(),margin=15,contentW=W-margin*2;
+    const c=o.customer||{},cod=o.paymentMode==='COD';
     const amount=Number(o.codAmount||o.total||0).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});
-    const margin=30,innerW=W-margin*2;
-
     const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
-    function drawText(value,x,top,size=12,isBold=false){
-      const s=String(value??'');
-      if(!s)return;
-      page.drawText(s,{x,y:H-top-size,size,font:isBold?bold:regular,color:black});
+    const norm=v=>clean(v).toLocaleLowerCase().replace(/[.,]/g,'');
+    function txt(value,x,top,size=10,isBold=false,color=black){
+      const s=String(value??'');if(!s)return;
+      page.drawText(s,{x,y:H-top-size,size,font:isBold?bold:regular,color});
     }
-    function line(x1,top1,x2,top2,width=1){
-      page.drawLine({start:{x:x1,y:H-top1},end:{x:x2,y:H-top2},thickness:width,color:black});
+    function rect(x,top,w,h,width=1,fill=null){
+      const opts={x,y:H-top-h,width:w,height:h,borderColor:black,borderWidth:width};
+      if(fill)opts.color=fill;
+      page.drawRectangle(opts);
     }
-    function rect(x,top,w,h,width=1.2){
-      page.drawRectangle({x,y:H-top-h,width:w,height:h,borderColor:black,borderWidth:width});
+    function rule(x1,t1,x2,t2,width=0.7){
+      page.drawLine({start:{x:x1,y:H-t1},end:{x:x2,y:H-t2},thickness:width,color:black});
     }
-    function wrapText(value,maxWidth,size,font=regular){
-      const words=clean(value).split(' ').filter(Boolean);
-      const lines=[];let current='';
+    function wrap(value,maxWidth,size,font=regular){
+      const words=clean(value).split(' ').filter(Boolean),lines=[];let current='';
       for(const word of words){
-        const candidate=current?current+' '+word:word;
-        if(font.widthOfTextAtSize(candidate,size)<=maxWidth){current=candidate;continue;}
+        const test=current?current+' '+word:word;
+        if(font.widthOfTextAtSize(test,size)<=maxWidth){current=test;continue;}
         if(current)lines.push(current);
         if(font.widthOfTextAtSize(word,size)<=maxWidth){current=word;continue;}
         let part='';
-        for(const ch of word){
-          const next=part+ch;
-          if(font.widthOfTextAtSize(next,size)>maxWidth&&part){lines.push(part);part=ch;}
-          else part=next;
-        }
+        for(const ch of word){const next=part+ch;if(font.widthOfTextAtSize(next,size)>maxWidth&&part){lines.push(part);part=ch;}else part=next;}
         current=part;
       }
       if(current)lines.push(current);
       return lines;
     }
-    function fitLines(value,maxWidth,size,font=regular,maxLines=8){
-      let lines=wrapText(value,maxWidth,size,font);
-      if(lines.length>maxLines){
-        lines=lines.slice(0,maxLines);
-        let last=lines[maxLines-1];
-        while(last.length&&font.widthOfTextAtSize(last+'...',size)>maxWidth)last=last.slice(0,-1);
-        lines[maxLines-1]=last+'...';
-      }
+    function center(value,top,size,isBold=true,color=black){
+      const f=isBold?bold:regular,w=f.widthOfTextAtSize(String(value),size);
+      txt(value,(W-w)/2,top,size,isBold,color);
+    }
+    function requireLines(lines,max,field){
+      if(lines.length>max)throw new Error(field+' is too long for the A5 label. Shorten it and generate again.');
       return lines;
     }
 
-    // Outer frame
-    rect(18,18,W-36,H-36,1.5);
+    const pin=clean(c.pin),mobile=clean(c.mobile),name=clean(c.name),landmark=clean(c.landmark);
+    // Split comma-separated address text into locality components, append city/state,
+    // then remove adjacent exact duplicates (including duplicates inside c.address).
+    // This avoids output such as "Chitpady, Udupi, Udupi, Karnataka".
+    const rawParts=[c.address,c.city,c.state]
+      .flatMap(value=>String(value??'').split(',').map(clean))
+      .filter(Boolean);
+    const addressParts=[];
+    rawParts.forEach(part=>{
+      if(!addressParts.length||norm(addressParts[addressParts.length-1])!==norm(part))addressParts.push(part);
+    });
+    const addressLines=requireLines(wrap(addressParts.join(', '),contentW-22,15,bold),6,'Delivery address');
+    const nameLines=requireLines(wrap(name,contentW-20,17,bold),2,'Recipient name');
+    const mobileLines=requireLines(wrap(mobile,contentW*0.54-20,15.5,bold),2,'Customer mobile');
+    const landmarkLines=landmark?requireLines(wrap(landmark,contentW-105,10.5,bold),2,'Landmark'):[];
+    const pinLine=pin?'PIN CODE: '+pin:'';
+    const pinLineWidth=pinLine?bold.widthOfTextAtSize(pinLine,14.5):0;
+    if(pinLineWidth>contentW-22)throw new Error('Destination PIN code does not fit the address section.');
 
-    // 1. India Post Customer ID — first and most prominent element
-    rect(margin,28,innerW,58,2);
-    const idLabel='INDIA POST CUSTOMER ID';
-    const idLabelW=bold.widthOfTextAtSize(idLabel,11);
-    drawText(idLabel,(W-idLabelW)/2,35,11,true);
-    const idValue='1309075351';
-    const idValueW=bold.widthOfTextAtSize(idValue,27);
-    drawText(idValue,(W-idValueW)/2,50,27,true);
+    // Dynamic vertical allocation: larger type and more space go to recipient/address.
+    const top=15,bottom=15,available=H-top-bottom,gap=6;
+    const heights={
+      header:58,
+      payment:72,
+      pinMobile:58,
+      recipient:Math.max(57,31+nameLines.length*18),
+      address:Math.max(82,48+addressLines.length*20+ (pinLine?23:0)),
+      landmark:landmark?Math.max(39,19+landmarkLines.length*13):0,
+      sender:101
+    };
+    const keys=['header','payment','pinMobile','recipient','address'];
+    if(landmark)keys.push('landmark');
+    keys.push('sender');
+    const gaps=keys.length-1;
+    const natural=keys.reduce((sum,k)=>sum+heights[k],0)+gaps*gap;
+    const slack=available-natural;
+    if(slack<0)throw new Error('These recipient details are too long to fit safely on one A5 page. Shorten the address or landmark.');
+    const weights={header:0.08,payment:0.11,pinMobile:0.11,recipient:0.16,address:0.30,landmark:0.08,sender:0.16};
+    const weightTotal=keys.reduce((sum,k)=>sum+weights[k],0);
+    keys.forEach(k=>heights[k]+=slack*weights[k]/weightTotal);
 
-    // 2. Document heading
-    drawText('INDIA POST',margin,96,17,true);
-    const parcelLabel='PARCEL LABEL';
-    drawText(parcelLabel,W-margin-bold.widthOfTextAtSize(parcelLabel,12),99,12,true);
-    line(margin,119,W-margin,119,1.4);
+    rect(7,7,W-14,H-14,1.1);
+    let y=top;
+    const section=(key,draw)=>{
+      const h=heights[key];draw(y,h);y+=h;
+      if(key!=='sender')y+=gap;
+    };
 
-    // 3. Payment status and collection instruction
-    const payTop=132,payH=91;
-    rect(margin,payTop,innerW,payH,2);
-    if(cod){
-      const heading='CASH ON DELIVERY';
-      drawText(heading,(W-bold.widthOfTextAtSize(heading,18))/2,payTop+8,18,true);
-      const money='Rs. '+amount;
-      drawText(money,(W-bold.widthOfTextAtSize(money,32))/2,payTop+30,32,true);
-      const collect='COLLECT FROM RECIPIENT';
-      drawText(collect,(W-bold.widthOfTextAtSize(collect,11))/2,payTop+69,11,true);
-    }else{
-      const heading='PREPAID';
-      drawText(heading,(W-bold.widthOfTextAtSize(heading,29))/2,payTop+13,29,true);
-      const noCollect='NO PAYMENT TO BE COLLECTED';
-      drawText(noCollect,(W-bold.widthOfTextAtSize(noCollect,11))/2,payTop+56,11,true);
+    section('header',(t,h)=>{
+      const left=78,right=78,mid=contentW-left-right;
+      rect(margin,t,contentW,h,1.1);
+      rule(margin+left,t,margin+left,t+h,0.8);
+      rule(margin+left+mid,t,margin+left+mid,t+h,0.8);
+      txt('INDIA POST',margin+8,t+h*0.43,13,true);
+      center('INDIA POST CUSTOMER ID',t+h*0.22,8.5,true);
+      center('1309075351',t+h*0.45,21,true);
+      txt('PARCEL LABEL',margin+left+mid+7,t+h*0.45,9,true);
+    });
+
+    section('payment',(t,h)=>{
+      if(cod){
+        rect(margin,t,contentW,h,1.5,black);
+        center('CASH ON DELIVERY',t+h*0.13,14,true,white);
+        center('Rs. '+amount,t+h*0.37,28,true,white);
+        center('COLLECT FROM RECIPIENT',t+h*0.80,9,true,white);
+      }else{
+        rect(margin,t,contentW,h,1.3);
+        center('PREPAID',t+h*0.23,27,true);
+        center('NO PAYMENT TO BE COLLECTED',t+h*0.68,10,true);
+      }
+    });
+
+    section('pinMobile',(t,h)=>{
+      const pinW=contentW*0.43;
+      rect(margin,t,pinW,h,1);
+      rect(margin+pinW,t,contentW-pinW,h,1);
+      txt('DESTINATION PIN CODE',margin+8,t+9,8.5,true);
+      const pSize=25,pw=bold.widthOfTextAtSize(pin,pSize);
+      txt(pin,margin+pinW-9-pw,t+h*0.48,pSize,true);
+      txt('CUSTOMER MOBILE',margin+pinW+9,t+9,8.5,true);
+      const lineH=18,blockH=mobileLines.length*lineH;
+      mobileLines.forEach((s,i)=>txt(s,margin+pinW+9,t+(h-blockH)/2+i*lineH,15.5,true));
+    });
+
+    section('recipient',(t,h)=>{
+      rect(margin,t,contentW,h,1);
+      txt('TO / RECIPIENT NAME',margin+9,t+8,8.5,true);
+      const lineH=18,blockH=nameLines.length*lineH;
+      nameLines.forEach((s,i)=>txt(s,margin+9,t+26+i*lineH,17,true));
+    });
+
+    section('address',(t,h)=>{
+      rect(margin,t,contentW,h,1.2);
+      txt('DELIVERY ADDRESS',margin+9,t+8,9,true);
+      const lineH=20,addressTop=t+31;
+      addressLines.forEach((s,i)=>txt(s,margin+9,addressTop+i*lineH,15,true));
+      if(pinLine){
+        const pTop=addressTop+addressLines.length*lineH+3;
+        txt(pinLine,margin+9,pTop,14.5,true);
+      }
+    });
+
+    if(landmark){
+      section('landmark',(t,h)=>{
+        rect(margin,t,contentW,h,0.9);
+        txt('LANDMARK',margin+9,t+9,8.5,true);
+        const lineH=13,blockH=landmarkLines.length*lineH;
+        landmarkLines.forEach((s,i)=>txt(s,margin+105,t+(h-blockH)/2+i*lineH,10.5,true));
+      });
     }
 
-    // 4. Destination PIN code
-    const pinTop=235,pinH=58;
-    rect(margin,pinTop,innerW,pinH,1.5);
-    drawText('DESTINATION PIN CODE',margin+12,pinTop+7,10,true);
-    const pin=clean(c.pin);
-    const pinW=bold.widthOfTextAtSize(pin,25);
-    drawText(pin,(W-pinW)/2,pinTop+22,25,true);
+    section('sender',(t,h)=>{
+      rect(margin,t,contentW,h,1);
+      txt('FROM / SENDER & RETURN ADDRESS',margin+9,t+8,8.5,true);
+      txt('WELLWITH  |  DURGA VENTURES',margin+9,t+29,12,true);
+      // Keep the three return-address lines clear of the footer separator.
+      txt('Shop No. 6, Upper Ground Floor,',margin+9,t+45,10,true);
+      txt('Kadri Mallikatta Market Complex,',margin+9,t+58,10,true);
+      txt('Mangalore, Karnataka – 575002',margin+9,t+71,10,true);
+      rule(margin+9,t+h-23,W-margin-9,t+h-23,0.7);
+      txt('Phone: 8618486377',margin+9,t+h-16,8.5,true);
+      const gst='GSTIN: 29ADAFD3264A1ZV';
+      txt(gst,W-margin-9-bold.widthOfTextAtSize(gst,8.5),t+h-16,8.5,true);
+    });
 
-    // 5. Recipient name and customer mobile in separate, clearly labelled rows
-    const recipientTop=304,recipientH=83;
-    rect(margin,recipientTop,innerW,recipientH,1.5);
-    drawText('RECIPIENT NAME',margin+12,recipientTop+7,10,true);
-    drawText(clean(c.name),margin+12,recipientTop+21,16,true);
-    line(margin+10,recipientTop+46,W-margin-10,recipientTop+46,0.8);
-    drawText('CUSTOMER MOBILE',margin+12,recipientTop+53,10,true);
-    const mobile=clean(c.mobile);
-    const mobileW=bold.widthOfTextAtSize(mobile,19);
-    drawText(mobile,W-margin-12-mobileW,recipientTop+50,19,true);
-
-    // 6. Delivery address — large, bold and given the greatest reading area
-    const addressParts=[c.address,c.landmark,c.city,c.state].map(clean).filter(Boolean);
-    const addressText=addressParts.join(', ');
-    const addressTop=398,addressSize=15,addressLineH=22;
-    const addressLines=fitLines(addressText,innerW-30,addressSize,bold,7);
-    const addressH=48+addressLines.length*addressLineH;
-    rect(margin,addressTop,innerW,addressH,2);
-    drawText('DELIVERY ADDRESS',margin+12,addressTop+8,12,true);
-    line(margin+10,addressTop+31,W-margin-10,addressTop+31,0.8);
-    addressLines.forEach((s,i)=>drawText(s,margin+14,addressTop+40+i*addressLineH,addressSize,true));
-
-    // 7. Complete sender / return address with phone and GSTIN
-    const senderTop=addressTop+addressH+12;
-    const senderBottom=H-27;
-    const senderH=senderBottom-senderTop;
-    if(senderH<126)throw new Error('This address is too long to fit on one A4 label. Shorten the delivery address and generate again.');
-    rect(margin,senderTop,innerW,senderH,1.3);
-    drawText('SENDER / RETURN ADDRESS',margin+12,senderTop+8,10,true);
-    drawText('WELLWITH  |  DURGA VENTURES',margin+12,senderTop+25,13,true);
-    const senderLines=[
-      'Shop No. 6, Upper Ground Floor,',
-      'Kadri Mallikatta Market Complex,',
-      'Mangalore, Karnataka – 575002'
-    ];
-    senderLines.forEach((s,i)=>drawText(s,margin+12,senderTop+45+i*17,11,true));
-    drawText('Phone: 8618486377',margin+12,senderTop+101,10,true);
-    drawText('GSTIN: 29ADAFD3264A1ZV',margin+190,senderTop+101,10,true);
-
-    // Classic cross-reference table for broad PDF reader compatibility.
+    if(Math.abs(y-(H-bottom))>0.5)throw new Error('A5 layout calculation failed. Please retry label generation.');
     const bytes=await doc.save({useObjectStreams:false,addDefaultPage:false});
     return new Blob([bytes],{type:'application/pdf'});
   }
